@@ -28,8 +28,8 @@ IKZ_plugin/
         └── movpe_IKZ
 ```
 
-- `src/`: This directory contains the source code for the plugins.
-- `tests/`: This directory contains tests for the plugins.
+- `src/`: contains the source code for the plugins.
+- `tests/`: contains tests for the plugins.
 
 Please refer to the README.md file in each subdirectory for more information about each plugin.
 
@@ -64,8 +64,7 @@ This plugin requires to clone in your local machines other plugin repositories:
 ```sh
 git clone https://github.com/FAIRmat-NFDI/nomad-measurements
 git clone https://github.com/FAIRmat-NFDI/nomad-material-processing
-git clone https://github.com/FAIRmat-NFDI/AreaA-data_modeling_and_schemas/tree/main/hall
-git clone https://github.com/FAIRmat-NFDI/AreaA-data_modeling_and_schemas/tree/main/LayTec_EpiTT
+git clone https://github.com/FAIRmat-NFDI/AreaA-data_modeling_and_schemas
 ```
 
 Consequentlty, other paths must be appended to `PYTHONPATH` system variable:
@@ -103,9 +102,9 @@ plugins:
     schemas/nomad_material_processing:
       python_package: nomad_material_processing
     parsers/hall_lakeshore_measurement:
-      python_package: lakeshore.measurement_parser
+      python_package: hall.measurement_parser
     parsers/hall_lakeshore_instrument:
-      python_package: lakeshore.instrument_parser
+      python_package: hall.instrument_parser
     parsers/laytec_epitt:
       python_package: laytec_epitt
     schemas/basesections_IKZ:
@@ -129,9 +128,6 @@ plugins:
 You need to copy and fill the tabular files in `tests/data` folder, then drag and drop them into a new NOMAD upload.
 
 Please refer to the README.md file in each subdirectory for more information about each plugin.
-
-
-
 
 ## Develop
 
