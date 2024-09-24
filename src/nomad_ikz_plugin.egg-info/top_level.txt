@@ -1,1 +1,1 @@
-nomad-ikz-plugin
+nomad_ikz_plugin
