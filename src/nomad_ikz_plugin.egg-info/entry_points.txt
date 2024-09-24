@@ -1,0 +1,16 @@
+[nomad.plugin]
+characterization_schema = nomad_ikz_plugin.characterization:schema
+czochralski_multilog_parser = nomad_ikz_plugin.czochralski:parser
+czochralski_schema = nomad_ikz_plugin.czochralski:schema
+dir_sol_manual_protocol_excel_parser = nomad_ikz_plugin.directional_solidification:excel_parser
+dir_sol_schema = nomad_ikz_plugin.directional_solidification:schema
+general_schema = nomad_ikz_plugin.general:schema
+mbe_schema = nomad_ikz_plugin.mbe:schema
+movpe1_growth_excel_parser = nomad_ikz_plugin.movpe.movpe1.growth_excel:parser
+movpe2_growth_excel_parser = nomad_ikz_plugin.movpe.movpe2.growth_excel:parser
+movpe_growth_run_app = nomad_ikz_plugin.movpe.movpe_app:movpegrowthrunapp
+movpe_layers_app = nomad_ikz_plugin.movpe.movpe_app:movpelayersapp
+movpe_schema = nomad_ikz_plugin.movpe:schema
+movpe_substrate_app = nomad_ikz_plugin.movpe.movpe_app:movpesubstrateapp
+pld_schema = nomad_ikz_plugin.pld:schema
+substrate_excel_parser = nomad_ikz_plugin.movpe.substrate:parser
