@@ -38,8 +38,8 @@ IKZ_plugin/
 To use the plugin, you need to clone this repo in your local machine and install the package with pip:
 
 ```bash
-git clone https://github.com/FAIRmat-NFDI/AreaA-data_modeling_and_schemas
-cd IKZ_plugin
+git clone https://github.com/IKZ-Berlin/nomad-ikz-plugin
+cd nomad-ikz-plugin
 pip install -e .[dev]
 ```
 
