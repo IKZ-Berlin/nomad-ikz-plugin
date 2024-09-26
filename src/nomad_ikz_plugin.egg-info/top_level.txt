@@ -1,1 +1,0 @@
-nomad_ikz_plugin
