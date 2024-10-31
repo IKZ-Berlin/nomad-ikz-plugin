@@ -50,7 +50,7 @@ index-url = "https://gitlab.mpcdf.mpg.de/api/v4/projects/2187/packages/pypi/simp
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
-exclude = [ 
+exclude = [
     ".bzr",
     ".direnv",
     ".eggs",
@@ -95,6 +95,10 @@ select = [
 
 ignore = [
     "F403", # 'from module import *' used; unable to detect undefined names
+    "E501", # Line too long
+    "PLR0912", # Too many branches
+    "PLR0913", # Too many arguments in function definition
+    "PLR0915", # Too many statements
 ]
 
 fixable = ["ALL"]
