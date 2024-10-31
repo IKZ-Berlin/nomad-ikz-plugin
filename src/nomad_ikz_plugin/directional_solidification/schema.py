@@ -582,11 +582,13 @@ class HeaterPowerDP(HeaterPower):
     value = Quantity(
         type=HDF5Dataset,
         unit='watt',
+        shape=[],
     )
     time = Quantity(
         type=HDF5Dataset,
         description='The process time when each of the values were recorded.',
         unit='second',
+        shape=[],
     )
 
 
@@ -625,11 +627,13 @@ class HeaterFrequencyDP(HeaterFrequency):
     value = Quantity(
         type=HDF5Dataset,
         unit='Hz',
+        shape=[],
     )
     time = Quantity(
         type=HDF5Dataset,
         description='The process time when each of the values were recorded.',
         unit='second',
+        shape=[],
     )
 
 
@@ -669,11 +673,13 @@ class HeaterPhaseDP(HeaterPhase):
     value = Quantity(
         type=HDF5Dataset,
         unit='degree',
+        shape=[],
     )
     time = Quantity(
         type=HDF5Dataset,
         description='The process time when each of the values were recorded.',
         unit='second',
+        shape=[],
     )
 
 
@@ -713,11 +719,13 @@ class HeaterAcCurrentDP(HeaterAcCurrent):
     value = Quantity(
         type=HDF5Dataset,
         unit='ampere',
+        shape=[],
     )
     time = Quantity(
         type=HDF5Dataset,
         description='The process time when each of the values were recorded.',
         unit='second',
+        shape=[],
     )
 
 
@@ -757,11 +765,13 @@ class HeaterDcCurrentDP(HeaterDcCurrent):
     value = Quantity(
         type=HDF5Dataset,
         unit='ampere',
+        shape=[],
     )
     time = Quantity(
         type=HDF5Dataset,
         description='The process time when each of the values were recorded.',
         unit='second',
+        shape=[],
     )
 
 
@@ -800,11 +810,13 @@ class HeaterTemperatureDP(HeaterTemperature):
     value = Quantity(
         type=HDF5Dataset,
         unit='K',
+        shape=[],
     )
     time = Quantity(
         type=HDF5Dataset,
         description='The process time when each of the values were recorded.',
         unit='second',
+        shape=[],
     )
 
 class HeaterCoil(ArchiveSection):
@@ -981,7 +993,7 @@ class DSProtocol(PlotSection, Process, EntryData):  # , TableData):
     temperature_1_3 = SubSection(
         section_def=HeaterTemperature,
     )
-    temperature1_4 = SubSection(
+    temperature_1_4 = SubSection(
         section_def=HeaterTemperature,
     )
     temperature_tp = SubSection(  # TODO explain what this is

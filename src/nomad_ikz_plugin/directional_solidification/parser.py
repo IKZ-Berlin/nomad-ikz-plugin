@@ -296,15 +296,15 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
         archive.data.manual_protocol = DSProtocolReference()
         archive.data.heaters = []
         archive.data.timestamp = []
-        archive.data.temperature_1_2 = HeaterTemperature()
-        archive.data.temperature_1_3 = HeaterTemperature()
-        archive.data.temperature_1_4 = HeaterTemperature()
-        archive.data.temperature_pyrometer = HeaterTemperature()
-        archive.data.temperature_tp = HeaterTemperature()
+        archive.data.temperature_1_2 = HeaterTemperatureDP()
+        archive.data.temperature_1_3 = HeaterTemperatureDP()
+        archive.data.temperature_1_4 = HeaterTemperatureDP()
+        archive.data.temperature_pyrometer = HeaterTemperatureDP()
+        archive.data.temperature_tp = HeaterTemperatureDP()
 
-        archive.data.temperature_1_2.value = ureg.Quantity(df_csv["T12 ValueY"].values.ravel(), ureg("K"))
-        archive.data.temperature_1_3.value = ureg.Quantity(df_csv["T13 ValueY"].values.ravel(), ureg("K"))
-        archive.data.temperature_1_4.value = ureg.Quantity(df_csv["T14 ValueY"].values.ravel(), ureg("K"))
+        archive.data.temperature_1_2.value = ureg.Quantity(df_csv["T12 ValueY"].values, ureg("K"))
+        archive.data.temperature_1_3.value = ureg.Quantity(df_csv["T13 ValueY"].values, ureg("K"))
+        archive.data.temperature_1_4.value = ureg.Quantity(df_csv["T14 ValueY"].values, ureg("K"))
 
         heater_number = 9
         for heater in range(heater_number):
@@ -312,39 +312,39 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
             archive.data.heaters[heater].name = f'heater {heater + 1}'
             archive.data.heaters[heater].f1 = HeaterCoil()
             archive.data.heaters[heater].f2 = HeaterCoil()
-            archive.data.heaters[heater].sum_current = HeaterDcCurrent()
-            archive.data.heaters[heater].dc_current = HeaterDcCurrent()
-            archive.data.heaters[heater].power = HeaterPower()
-            archive.data.heaters[heater].temperature = HeaterTemperature()
-            archive.data.heaters[heater].f1.ac_current = HeaterAcCurrent()
-            archive.data.heaters[heater].f1.phase = HeaterPhase()
-            archive.data.heaters[heater].f1.frequency = HeaterFrequency()
-            archive.data.heaters[heater].f2.ac_current = HeaterAcCurrent()
-            archive.data.heaters[heater].f2.phase = HeaterPhase()
-            archive.data.heaters[heater].f2.frequency = HeaterFrequency()
+            archive.data.heaters[heater].sum_current = HeaterDcCurrentDP()
+            archive.data.heaters[heater].dc_current = HeaterDcCurrentDP()
+            archive.data.heaters[heater].power = HeaterPowerDP()
+            archive.data.heaters[heater].temperature = HeaterTemperatureDP()
+            archive.data.heaters[heater].f1.ac_current = HeaterAcCurrentDP()
+            archive.data.heaters[heater].f1.phase = HeaterPhaseDP()
+            archive.data.heaters[heater].f1.frequency = HeaterFrequencyDP()
+            archive.data.heaters[heater].f2.ac_current = HeaterAcCurrentDP()
+            archive.data.heaters[heater].f2.phase = HeaterPhaseDP()
+            archive.data.heaters[heater].f2.frequency = HeaterFrequencyDP()
 
 
             archive.data.heaters[heater].f1.ac_current.value = ureg.Quantity(
-                df_csv[f'AC_F1 H{heater +1} ValueY'].to_numpy(),
+                df_csv[f'AC_F1 H{heater +1} ValueY'].values,
                 ureg('A'),
             )
             archive.data.heaters[heater].f2.ac_current.value = ureg.Quantity(
-                df_csv[f'AC_F2 H{heater +1} ValueY'].to_numpy(),
+                df_csv[f'AC_F2 H{heater +1} ValueY'].values,
                 ureg('A'),
             )
             archive.data.heaters[heater].dc_current.value = ureg.Quantity(
-                df_csv[f'I DC Ist H{heater +1} ValueY'].to_numpy(),
+                df_csv[f'I DC Ist H{heater +1} ValueY'].values,
                 ureg('A'),
             )
             archive.data.heaters[heater].temperature.value = ureg.Quantity(
-                df_csv[f'T Ist H{heater +1} ValueY'].to_numpy(),
+                df_csv[f'T Ist H{heater +1} ValueY'].values,
                 ureg('K'),
             )
             archive.data.heaters[heater].power.value = ureg.Quantity(
-                df_csv[f'P Ist H{heater +1} ValueY'].to_numpy(),
+                df_csv[f'P Ist H{heater +1} ValueY'].values,
                 ureg('W'),
             )
             archive.data.heaters[heater].sum_current.value = ureg.Quantity(
-                df_csv[f'I Summe H{heater +1} ValueY'].to_numpy(),
+                df_csv[f'I Summe H{heater +1} ValueY'].values,
                 ureg('A'),
             )
