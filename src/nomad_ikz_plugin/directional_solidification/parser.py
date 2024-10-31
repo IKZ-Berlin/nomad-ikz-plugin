@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import io
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -26,16 +27,22 @@ from nomad_material_processing.utils import create_archive
 
 from nomad_ikz_plugin.directional_solidification.schema import (
     DirectionalSolidificationExperiment,
-    HeaterAcCurrent,
     HeaterCoil,
+    HeaterAcCurrent,
     HeaterDcCurrent,
     HeaterFrequency,
-    HeaterParameters,
     HeaterPhase,
     HeaterPower,
     HeaterTemperature,
-    ManualProtocol,
-    ManualProtocols,
+    HeaterAcCurrentDP,
+    HeaterDcCurrentDP,
+    HeaterFrequencyDP,
+    HeaterPhaseDP,
+    HeaterPowerDP,
+    HeaterTemperatureDP,
+    DSProtocol,
+    DSProtocolReference,
+    HeaterParameters,
 )
 from nomad_ikz_plugin.utils import (
     create_archive,
@@ -56,7 +63,7 @@ def fill_datetime(date: pd.Series):
     return date_array
 
 
-class DSParserIKZ(MatchingParser):
+class DSManualProtocolParserIKZ(MatchingParser):
     def parse(self, mainfile: str, archive: EntryArchive, logger) -> None:
         data_file = mainfile.split('/')[-1]
         data_file_with_path = mainfile.split('raw/')[-1]
@@ -71,9 +78,9 @@ class DSParserIKZ(MatchingParser):
         filename = f'{data_file[:-5]}.archive.{filetype}'
 
         archive.data = DirectionalSolidificationExperiment()
-        archive.data.manual_protocol = ManualProtocols()
+        archive.data.manual_protocol = DSProtocolReference()
 
-        dig_prot_data = ManualProtocol()
+        dig_prot_data = DSProtocol()
         dig_prot_data.heaters = []
         dig_prot_data.timestamp = []
         dig_prot_data.temperature_1_2 = HeaterTemperature()
@@ -241,40 +248,103 @@ class DSParserIKZ(MatchingParser):
             logger,
         )
 
-        # df_csv = pd.read_csv(
-        #     file.name, decimal=',', comment='#' #, sep=';',  engine='python'
+
+class DSDigitalProtocolParserIKZ(MatchingParser):
+    def parse(self, mainfile: str, archive: EntryArchive, logger) -> None:
+        data_file = mainfile.split('/')[-1]
+        data_file_with_path = mainfile.split('raw/')[-1]
+        # xlsx = pd.ExcelFile(mainfile)
+        # xlsx_sheet = pd.read_excel(
+        #     xlsx,
+        #     'Sheet1',
+        #     comment='#',
         # )
-        # # Create a pandas Series with datetime data
-        # df_csv['T Ist H1 Time'] = pd.to_datetime(df_csv['T Ist H1 Time'])
-        # # Access the datetime properties (dt)
-        # df_csv['T Ist H1 Time'] = df_csv['T Ist H1 Time'].dt.tz_localize(
-        #     tz='cet'
-        # )
-        # for i in df_csv:
-        #     if 'Time' in i and 'T Ist H1 Time' not in i:
-        #         del df_csv[i]
-        # for i in df_csv:
-        #     if '/' in i:
-        #         new_i = i.replace('/', ' ')
-        #         df_csv[new_i] = df_csv[i]
-        #         del df_csv[i]
-        # if hasattr(self, 'timestamp'):
-        #     setattr(self, 'timestamp', df_csv['T Ist H1 Time'])
-        # if hasattr(self, 't_ist_h1'):
-        #     setattr(self, 't_ist_h1', df_csv['T Ist H1 ValueY'])
-        # if hasattr(self, 't_ist_h2'):
-        #     setattr(self, 't_ist_h2', df_csv['T Ist H2 ValueY'])
-        # if hasattr(self, 't_ist_h3'):
-        #     setattr(self, 't_ist_h3', df_csv['T Ist H3 ValueY'])
-        # if hasattr(self, 't_ist_h4'):
-        #     setattr(self, 't_ist_h4', df_csv['T Ist H4 ValueY'])
-        # if hasattr(self, 't_ist_h5'):
-        #     setattr(self, 't_ist_h5', df_csv['T Ist H5 ValueY'])
-        # if hasattr(self, 't_ist_h6'):
-        #     setattr(self, 't_ist_h6', df_csv['T Ist H6 ValueY'])
-        # if hasattr(self, 't_ist_h7'):
-        #     setattr(self, 't_ist_h7', df_csv['T Ist H7 ValueY'])
-        # if hasattr(self, 't_ist_h8'):
-        #     setattr(self, 't_ist_h8', df_csv['T Ist H8 ValueY'])
-        # if hasattr(self, 't_ist_h9'):
-        #     setattr(self, 't_ist_h9', df_csv['T Ist H9 ValueY'])
+
+        filetype = 'json'
+        filename = f'{data_file[:-5]}.archive.{filetype}'
+
+
+        # with archive.m_context.raw_file(
+        #     mainfile, 'r', encoding='unicode_escape'
+        # ) as file:
+        #     # clean csv file uploaded
+        #     clean_file = ''
+        #     for line in file:
+        #         mod_line = line
+        #         if '\t' in line:
+        #             mod_line = line.replace('\t', ';')
+        #         clean_file += mod_line
+        df_csv = pd.read_csv(
+            mainfile, sep=';', decimal=',', engine='python'
+        )
+        # Create a pandas Series with datetime data
+        df_csv['T Ist H1 Time'] = pd.to_datetime(df_csv['T Ist H1 Time'])
+        # Access the datetime properties (dt)
+        df_csv['T Ist H1 Time'] = df_csv['T Ist H1 Time'].dt.tz_localize(
+            tz='cet'
+        )
+        for i in df_csv:
+            if 'Time' in i and 'T Ist H1 Time' not in i:
+                del df_csv[i]
+        for i in df_csv:
+            if '/' in i:
+                new_i = i.replace('/', ' ')
+                df_csv[new_i] = df_csv[i]
+                del df_csv[i]
+
+        archive.data = DSProtocol()
+        archive.data.manual_protocol = DSProtocolReference()
+        archive.data.heaters = []
+        archive.data.timestamp = []
+        archive.data.temperature_1_2 = HeaterTemperature()
+        archive.data.temperature_1_3 = HeaterTemperature()
+        archive.data.temperature_1_4 = HeaterTemperature()
+        archive.data.temperature_pyrometer = HeaterTemperature()
+        archive.data.temperature_tp = HeaterTemperature()
+
+        archive.data.temperature_1_2.value = ureg.Quantity(df_csv["T12 ValueY"].values.ravel(), ureg("K"))
+        archive.data.temperature_1_3.value = ureg.Quantity(df_csv["T13 ValueY"].values.ravel(), ureg("K"))
+        archive.data.temperature_1_4.value = ureg.Quantity(df_csv["T14 ValueY"].values.ravel(), ureg("K"))
+
+        heater_number = 9
+        for heater in range(heater_number):
+            archive.data.heaters.append(HeaterParameters())
+            archive.data.heaters[heater].name = f'heater {heater + 1}'
+            archive.data.heaters[heater].f1 = HeaterCoil()
+            archive.data.heaters[heater].f2 = HeaterCoil()
+            archive.data.heaters[heater].sum_current = HeaterDcCurrent()
+            archive.data.heaters[heater].dc_current = HeaterDcCurrent()
+            archive.data.heaters[heater].power = HeaterPower()
+            archive.data.heaters[heater].temperature = HeaterTemperature()
+            archive.data.heaters[heater].f1.ac_current = HeaterAcCurrent()
+            archive.data.heaters[heater].f1.phase = HeaterPhase()
+            archive.data.heaters[heater].f1.frequency = HeaterFrequency()
+            archive.data.heaters[heater].f2.ac_current = HeaterAcCurrent()
+            archive.data.heaters[heater].f2.phase = HeaterPhase()
+            archive.data.heaters[heater].f2.frequency = HeaterFrequency()
+
+
+            archive.data.heaters[heater].f1.ac_current.value = ureg.Quantity(
+                df_csv[f'AC_F1 H{heater +1} ValueY'].to_numpy(),
+                ureg('A'),
+            )
+            archive.data.heaters[heater].f2.ac_current.value = ureg.Quantity(
+                df_csv[f'AC_F2 H{heater +1} ValueY'].to_numpy(),
+                ureg('A'),
+            )
+            archive.data.heaters[heater].dc_current.value = ureg.Quantity(
+                df_csv[f'I DC Ist H{heater +1} ValueY'].to_numpy(),
+                ureg('A'),
+            )
+            archive.data.heaters[heater].temperature.value = ureg.Quantity(
+                df_csv[f'T Ist H{heater +1} ValueY'].to_numpy(),
+                ureg('K'),
+            )
+            archive.data.heaters[heater].power.value = ureg.Quantity(
+                df_csv[f'P Ist H{heater +1} ValueY'].to_numpy(),
+                ureg('W'),
+            )
+            archive.data.heaters[heater].sum_current.value = ureg.Quantity(
+                df_csv[f'I Summe H{heater +1} ValueY'].to_numpy(),
+                ureg('A'),
+            )

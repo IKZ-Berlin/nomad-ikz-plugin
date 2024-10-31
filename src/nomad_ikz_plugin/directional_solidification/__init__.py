@@ -34,14 +34,33 @@ schema = DirSolEntryPoint(
 
 class DirSolManualProtocolParserEntryPoint(ParserEntryPoint):
     def load(self):
-        from nomad_ikz_plugin.directional_solidification.parser import DSParserIKZ
+        from nomad_ikz_plugin.directional_solidification.parser import DSManualProtocolParserIKZ
 
-        return DSParserIKZ(**self.dict())
+        return DSManualProtocolParserIKZ(**self.dict())
 
 
-excel_parser = DirSolManualProtocolParserEntryPoint(
+manual_protocol_parser = DirSolManualProtocolParserEntryPoint(
     name='DirSolManualProtocolParser',
     description='Parse excel files containing parameters from the process.',
     mainfile_name_re=r'.+\.ds.manualprotocol.xlsx',
     mainfile_mime_re='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+)
+
+
+class DirSolDigitalProtocolParserEntryPoint(ParserEntryPoint):
+    def load(self):
+        from nomad_ikz_plugin.directional_solidification.parser import DSDigitalProtocolParserIKZ
+
+        return DSDigitalProtocolParserIKZ(**self.dict())
+
+
+digital_protocol_parser = DirSolDigitalProtocolParserEntryPoint(
+    name='DirSolDigitalProtocolParser',
+    description='Parse excel files containing parameters from the process.',
+    mainfile_name_re=r'.+\.csv',
+    mainfile_mime_re='text/plain',
+    # mainfile_contents_dict={
+    #     'MBE sources': {'__has_all_keys': ['source_type', 'EPIC_loop']},
+    #     '__comment_symbol': '#',
+    # },
 )
