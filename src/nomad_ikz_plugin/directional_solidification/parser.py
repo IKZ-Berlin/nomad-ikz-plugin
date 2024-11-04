@@ -283,7 +283,7 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
         self,
         mainfile: str,
         archive: EntryArchive,
-        # child_archives: dict(test=EntryArchive), ###### to test multiple archives
+        child_archives: dict(test=EntryArchive),  ###### to test multiple archives
         logger,
     ) -> None:
         data_file = mainfile.split('/')[-1]
@@ -336,7 +336,6 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
                 del df_csv[i]
 
         archive.data = DSProtocol()
-        archive.data.manual_protocol = DSProtocolReference()
         archive.data.heaters = []
         archive.data.temperature_1_2 = HeaterTemperatureDP()
         archive.data.temperature_1_3 = HeaterTemperatureDP()
@@ -344,12 +343,13 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
         archive.data.temperature_pyrometer = HeaterTemperatureDP()
         archive.data.temperature_tp = HeaterTemperatureDP()
 
-        archive.data.elapsed_time = ureg.Quantity(elapsed_time, ureg('s'))
+        # archive.data.elapsed_time = ureg.Quantity(elapsed_time, ureg('s'))
         archive.data.timestamp = timestamp
         archive.data.start_time = start_time
 
         # TEST
         child_archives['test'].data = DSProtocol()
+        child_archives['test'].data.name = 'test entry aa'
         child_archives['test'].data.elapsed_time = ureg.Quantity(
             elapsed_time, ureg('s')
         )
@@ -358,18 +358,24 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
             df_csv['T12 ValueY'].values, ureg('K')
         )
         archive.data.temperature_1_2.time = (
-            archive.data.elapsed_time  # child_archives['test'].data.elapsed_time
+            child_archives[
+                'test'
+            ].data.elapsed_time  # archive.data.elapsed_time  # child_archives['test'].data.elapsed_time
         )
 
         archive.data.temperature_1_3.value = ureg.Quantity(
             df_csv['T13 ValueY'].values, ureg('K')
         )
-        archive.data.temperature_1_3.time = archive.data.elapsed_time
+        archive.data.temperature_1_3.time = child_archives[
+            'test'
+        ].data.elapsed_time  # archive.data.elapsed_time
 
         archive.data.temperature_1_4.value = ureg.Quantity(
             df_csv['T14 ValueY'].values, ureg('K')
         )
-        archive.data.temperature_1_4.time = archive.data.elapsed_time
+        archive.data.temperature_1_4.time = child_archives[
+            'test'
+        ].data.elapsed_time  # archive.data.elapsed_time
 
         heater_number = 9
         for heater in range(heater_number):
@@ -396,46 +402,48 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
                 df_csv[f'AC_F1 H{heater +1} ValueY'].values,
                 ureg('A'),
             )
-            archive.data.heaters[heater].f1.ac_current.time = archive.data.elapsed_time
+            archive.data.heaters[heater].f1.ac_current.time = child_archives[
+                'test'
+            ].data.elapsed_time  # archive.data.elapsed_time
 
-            archive.data.heaters[heater].f2.ac_current.value = ureg.Quantity(
-                df_csv[f'AC_F2 H{heater +1} ValueY'].values,
-                ureg('A'),
-            )
-            archive.data.heaters[heater].f2.ac_current.time = archive.data.elapsed_time
+        #     archive.data.heaters[heater].f2.ac_current.value = ureg.Quantity(
+        #         df_csv[f'AC_F2 H{heater +1} ValueY'].values,
+        #         ureg('A'),
+        #     )
+        #     archive.data.heaters[heater].f2.ac_current.time = archive.data.elapsed_time
 
-            archive.data.heaters[heater].dc_current.value = ureg.Quantity(
-                df_csv[f'I DC Ist H{heater +1} ValueY'].values,
-                ureg('A'),
-            )
-            archive.data.heaters[heater].dc_current.time = archive.data.elapsed_time
+        #     archive.data.heaters[heater].dc_current.value = ureg.Quantity(
+        #         df_csv[f'I DC Ist H{heater +1} ValueY'].values,
+        #         ureg('A'),
+        #     )
+        #     archive.data.heaters[heater].dc_current.time = archive.data.elapsed_time
 
-            archive.data.heaters[heater].temperature.value = ureg.Quantity(
-                df_csv[f'T Ist H{heater +1} ValueY'].values,
-                ureg('K'),
-            )
-            archive.data.heaters[heater].temperature.time = archive.data.elapsed_time
+        #     archive.data.heaters[heater].temperature.value = ureg.Quantity(
+        #         df_csv[f'T Ist H{heater +1} ValueY'].values,
+        #         ureg('K'),
+        #     )
+        #     archive.data.heaters[heater].temperature.time = archive.data.elapsed_time
 
-            archive.data.heaters[heater].power.value = ureg.Quantity(
-                df_csv[f'P Ist H{heater +1} ValueY'].values,
-                ureg('W'),
-            )
-            archive.data.heaters[heater].power.time = archive.data.elapsed_time
+        #     archive.data.heaters[heater].power.value = ureg.Quantity(
+        #         df_csv[f'P Ist H{heater +1} ValueY'].values,
+        #         ureg('W'),
+        #     )
+        #     archive.data.heaters[heater].power.time = archive.data.elapsed_time
 
-            archive.data.heaters[heater].sum_current.value = ureg.Quantity(
-                df_csv[f'I Summe H{heater +1} ValueY'].values,
-                ureg('A'),
-            )
-            archive.data.heaters[heater].sum_current.time = archive.data.elapsed_time
+        #     archive.data.heaters[heater].sum_current.value = ureg.Quantity(
+        #         df_csv[f'I Summe H{heater +1} ValueY'].values,
+        #         ureg('A'),
+        #     )
+        #     archive.data.heaters[heater].sum_current.time = archive.data.elapsed_time
 
-            archive.data.trafo_1_p.value = df_csv['Trafo 1 P ValueY'].values
-            archive.data.trafo_1_p.time = archive.data.elapsed_time
+        # archive.data.trafo_1_p.value = df_csv['Trafo 1 P ValueY'].values
+        # archive.data.trafo_1_p.time = archive.data.elapsed_time
 
-            archive.data.trafo_1_m.value = df_csv['Trafo 1 M ValueY'].values
-            archive.data.trafo_1_m.time = archive.data.elapsed_time
+        # archive.data.trafo_1_m.value = df_csv['Trafo 1 M ValueY'].values
+        # archive.data.trafo_1_m.time = archive.data.elapsed_time
 
-            archive.data.trafo_2_p.value = df_csv['Trafo 2 P ValueY'].values
-            archive.data.trafo_2_p.time = archive.data.elapsed_time
+        # archive.data.trafo_2_p.value = df_csv['Trafo 2 P ValueY'].values
+        # archive.data.trafo_2_p.time = archive.data.elapsed_time
 
-            archive.data.trafo_2_m.value = df_csv['Trafo 2 M ValueY'].values
-            archive.data.trafo_2_m.time = archive.data.elapsed_time
+        # archive.data.trafo_2_m.value = df_csv['Trafo 2 M ValueY'].values
+        # archive.data.trafo_2_m.time = archive.data.elapsed_time
