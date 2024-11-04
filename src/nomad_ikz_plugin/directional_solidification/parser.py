@@ -286,7 +286,7 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
         self,
         mainfile: str,
         archive: EntryArchive,
-        # child_archives: dict(test=EntryArchive), ###### to test multiple archives
+        child_archives: dict(test=EntryArchive),  ###### to test multiple archives
         logger,
     ) -> None:
         data_file = mainfile.split('/')[-1]
@@ -351,7 +351,6 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
                 hdf.create_dataset(column.replace(' ', '_'), data=df_csv[column].values)
 
         archive.data = DSProtocol()
-        archive.data.manual_protocol = DSProtocolReference()
         archive.data.heaters = []
         archive.data.temperature_1_2 = HeaterTemperatureDP()
         archive.data.temperature_1_3 = HeaterTemperatureDP()
