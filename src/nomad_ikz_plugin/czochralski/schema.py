@@ -34,7 +34,11 @@ from nomad.parsing.tabular import TableData
 
 configuration = config.get_plugin_entry_point('nomad_ikz_plugin.czochralski:schema')
 
-m_package = SchemaPackage()
+m_package = SchemaPackage(
+    aliases=[
+        'ikz_plugin.czochralski.schema',
+    ],
+)
 
 
 class Operators(ArchiveSection):
