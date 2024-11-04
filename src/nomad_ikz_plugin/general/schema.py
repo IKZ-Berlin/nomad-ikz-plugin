@@ -39,7 +39,11 @@ from nomad_ikz_plugin.utils import create_archive
 
 configuration = config.get_plugin_entry_point('nomad_ikz_plugin.general:schema')
 
-m_package = SchemaPackage()
+m_package = SchemaPackage(
+    aliases=[
+        'ikz_plugin.general.schema',
+    ],
+)
 
 
 class IKZCategory(EntryDataCategory):

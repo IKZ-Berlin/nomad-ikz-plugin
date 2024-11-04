@@ -52,7 +52,11 @@ configuration = config.get_plugin_entry_point(
     'nomad_ikz_plugin.directional_solidification:schema'
 )
 
-m_package = SchemaPackage()
+m_package = SchemaPackage(
+    aliases=[
+        'ikz_plugin.directional_solidification.schema',
+    ],
+)
 
 
 def custom_separator(line):
