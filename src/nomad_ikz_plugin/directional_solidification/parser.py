@@ -28,8 +28,8 @@ from nomad_material_processing.utils import create_archive
 
 from nomad_ikz_plugin.directional_solidification.schema import (
     DirectionalSolidificationExperiment,
+    Trafo,
     HeaterCoil,
-    HeaterCoilDP,
     HeaterAcCurrent,
     HeaterDcCurrent,
     HeaterFrequency,
@@ -45,7 +45,6 @@ from nomad_ikz_plugin.directional_solidification.schema import (
     DSProtocol,
     DSProtocolReference,
     HeaterParameters,
-    HeaterParametersDP,
 )
 from nomad_ikz_plugin.utils import (
     create_archive,
@@ -333,10 +332,10 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
 
         heater_number = 9
         for heater in range(heater_number):
-            archive.data.heaters.append(HeaterParametersDP())
+            archive.data.heaters.append(HeaterParameters())
             archive.data.heaters[heater].name = f"heater {heater + 1}"
-            archive.data.heaters[heater].f1 = HeaterCoilDP()
-            archive.data.heaters[heater].f2 = HeaterCoilDP()
+            archive.data.heaters[heater].f1 = HeaterCoil()
+            archive.data.heaters[heater].f2 = HeaterCoil()
             archive.data.heaters[heater].sum_current = HeaterDcCurrentDP()
             archive.data.heaters[heater].dc_current = HeaterDcCurrentDP()
             archive.data.heaters[heater].power = HeaterPowerDP()
@@ -347,6 +346,10 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
             archive.data.heaters[heater].f2.ac_current = HeaterAcCurrentDP()
             archive.data.heaters[heater].f2.phase = HeaterPhaseDP()
             archive.data.heaters[heater].f2.frequency = HeaterFrequencyDP()
+            archive.data.trafo_1_m = Trafo()
+            archive.data.trafo_1_p = Trafo()
+            archive.data.trafo_2_m = Trafo()
+            archive.data.trafo_2_p = Trafo()
 
             archive.data.heaters[heater].f1.ac_current.value = ureg.Quantity(
                 df_csv[f"AC_F1 H{heater +1} ValueY"].values,
@@ -385,3 +388,15 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
                 ureg("A"),
             )
             archive.data.heaters[heater].sum_current.time = ureg.Quantity(elapsed_time, ureg("s"))
+
+            archive.data.trafo_1_p.value = df_csv["Trafo 1 P ValueY"].values
+            archive.data.trafo_1_p.time = ureg.Quantity(elapsed_time, ureg("s"))
+
+            archive.data.trafo_1_m.value = df_csv["Trafo 1 M ValueY"].values
+            archive.data.trafo_1_m.time = ureg.Quantity(elapsed_time, ureg("s"))
+
+            archive.data.trafo_2_p.value = df_csv["Trafo 2 P ValueY"].values
+            archive.data.trafo_2_p.time = ureg.Quantity(elapsed_time, ureg("s"))
+
+            archive.data.trafo_2_m.value = df_csv["Trafo 2 M ValueY"].values
+            archive.data.trafo_2_m.time = ureg.Quantity(elapsed_time, ureg("s"))
