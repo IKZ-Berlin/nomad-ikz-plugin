@@ -23,7 +23,7 @@ from nomad.datamodel.data import (
     ArchiveSection,
     EntryData,
 )
-from nomad.datamodel.hdf5 import HDF5Dataset
+from nomad.datamodel.hdf5 import HDF5Reference
 from nomad.datamodel.metainfo.annotations import (
     H5WebAnnotation,
 )
@@ -584,12 +584,12 @@ class HeaterPowerDP(HeaterPower):
     m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
 
     value = Quantity(
-        type=HDF5Dataset,
+        type=HDF5Reference,
         unit='watt',
         shape=[],
     )
     time = Quantity(
-        type=HDF5Dataset,
+        type=HDF5Reference,
         description='The process time when each of the values were recorded.',
         unit='second',
         shape=[],
@@ -629,12 +629,12 @@ class HeaterFrequencyDP(HeaterFrequency):
     m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
 
     value = Quantity(
-        type=HDF5Dataset,
+        type=HDF5Reference,
         unit='Hz',
         shape=[],
     )
     time = Quantity(
-        type=HDF5Dataset,
+        type=HDF5Reference,
         description='The process time when each of the values were recorded.',
         unit='second',
         shape=[],
@@ -675,12 +675,12 @@ class HeaterPhaseDP(HeaterPhase):
     m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
 
     value = Quantity(
-        type=HDF5Dataset,
+        type=HDF5Reference,
         unit='degree',
         shape=[],
     )
     time = Quantity(
-        type=HDF5Dataset,
+        type=HDF5Reference,
         description='The process time when each of the values were recorded.',
         unit='second',
         shape=[],
@@ -721,12 +721,12 @@ class HeaterAcCurrentDP(HeaterAcCurrent):
     m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
 
     value = Quantity(
-        type=HDF5Dataset,
+        type=HDF5Reference,
         unit='ampere',
         shape=[],
     )
     time = Quantity(
-        type=HDF5Dataset,
+        type=HDF5Reference,
         description='The process time when each of the values were recorded.',
         unit='second',
         shape=[],
@@ -767,12 +767,12 @@ class HeaterDcCurrentDP(HeaterDcCurrent):
     m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
 
     value = Quantity(
-        type=HDF5Dataset,
+        type=HDF5Reference,
         unit='ampere',
         shape=[],
     )
     time = Quantity(
-        type=HDF5Dataset,
+        type=HDF5Reference,
         description='The process time when each of the values were recorded.',
         unit='second',
         shape=[],
@@ -810,15 +810,15 @@ class HeaterTemperatureDP(HeaterTemperature):
     FILL
     """
 
-    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
+    m_def = Section(a_h5web=H5WebAnnotation(axes='/time', signal='/temperature_1_2'))
 
     value = Quantity(
-        type=HDF5Dataset,
+        type=HDF5Reference,
         unit='K',
         shape=[],
     )
     time = Quantity(
-        type=HDF5Dataset,
+        type=HDF5Reference,
         description='The process time when each of the values were recorded.',
         unit='second',
         shape=[],
@@ -833,12 +833,12 @@ class Trafo(TimeSeries):
     m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
 
     value = Quantity(
-        type=HDF5Dataset,
+        type=HDF5Reference,
         #unit='K',
         shape=[],
     )
     time = Quantity(
-        type=HDF5Dataset,
+        type=HDF5Reference,
         description='The process time when each of the values were recorded.',
         unit='second',
         shape=[],
@@ -921,7 +921,7 @@ class DSProtocol(PlotSection, Process, EntryData):  # , TableData):
         shape=['*'],
     )
     elapsed_time = Quantity(
-        type=HDF5Dataset,
+        type=HDF5Reference,
         description='FILL THE DESCRIPTION',
         shape=[],
         unit='second',
