@@ -35,7 +35,7 @@ dependencies = [
     'nomad-analysis', # develop branch
     'lakeshore-nomad-plugin @ git+https://github.com/IKZ-Berlin/lakeshore-nomad-plugin.git@69a6deb3f0e99d7b0dc66714105dd62a56f157e9',
     'laytec_epitt_plugin @ git+https://github.com/IKZ-Berlin/laytec_epitt_nomad_plugin.git@f4953ac4ecb55b7003dee323d7d7f473e49ab4e3',
-    'transmission @ git+https://github.com/FAIRmat-NFDI/AreaA-data_modeling_and_schemas.git@de012ac8820dbb514f5dd73aafdf46bf2a879481#subdirectory=transmission/transmission_plugin/uv_vis_nir_transmission_plugin',
+    # 'transmission @ git+https://github.com/FAIRmat-NFDI/AreaA-data_modeling_and_schemas.git@de012ac8820dbb514f5dd73aafdf46bf2a879481#subdirectory=transmission/transmission_plugin/uv_vis_nir_transmission_plugin',
 ]
 
 [project.optional-dependencies]
@@ -50,7 +50,7 @@ index-url = "https://gitlab.mpcdf.mpg.de/api/v4/projects/2187/packages/pypi/simp
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
-exclude = [ 
+exclude = [
     ".bzr",
     ".direnv",
     ".eggs",
@@ -94,7 +94,19 @@ select = [
 ]
 
 ignore = [
-    "F403", # 'from module import *' used; unable to detect undefined names
+    "E501",    # Line too long ({width} > {limit} characters)
+    "E701",    # Multiple statements on one line (colon)
+    "E731",    # Do not assign a lambda expression, use a def
+    "E402",    # Module level import not at top of file
+    "PLR0911", # Too many return statements
+    "PLR0912", # Too many branches
+    "PLR0913", # Too many arguments in function definition
+    "PLR0915", # Too many statements
+    "PLR2004", # Magic value used instead of constant
+    "PLW0603", # Using the global statement
+    "PLW2901", # redefined-loop-name
+    "PLR1714", # consider-using-in
+    "PLR5501", # else-if-used
 ]
 
 fixable = ["ALL"]

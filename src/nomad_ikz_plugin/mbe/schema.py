@@ -21,7 +21,11 @@ from nomad_ikz_plugin.general.schema import SampleCutIKZ, SubstratePreparationIK
 
 configuration = config.get_plugin_entry_point('nomad_ikz_plugin.mbe:schema')
 
-m_package = SchemaPackage()
+m_package = SchemaPackage(
+    aliases=[
+        'ikz_plugin.mbe.schema',
+    ],
+)
 
 
 class GrowthRecipeStep(EntryData):

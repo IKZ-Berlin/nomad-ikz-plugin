@@ -113,7 +113,12 @@ if TYPE_CHECKING:
 
 configuration = config.get_plugin_entry_point('nomad_ikz_plugin.pld:schema')
 
-m_package = SchemaPackage()
+m_package = SchemaPackage(
+    aliases=[
+        'ikz_plugin.pld.schema',
+        'ikz_pld'
+    ],
+)
 
 
 def read_dlog(file_path: str, logger: 'BoundLogger' = None) -> Dict[str, Any]:
