@@ -36,6 +36,6 @@ parser = Movpe1ParserEntryPoint(
             '__has_all_keys': ['Constant Parameters ID', 'Sample ID', 'Date', 'number']
         },
         'Precursors': {'__has_all_keys': ['Sample ID']},
-        '__comment_symbol': '#',
+        '__has_comment': '#',
     },
 )

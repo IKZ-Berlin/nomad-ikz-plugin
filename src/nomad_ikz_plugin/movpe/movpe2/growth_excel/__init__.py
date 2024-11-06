@@ -33,6 +33,6 @@ parser = Movpe2ParserEntryPoint(
     mainfile_mime_re=r'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     mainfile_contents_dict={
         'GrowthRun': {'__has_all_keys': ['Sample Name']},
-        '__comment_symbol': '#',
+        '__has_comment': '#',
     },
 )
