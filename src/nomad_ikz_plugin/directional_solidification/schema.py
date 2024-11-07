@@ -811,7 +811,7 @@ class HeaterTemperatureDP(HeaterTemperature):
     FILL
     """
 
-    m_def = Section(a_h5web=H5WebAnnotation(axes='/time', signal='/temperature_1_2'))
+    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
 
     value = Quantity(
         type=HDF5Reference,

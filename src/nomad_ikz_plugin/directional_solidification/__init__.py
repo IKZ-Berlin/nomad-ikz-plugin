@@ -63,8 +63,8 @@ digital_protocol_parser = DirSolDigitalProtocolParserEntryPoint(
     description='Parse excel files containing parameters from the process.',
     mainfile_name_re=r'.+\.csv',
     mainfile_mime_re='text/plain',
-    mainfile_contents_dict={
-        '__has_all_keys': ['T Ist H1 Time', 'T Ist H5 ValueY'],
-        '__has_comment': '#',
-    },
+    # mainfile_contents_dict={
+    #     '__has_all_keys': ['T Ist H1 Time', 'T Ist H5 ValueY'],
+    #     '__has_comment': '#',
+    # },
 )

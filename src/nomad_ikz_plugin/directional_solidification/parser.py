@@ -257,90 +257,43 @@ class DSManualProtocolParserIKZ(MatchingParser):
 
 
 class DSDigitalProtocolParserIKZ(MatchingParser):
-    # def is_mainfile(
-    #     self,
-    #     filename: str,
-    #     mime: str,
-    #     buffer: bytes,
-    #     decoded_buffer: str,
-    #     compression: str = None,
-    # ) -> Union[bool, Iterable[str]]:
-    #     is_mainfile = super().is_mainfile(
-    #         filename=filename,
-    #         mime=mime,
-    #         buffer=buffer,
-    #         decoded_buffer=decoded_buffer,
-    #         compression=compression,
-    #     )
-    #     if is_mainfile:
-    #         try:
-    #             # try to resolve mainfile keys from parser
-    #             mainfile_keys = ['test']
-    #             self.creates_children = True
-    #             return mainfile_keys
-    #         except Exception:
-    #             return is_mainfile
-    #     return is_mainfile
-
     def parse(
         self,
         mainfile: str,
         archive: EntryArchive,
-        # child_archives: dict(test=EntryArchive), ###### to test multiple archives
         logger,
     ) -> None:
         data_file = mainfile.split('/')[-1]
         data_file_with_path = mainfile.split('raw/')[-1]
-        # xlsx = pd.ExcelFile(mainfile)
-        # xlsx_sheet = pd.read_excel(
-        #     xlsx,
-        #     'Sheet1',
-        #     comment='#',
-        # )
-
-    def parse(
-        self,
-        mainfile: str,
-        archive: EntryArchive,
-        child_archives: dict(test=EntryArchive),  ###### to test multiple archives
-        logger,
-    ) -> None:
-        data_file = mainfile.split('/')[-1]
-        data_file_with_path = mainfile.split('raw/')[-1]
-
-        # digital_protocol = EntryArchive(
-        #     data=DSProtocol(),
-        #     metadata=EntryMetadata(upload_id=archive.m_context.upload_id),
-        # )
 
         df_csv = pd.read_csv(mainfile, sep=';', decimal=',', engine='python')
 
-        # start_time = datetime.strptime(
-        #     df_csv["T Ist H1 Time"][0],
-        #     "%d.%m.%Y %H:%M:%S",
-        # ).replace(tzinfo=ZoneInfo(timezone))
-        # timestamp = [
-        #     (
-        #         datetime.strptime(
-        #             dt,
-        #             "%d.%m.%Y %H:%M:%S",
-        #         ).replace(tzinfo=ZoneInfo(timezone))
-        #     )
-        #     for dt in df_csv["T Ist H1 Time"]
-        # ]
-        # elapsed_time = np.array(
-        #     [
-        #         (
-        #             datetime.strptime(
-        #                 dt,
-        #                 "%d.%m.%Y %H:%M:%S",
-        #             ).replace(tzinfo=ZoneInfo(timezone))
-        #             - start_time
-        #         ).total_seconds()
-        #         for dt in df_csv["T Ist H1 Time"]
-        #     ]
-        # )
-        # clean repeated Time columns
+        start_time = datetime.strptime(
+            df_csv['T Ist H1 Time'][0],
+            '%d.%m.%Y %H:%M:%S',
+        ).replace(tzinfo=ZoneInfo(timezone))
+        timestamp = [
+            (
+                datetime.strptime(
+                    dt,
+                    '%d.%m.%Y %H:%M:%S',
+                ).replace(tzinfo=ZoneInfo(timezone))
+            )
+            for dt in df_csv['T Ist H1 Time']
+        ]
+        elapsed_time = np.array(
+            [
+                (
+                    datetime.strptime(
+                        dt,
+                        '%d.%m.%Y %H:%M:%S',
+                    ).replace(tzinfo=ZoneInfo(timezone))
+                    - start_time
+                ).total_seconds()
+                for dt in df_csv['T Ist H1 Time']
+            ]
+        )
+        # delete the repeated Time columns in csv
         for i in df_csv:
             if 'Time' in i and 'T Ist H1 Time' not in i:
                 del df_csv[i]
@@ -350,32 +303,55 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
                 df_csv[new_i] = df_csv[i]
                 del df_csv[i]
 
-        # for _, col in df_csv.items():
-        # with archive.m_context.raw_file(filename, 'w') as newfile:
-        with h5py.File(f'{mainfile[:-4]}.h5', 'w') as hdf:
-            # Iterate through the DataFrame columns and write each to the HDF5 file
-            for column in df_csv.columns:
-                hdf.create_dataset(column.replace(' ', '_'), data=df_csv[column].values)
+        # with h5py.File(f'{mainfile[:-4]}.h5', 'w') as hdf:
+        #     # Iterate through the DataFrame columns and write each to the HDF5 file
+        #     for column in df_csv.columns:
+        #         hdf.create_dataset(column.replace(' ', '_'), data=df_csv[column].values)
 
-        archive.data = DSProtocol()
-        archive.data.heaters = []
-        archive.data.temperature_1_2 = HeaterTemperatureDP()
-        archive.data.temperature_1_3 = HeaterTemperatureDP()
-        archive.data.temperature_1_4 = HeaterTemperatureDP()
-        archive.data.temperature_pyrometer = HeaterTemperatureDP()
-        archive.data.temperature_tp = HeaterTemperatureDP()
+        digi_protocol_archive = EntryArchive(
+            m_context=archive.m_context,
+            metadata=EntryMetadata(upload_id=archive.m_context.upload_id),
+        )
+
+        digi_protocol_archive.data = DSProtocol()
+        digi_protocol_archive.data.heaters = []
+        digi_protocol_archive.data.temperature_1_2 = HeaterTemperatureDP()
+        digi_protocol_archive.data.temperature_1_3 = HeaterTemperatureDP()
+        digi_protocol_archive.data.temperature_1_4 = HeaterTemperatureDP()
+        digi_protocol_archive.data.temperature_pyrometer = HeaterTemperatureDP()
+        digi_protocol_archive.data.temperature_tp = HeaterTemperatureDP()
 
         # archive.data.elapsed_time = ureg.Quantity(elapsed_time, ureg("s"))
         # archive.data.timestamp = timestamp
         # archive.data.start_time = start_time
+        hdf_filename = f'{data_file[:-4]}.h5'
+        filetype = 'yaml'
+        digi_protocol_filename = f'{data_file[:-4]}.archive.{filetype}'
+        with archive.m_context.raw_file(hdf_filename, 'w') as newfile:
+            with h5py.File(newfile, 'w') as hdf:
+                group1 = hdf.create_group('temperature_1_2')
+                group1.create_dataset('time', data=elapsed_time)
+                group1.create_dataset('value', data=elapsed_time)
 
-        # path = f"{data_file[:-5]}.h5#/time"
+        # path = f'{data_file[:-5]}.h5#/group1/time'
         # HDF5Reference.write_dataset(
-        #     archive, ureg.Quantity(elapsed_time, ureg("K")), path
+        #     archive, ureg.Quantity(elapsed_time, ureg('K')), path
         # )
-        # archive.data.temperature_1_2.time = path
-        # archive.data.temperature_1_3.time = path
+        # HDF5Reference.write_attributes()
+        digi_protocol_archive.data.temperature_1_2.time = (
+            f'{hdf_filename}#/temperature_1_2/time'
+        )
+        digi_protocol_archive.data.temperature_1_3.time = (
+            f'{hdf_filename}#/temperature_1_2/time'
+        )
 
+        create_archive(
+            digi_protocol_archive.m_to_dict(),
+            archive.m_context,
+            digi_protocol_filename,
+            filetype,
+            logger,
+        )
         # path = f"{data_file[:-5]}.h5#/temperature_1_2"
         # HDF5Reference.write_dataset(
         #     archive, ureg.Quantity(df_csv["T12 ValueY"].values, ureg("K")), path
