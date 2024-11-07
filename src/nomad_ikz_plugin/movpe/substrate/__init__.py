@@ -35,6 +35,6 @@ parser = SubstrateParserEntryPoint(
         'Substrate': {
             '__has_all_keys': ['Substrates', 'Crystal', 'Orientation', 'Elements']
         },
-        '__comment_symbol': '#',
+        '__has_comment': '#',
     },
 )

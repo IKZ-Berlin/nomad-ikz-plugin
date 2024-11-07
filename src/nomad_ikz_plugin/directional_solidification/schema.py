@@ -835,7 +835,7 @@ class Trafo(TimeSeries):
 
     value = Quantity(
         type=HDF5Reference,
-        #unit='K',
+        # unit='K',
         shape=[],
     )
     time = Quantity(

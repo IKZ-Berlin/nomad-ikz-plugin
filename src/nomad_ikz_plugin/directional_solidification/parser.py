@@ -289,8 +289,8 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
         # child_archives: dict(test=EntryArchive), ###### to test multiple archives
         logger,
     ) -> None:
-        data_file = mainfile.split("/")[-1]
-        data_file_with_path = mainfile.split("raw/")[-1]
+        data_file = mainfile.split('/')[-1]
+        data_file_with_path = mainfile.split('raw/')[-1]
         # xlsx = pd.ExcelFile(mainfile)
         # xlsx_sheet = pd.read_excel(
         #     xlsx,
@@ -313,7 +313,7 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
         #     metadata=EntryMetadata(upload_id=archive.m_context.upload_id),
         # )
 
-        df_csv = pd.read_csv(mainfile, sep=";", decimal=",", engine="python")
+        df_csv = pd.read_csv(mainfile, sep=';', decimal=',', engine='python')
 
         # start_time = datetime.strptime(
         #     df_csv["T Ist H1 Time"][0],
@@ -352,10 +352,10 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
 
         # for _, col in df_csv.items():
         # with archive.m_context.raw_file(filename, 'w') as newfile:
-        with h5py.File(f"{mainfile[:-4]}.h5", "w") as hdf:
+        with h5py.File(f'{mainfile[:-4]}.h5', 'w') as hdf:
             # Iterate through the DataFrame columns and write each to the HDF5 file
             for column in df_csv.columns:
-                hdf.create_dataset(column.replace(" ", "_"), data=df_csv[column].values)
+                hdf.create_dataset(column.replace(' ', '_'), data=df_csv[column].values)
 
         archive.data = DSProtocol()
         archive.data.heaters = []
