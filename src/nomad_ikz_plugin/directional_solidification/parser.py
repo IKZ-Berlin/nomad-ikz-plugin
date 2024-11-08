@@ -328,7 +328,7 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
         filetype = 'yaml'
         digi_protocol_filename = f'{data_file[:-4]}.archive.{filetype}'
         with archive.m_context.raw_file(hdf_filename, 'w') as newfile:
-            with h5py.File(newfile, 'w') as hdf:
+            with h5py.File(newfile.name, 'a') as hdf:
                 group1 = hdf.create_group('temperature_1_2')
                 group1.create_dataset('time', data=elapsed_time)
                 group1.create_dataset('value', data=elapsed_time)
