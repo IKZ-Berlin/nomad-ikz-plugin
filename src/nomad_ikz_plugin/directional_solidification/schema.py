@@ -23,6 +23,10 @@ from nomad.datamodel.data import (
     ArchiveSection,
     EntryData,
 )
+from nomad.datamodel.metainfo.annotations import (
+    ELNAnnotation,
+    SectionProperties,
+)
 from nomad.datamodel.hdf5 import HDF5Reference
 from nomad.datamodel.metainfo.annotations import (
     H5WebAnnotation,
@@ -550,6 +554,126 @@ class BasicCharacterization(Measurement, EntryData):
     )
 
 
+class Pressure(TimeSeries):
+    """
+    FILL
+    """
+
+    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
+
+    value = Quantity(
+        type=HDF5Reference,
+        # unit='',
+        shape=[],
+    )
+    time = Quantity(
+        type=HDF5Reference,
+        description='The process time when each of the values were recorded.',
+        unit='second',
+        shape=[],
+    )
+
+
+class GasFlux(TimeSeries):
+    """
+    FILL
+    """
+
+    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
+
+    value = Quantity(
+        type=HDF5Reference,
+        # unit='',
+        shape=[],
+    )
+    time = Quantity(
+        type=HDF5Reference,
+        description='The process time when each of the values were recorded.',
+        unit='second',
+        shape=[],
+    )
+
+
+class PP1(TimeSeries):
+    """
+    FILL
+    """
+
+    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
+
+    value = Quantity(
+        type=HDF5Reference,
+        # unit='',
+        shape=[],
+    )
+    time = Quantity(
+        type=HDF5Reference,
+        description='The process time when each of the values were recorded.',
+        unit='second',
+        shape=[],
+    )
+
+
+class CrucibleBottom(TimeSeries):
+    """
+    FILL
+    """
+
+    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
+
+    value = Quantity(
+        type=HDF5Reference,
+        # unit='',
+        shape=[],
+    )
+    time = Quantity(
+        type=HDF5Reference,
+        description='The process time when each of the values were recorded.',
+        unit='second',
+        shape=[],
+    )
+
+
+class Concentration(TimeSeries):
+    """
+    Messwert ppm
+    """
+
+    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
+
+    value = Quantity(
+        type=HDF5Reference,
+        # unit='',
+        shape=[],
+    )
+    time = Quantity(
+        type=HDF5Reference,
+        description='The process time when each of the values were recorded.',
+        unit='second',
+        shape=[],
+    )
+
+
+class Resistance(TimeSeries):
+    """
+    FILL
+    """
+
+    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
+
+    value = Quantity(
+        type=HDF5Reference,
+        # unit='',
+        shape=[],
+    )
+    time = Quantity(
+        type=HDF5Reference,
+        description='The process time when each of the values were recorded.',
+        unit='second',
+        shape=[],
+    )
+
+
 class HeaterPower(TimeSeries):
     """
     FILL
@@ -883,10 +1007,10 @@ class HeaterParameters(ArchiveSection):
     sum_current = SubSection(
         section_def=HeaterDcCurrent,
     )
-    f1 = SubSection(
+    f1_parameters = SubSection(
         section_def=HeaterCoil,
     )
-    f2 = SubSection(
+    f2_parameters = SubSection(
         section_def=HeaterCoil,
     )
 
@@ -903,6 +1027,16 @@ class DSProtocol(PlotSection, Process, EntryData):  # , TableData):
         #     signal="temperature_1_2/value", # "/data/heaters/0/temperature/value",
         #     paths=['temperature_1_2', 'heaters/0/temperature']
         # ),
+        a_eln=ELNAnnotation(
+            properties=SectionProperties(
+                order=[
+                    'steps',
+                    'instrument',
+                    'figures',
+                    'sample',
+                ],
+            ),
+        ),
     )
 
     method = Quantity(
@@ -941,60 +1075,32 @@ class DSProtocol(PlotSection, Process, EntryData):  # , TableData):
     trafo_2_p = SubSection(
         section_def=Trafo,
     )
-    druck_rezipient = Quantity(
-        type=np.float64,
-        description='FILL THE DESCRIPTION',
-        a_tabular={'name': 'Druck Rezipient ValueY'},
-        a_plot={'label': 'My label', 'x': 'timestamp', 'y': 'druck_rezipient'},
-        shape=['*'],
+    druck_rezipient = SubSection(
+        section_def=Pressure,
     )
-    pp1 = Quantity(
-        type=np.float64,
-        description='FILL THE DESCRIPTION',
-        a_plot={'label': 'My label', 'x': 'timestamp', 'y': 'pp1'},
-        shape=['*'],
+    pp1 = SubSection(
+        section_def=PP1,
     )
-    gasfluss_df2 = Quantity(
-        type=np.float64,
-        description='FILL THE DESCRIPTION',
-        a_plot={'label': 'My label', 'x': 'timestamp', 'y': 'gasfluss_df2'},
-        shape=['*'],
+    gasfluss_df2 = SubSection(
+        section_def=GasFlux,
     )
-    gasfluss_df3 = Quantity(
-        type=np.float64,
-        description='FILL THE DESCRIPTION',
-        a_plot={'label': 'My label', 'x': 'timestamp', 'y': 'gasfluss_df3'},
-        shape=['*'],
+    gasfluss_df3 = SubSection(
+        section_def=GasFlux,
     )
-    gasfluss_df4 = Quantity(
-        type=np.float64,
-        description='FILL THE DESCRIPTION',
-        a_plot={'label': 'My label', 'x': 'timestamp', 'y': 'gasfluss_df4'},
-        shape=['*'],
+    gasfluss_df4 = SubSection(
+        section_def=GasFlux,
     )
-    co_messwert_ppm = Quantity(
-        type=np.float64,
-        description='FILL THE DESCRIPTION',
-        a_plot={'label': 'My label', 'x': 'timestamp', 'y': 'co_messwert_ppm'},
-        shape=['*'],
+    co_messwert_ppm = SubSection(
+        section_def=Concentration,
     )
-    co_messwert_vol = Quantity(
-        type=np.float64,
-        description='FILL THE DESCRIPTION',
-        a_plot={'label': 'My label', 'x': 'timestamp', 'y': 'co_messwert_vol'},
-        shape=['*'],
+    co_messwert_vol = SubSection(
+        section_def=Concentration,
     )
-    tiegelboden = Quantity(
-        type=np.float64,
-        description='FILL THE DESCRIPTION',
-        a_plot={'label': 'My label', 'x': 'timestamp', 'y': 'tiegelboden'},
-        shape=['*'],
+    no_messwert_ppm = SubSection(
+        section_def=Concentration,
     )
-    no_messwert_ppm = Quantity(
-        type=np.float64,
-        description='FILL THE DESCRIPTION',
-        a_plot={'label': 'My label', 'x': 'timestamp', 'y': 'no_messwert_ppm'},
-        shape=['*'],
+    tiegelboden = SubSection(
+        section_def=CrucibleBottom,
     )
     temperature_pyrometer = SubSection(
         section_def=HeaterTemperature,
@@ -1008,8 +1114,14 @@ class DSProtocol(PlotSection, Process, EntryData):  # , TableData):
     temperature_1_4 = SubSection(
         section_def=HeaterTemperature,
     )
-    temperature_tp = SubSection(  # TODO explain what this is
-        section_def=HeaterTemperature,
+    resistance_hz_4 = SubSection(
+        section_def=Resistance,
+    )
+    resistance_hz_5 = SubSection(
+        section_def=Resistance,
+    )
+    resistance_hz_6 = SubSection(
+        section_def=Resistance,
     )
     heaters = SubSection(
         section_def=HeaterParameters,
