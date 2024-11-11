@@ -318,3 +318,5 @@ class IKZELNUVVisNirTransmission(ELNUVVisNirTransmission):
         section_def=IKZUVVisNirTransmissionSettings,
     )
 
+
+m_package.__init_metainfo__()
