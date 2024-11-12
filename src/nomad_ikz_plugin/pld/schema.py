@@ -22,12 +22,12 @@ import re
 from typing import (
     TYPE_CHECKING,
     Any,
-    Dict,
     Union,
 )
 
 import numpy as np
 import plotly.graph_objects as go
+import pytz
 from nomad.config import config
 from nomad.datamodel.data import (
     ArchiveSection,
@@ -68,10 +68,14 @@ from nomad.metainfo.metainfo import (
     Category,
 )
 from nomad_material_processing.general import (
+    CartesianMiscut,
     CrystallineSubstrate,
+    CrystallographicDirection,
     Dopant,
+    MillerIndices,
     Miscut,
     Parallelepiped,
+    ProjectedMiscutOrientation,
     SubstrateCrystalProperties,
     SubstrateReference,
     ThinFilm,
@@ -114,14 +118,11 @@ if TYPE_CHECKING:
 configuration = config.get_plugin_entry_point('nomad_ikz_plugin.pld:schema')
 
 m_package = SchemaPackage(
-    aliases=[
-        'ikz_plugin.pld.schema',
-        'ikz_pld'
-    ],
+    aliases=['ikz_plugin.pld.schema', 'ikz_pld'],
 )
 
 
-def read_dlog(file_path: str, logger: 'BoundLogger' = None) -> Dict[str, Any]:
+def read_dlog(file_path: str, logger: 'BoundLogger' = None) -> dict[str, Any]:
     """
     Function for reading the dlog of an IKZ PLD process.
 
@@ -130,7 +131,7 @@ def read_dlog(file_path: str, logger: 'BoundLogger' = None) -> Dict[str, Any]:
         logger (BoundLogger, optional): A structlog logger. Defaults to None.
 
     Returns:
-        Dict[str, Any]: The flog data in a Python dictionary.
+        dict[str, Any]: The flog data in a Python dictionary.
     """
     raise NotImplementedError
 
@@ -189,6 +190,54 @@ class IKZPLDSubstrate(CrystallineSubstrate, IKZPLDPossibleSubstrate, EntryData):
         section_def=Parallelepiped,
     )
 
+    def migrate_20241112(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
+        if (
+            self.crystal_properties is not None
+            and self.crystal_properties.surface_orientation is not None
+        ):
+            return
+
+        import json
+
+        mainfile = archive.metadata.mainfile
+        with archive.m_context.raw_file(mainfile, 'r') as f:
+            archive_json = json.load(f)
+        if 'crystal_properties' not in archive_json.get('data', {}):
+            return
+        crystal_properties = archive_json['data']['crystal_properties']
+        self.crystal_properties = SubstrateCrystalProperties()
+        surface_orientation = crystal_properties.get('orientation', '')
+        if len(surface_orientation) == 3:
+            self.crystal_properties.surface_orientation = CrystallographicDirection(
+                hkl_reciprocal=MillerIndices(
+                    h_index=int(surface_orientation[0]),
+                    k_index=int(surface_orientation[1]),
+                    l_index=int(surface_orientation[2]),
+                ),
+            )
+        miscut = crystal_properties.get('miscut', {})
+        angle = miscut.get('angle', None)
+        angle_deviation = miscut.get('angle_deviation', None)
+        miscut_orientation = miscut.get('orientation', '')
+        if (
+            angle is not None
+            and angle_deviation is not None
+            and len(miscut_orientation) == 3
+        ):
+            self.crystal_properties.miscut = Miscut(
+                cartesian_miscut=CartesianMiscut(
+                    reference_orientation=ProjectedMiscutOrientation(
+                        angle=angle,
+                        angle_deviation=angle_deviation,
+                        hkl_reciprocal=MillerIndices(
+                            h_index=int(miscut_orientation[0]),
+                            k_index=int(miscut_orientation[1]),
+                            l_index=int(miscut_orientation[2]),
+                        ),
+                    ),
+                ),
+            )
+
     def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
         """
         The normalizer for the `IKZPLDSubstrate` class.
@@ -198,7 +247,11 @@ class IKZPLDSubstrate(CrystallineSubstrate, IKZPLDPossibleSubstrate, EntryData):
             normalized.
             logger (BoundLogger): A structlog logger.
         """
-        super(IKZPLDSubstrate, self).normalize(archive, logger)
+        if archive.metadata.last_processing_time < datetime.datetime(
+            2024, 11, 13, tzinfo=pytz.UTC
+        ):
+            self.migrate_20241112(archive, logger)
+        super().normalize(archive, logger)
 
 
 class IKZPLDSubstrateReference(ArchiveSection):
@@ -262,7 +315,7 @@ class IKZPLDSubstrateSubBatch(ArchiveSection):
             ) / 2
             self.name = f'{mean_angle:.3f}°'
 
-        super(IKZPLDSubstrateSubBatch, self).normalize(archive, logger)
+        super().normalize(archive, logger)
 
 
 class IKZPLDSubstrateBatch(CompositeSystem, EntryData):  # TODO: Inherit from batch
@@ -371,21 +424,50 @@ class IKZPLDSubstrateBatch(CompositeSystem, EntryData):  # TODO: Inherit from ba
                     - sub_batch.minimum_miscut_angle.magnitude
                 ) / 2
                 angle = sub_batch.minimum_miscut_angle.magnitude + angle_deviation
+                crystal_properties = SubstrateCrystalProperties()
+                if self.orientation is None:
+                    continue
+                elif len(self.orientation) == 3:
+                    crystal_properties.surface_orientation = CrystallographicDirection(
+                        hkl_reciprocal=MillerIndices(
+                            h_index=int(self.orientation[0]),
+                            k_index=int(self.orientation[1]),
+                            l_index=int(self.orientation[2]),
+                        ),
+                    )
+                else:
+                    logger.warn(
+                        'Please provide the substrate orientation in reciprocal space as a string of three integers.'
+                    )
+                if self.miscut_orientation is None:
+                    continue
+                elif len(self.miscut_orientation) == 3:
+                    crystal_properties.miscut = Miscut(
+                        cartesian_miscut=CartesianMiscut(
+                            reference_orientation=ProjectedMiscutOrientation(
+                                angle=angle,
+                                angle_deviation=angle_deviation,
+                                hkl_reciprocal=MillerIndices(
+                                    h_index=int(self.miscut_orientation[0]),
+                                    k_index=int(self.miscut_orientation[1]),
+                                    l_index=int(self.miscut_orientation[2]),
+                                ),
+                            ),
+                        ),
+                    )
+                else:
+                    logger.warn(
+                        'Please provide the substrate miscut orientation in reciprocal space as a string of three integers.'
+                    )
                 sub_batch.substrates = [
                     IKZPLDSubstrateReference(
                         substrate_number=substrate_idx,
                         substrate=create_archive(
                             IKZPLDSubstrate(
                                 name=f'{batch_name} {sub_batch.name} substrate-{substrate_idx}',
+                                lab_id=f'{batch_name}_sub-batch-{sub_batch_idx}_substrate-{substrate_idx}',
                                 geometry=self.geometry,
-                                crystal_properties=SubstrateCrystalProperties(
-                                    orientation=self.orientation,
-                                    miscut=Miscut(
-                                        orientation=self.miscut_orientation,
-                                        angle=angle,
-                                        angle_deviation=angle_deviation,
-                                    ),
-                                ),
+                                crystal_properties=crystal_properties,
                                 components=self.components,
                                 supplier_id=self.supplier_batch,
                                 supplier=self.supplier,
@@ -398,7 +480,7 @@ class IKZPLDSubstrateBatch(CompositeSystem, EntryData):  # TODO: Inherit from ba
                     for substrate_idx in range(sub_batch.amount)
                 ]
 
-        super(IKZPLDSubstrateBatch, self).normalize(archive, logger)
+        super().normalize(archive, logger)
 
 
 class IKZPLDSample(ThinFilmStack, IKZPLDPossibleSubstrate, EntryData):
@@ -546,7 +628,7 @@ class IKZPLDStep(PLDStep):
             normalized.
             logger (BoundLogger): A structlog logger.
         """
-        super(IKZPLDStep, self).normalize(archive, logger)
+        super().normalize(archive, logger)
         if self.sample_to_target_distance is not None:
             for substrate in self.sample_parameters:
                 substrate.distance_to_source = [
@@ -925,7 +1007,7 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
                         f'Target {step_match["target"]} not found in target list.'
                     )
                     target = None
-                    target_name = f"Unknown {step_match['target']} target"
+                    target_name = f'Unknown {step_match["target"]} target'
                 data = df_data.loc[
                     (row['time_s'] <= df_data['time_s'])
                     & (df_data['time_s'] < (row['time_s'] + row['duration_s']))
@@ -1110,7 +1192,7 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
                     )
 
         archive.workflow2 = None
-        super(IKZPulsedLaserDeposition, self).normalize(archive, logger)
+        super().normalize(archive, logger)
         if self.substrate is not None:
             archive.workflow2.inputs.append(
                 Link(name=f'Substrate: {self.substrate.name}', section=self.substrate)
