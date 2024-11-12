@@ -315,7 +315,6 @@ class IKZELNUVVisNirTransmission(ELNUVVisNirTransmission):
         section_def=IKZUVVisNirTransmissionResult,
         repeats=True,
     )
-
     transmission_settings = SubSection(
         section_def=IKZUVVisNirTransmissionSettings,
     )
