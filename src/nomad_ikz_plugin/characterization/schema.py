@@ -311,8 +311,10 @@ class IKZELNUVVisNirTransmission(ELNUVVisNirTransmission):
         },
     )
 
-    results = Measurement.results.m_copy()
-    results.section_def = IKZUVVisNirTransmissionResult
+    results = SubSection(
+        section_def=IKZUVVisNirTransmissionResult,
+        repeats=True,
+    )
 
     transmission_settings = SubSection(
         section_def=IKZUVVisNirTransmissionSettings,
