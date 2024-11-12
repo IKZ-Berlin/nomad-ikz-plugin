@@ -434,8 +434,9 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
         digi_protocol_archive.data.druck_rezipient.value = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/druck_rezipient/value'
 
         for heater in range(int(heater_number)):
+            heater_index = heater + 1
             digi_protocol_archive.data.heaters.append(HeaterParameters())
-            digi_protocol_archive.data.heaters[heater].name = f'heater {heater + 1}'
+            digi_protocol_archive.data.heaters[heater].name = f'heater {heater_index}'
             digi_protocol_archive.data.heaters[heater].f1_parameters = HeaterCoil()
             digi_protocol_archive.data.heaters[heater].f2_parameters = HeaterCoil()
             digi_protocol_archive.data.heaters[heater].sum_current = HeaterDcCurrentDP()
@@ -465,42 +466,54 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
 
             digi_protocol_archive.data.heaters[
                 heater
-            ].f1_parameters.ac_current.time = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/ac_f1_h{heater}/time'
+            ].f1_parameters.ac_current.time = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/ac_f1_h{heater_index}/time'
             digi_protocol_archive.data.heaters[
                 heater
-            ].f1_parameters.ac_current.value = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/ac_f1_h{heater}/value'
+            ].f1_parameters.ac_current.value = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/ac_f1_h{heater_index}/value'
             digi_protocol_archive.data.heaters[
                 heater
-            ].f2_parameters.ac_current.time = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/ac_f2_h{heater}/time'
+            ].f2_parameters.ac_current.time = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/ac_f2_h{heater_index}/time'
             digi_protocol_archive.data.heaters[
                 heater
-            ].f2_parameters.ac_current.value = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/ac_f2_h{heater}/value'
+            ].f2_parameters.ac_current.value = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/ac_f2_h{heater_index}/value'
             digi_protocol_archive.data.heaters[
                 heater
-            ].sum_current.time = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/i_summe_h{heater}/time'
+            ].sum_current.time = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/i_summe_h{heater_index}/time'
             digi_protocol_archive.data.heaters[
                 heater
-            ].sum_current.value = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/i_summe_h{heater}/value'
+            ].sum_current.value = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/i_summe_h{heater_index}/value'
             digi_protocol_archive.data.heaters[
                 heater
-            ].dc_current.time = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/i_dc_h{heater}/time'
+            ].dc_current.time = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/i_dc_ist_h{heater_index}/time'
             digi_protocol_archive.data.heaters[
                 heater
-            ].dc_current.value = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/i_dc_h{heater}/value'
+            ].dc_current.value = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/i_dc_ist_h{heater_index}/value'
+            digi_protocol_archive.data.heaters[
+                heater
+            ].power.time = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/p_ist_h{heater_index}/time'
+            digi_protocol_archive.data.heaters[
+                heater
+            ].power.value = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/p_ist_h{heater_index}/value'
+            digi_protocol_archive.data.heaters[
+                heater
+            ].temperature.time = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/t_ist_h{heater_index}/time'
+            digi_protocol_archive.data.heaters[
+                heater
+            ].temperature.value = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/t_ist_h{heater_index}/value'
 
             if heater <= 6:
                 digi_protocol_archive.data.heaters[
                     heater
-                ].f1_parameters.phase.time = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/phase_f1_h{heater}/time'
+                ].f1_parameters.phase.time = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/phase_f1_h{heater_index}/time'
                 digi_protocol_archive.data.heaters[
                     heater
-                ].f1_parameters.phase.value = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/phase_f1_h{heater}/value'
+                ].f1_parameters.phase.value = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/phase_f1_h{heater_index}/value'
                 digi_protocol_archive.data.heaters[
                     heater
-                ].f2_parameters.phase.time = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/phase_f2_h{heater}/time'
+                ].f2_parameters.phase.time = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/phase_f2_h{heater_index}/time'
                 digi_protocol_archive.data.heaters[
                     heater
-                ].f2_parameters.phase.value = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/phase_f2_h{heater}/value'
+                ].f2_parameters.phase.value = f'/uploads/{archive.m_context.upload_id}/raw/{hdf_filename}#/all_parameters/phase_f2_h{heater_index}/value'
 
         create_archive(
             digi_protocol_archive.m_to_dict(),

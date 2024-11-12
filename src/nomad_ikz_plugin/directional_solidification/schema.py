@@ -991,6 +991,10 @@ class HeaterParameters(ArchiveSection):
     the heater in the instrument
     """
 
+    m_def = Section(
+        a_h5web=H5WebAnnotation(paths=['temperature', 'power']),
+    )
+
     name = Quantity(
         type=str,
         description='The name of the heater',
