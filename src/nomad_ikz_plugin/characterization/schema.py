@@ -19,7 +19,7 @@ from nomad.datamodel.metainfo.plot import (
 from nomad.metainfo import Datetime, MEnum, Quantity, SchemaPackage, Section, SubSection
 from transmission.schema import (
     ELNUVVisNirTransmission,
-    PerkinElmersLambdaSpectrophotometer,
+    UVVisNirTransmission,
     UVVisNirTransmissionResult,
     UVVisNirTransmissionSettings,
 )
@@ -311,13 +311,29 @@ class IKZELNUVVisNirTransmission(ELNUVVisNirTransmission):
         },
     )
 
-    results = SubSection(
-        section_def=IKZUVVisNirTransmissionResult,
-        repeats=True,
-    )
-    transmission_settings = SubSection(
-        section_def=IKZUVVisNirTransmissionSettings,
-    )
+    def compose_subsections(self):
+        """
+        Composing the specialized subsections for IKZ into the `UVVisNirTransmission`
+        class. The method overrides the `compose_subsections` method of the parent
+        `ELNUVVisNirTransmission` class.
+        """
+        transmission = UVVisNirTransmission()
+        transmission.results = [IKZUVVisNirTransmissionResult()]
+        transmission.transmission_settings = IKZUVVisNirTransmissionSettings()
+
+        return transmission
+
+    def write_transmission_data(self, transmission, data_dict, archive, logger):
+        """
+        Specialized method to write the transmission data for the IKZ plugin. The method
+        overrides the `write_transmission_data` method of the parent
+        `ELNUVVisNirTransmission` class.
+        """
+        super().write_transmission_data(transmission, data_dict, archive, logger)
+        if data_dict['ordinate_type'] in ['%T', 'A']:
+            transmission.transmission_settings.ordinate_type = data_dict.get(
+                'ordinate_type'
+            )
 
 
 m_package.__init_metainfo__()
