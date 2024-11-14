@@ -559,7 +559,9 @@ class Pressure(TimeSeries):
     FILL
     """
 
-    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
+    m_def = Section(
+        a_h5web=H5WebAnnotation(axes='time', signal='value', long_name='Pressure')
+    )
 
     value = Quantity(
         type=HDF5Reference,
@@ -579,7 +581,9 @@ class GasFlux(TimeSeries):
     FILL
     """
 
-    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
+    m_def = Section(
+        a_h5web=H5WebAnnotation(axes='time', signal='value', long_name='Gas Flux')
+    )
 
     value = Quantity(
         type=HDF5Reference,
@@ -599,7 +603,9 @@ class PP1(TimeSeries):
     FILL
     """
 
-    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
+    m_def = Section(
+        a_h5web=H5WebAnnotation(axes='time', signal='value', long_name='PP1')
+    )
 
     value = Quantity(
         type=HDF5Reference,
@@ -619,7 +625,11 @@ class CrucibleBottom(TimeSeries):
     FILL
     """
 
-    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
+    m_def = Section(
+        a_h5web=H5WebAnnotation(
+            axes='time', signal='value', long_name='Crucible Bottom'
+        )
+    )
 
     value = Quantity(
         type=HDF5Reference,
@@ -639,7 +649,9 @@ class Concentration(TimeSeries):
     Messwert ppm
     """
 
-    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
+    m_def = Section(
+        a_h5web=H5WebAnnotation(axes='time', signal='value', long_name='Concentrantion')
+    )
 
     value = Quantity(
         type=HDF5Reference,
@@ -659,7 +671,9 @@ class Resistance(TimeSeries):
     FILL
     """
 
-    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
+    m_def = Section(
+        a_h5web=H5WebAnnotation(axes='time', signal='value', long_name='Resistance')
+    )
 
     value = Quantity(
         type=HDF5Reference,
@@ -705,7 +719,9 @@ class HeaterPowerDP(HeaterPower):
     FILL
     """
 
-    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
+    m_def = Section(
+        a_h5web=H5WebAnnotation(axes='time', signal='value', long_name='Power')
+    )
 
     value = Quantity(
         type=HDF5Reference,
@@ -751,7 +767,9 @@ class HeaterFrequencyDP(HeaterFrequency):
     FILL
     """
 
-    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
+    m_def = Section(
+        a_h5web=H5WebAnnotation(axes='time', signal='value', long_name='Frequency')
+    )
 
     value = Quantity(
         type=HDF5Reference,
@@ -797,7 +815,9 @@ class HeaterPhaseDP(HeaterPhase):
     FILL
     """
 
-    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
+    m_def = Section(
+        a_h5web=H5WebAnnotation(axes='time', signal='value', long_name='Phase')
+    )
 
     value = Quantity(
         type=HDF5Reference,
@@ -843,7 +863,9 @@ class HeaterAcCurrentDP(HeaterAcCurrent):
     FILL
     """
 
-    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
+    m_def = Section(
+        a_h5web=H5WebAnnotation(axes='time', signal='value', long_name='AC Current')
+    )
 
     value = Quantity(
         type=HDF5Reference,
@@ -889,7 +911,9 @@ class HeaterDcCurrentDP(HeaterDcCurrent):
     FILL
     """
 
-    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
+    m_def = Section(
+        a_h5web=H5WebAnnotation(axes='time', signal='value', long_name='DC Current')
+    )
 
     value = Quantity(
         type=HDF5Reference,
@@ -935,7 +959,9 @@ class HeaterTemperatureDP(HeaterTemperature):
     FILL
     """
 
-    m_def = Section(a_h5web=H5WebAnnotation(axes='time', signal='value'))
+    m_def = Section(
+        a_h5web=H5WebAnnotation(axes='time', signal='value', long_name='Temperature')
+    )
 
     value = Quantity(
         type=HDF5Reference,
