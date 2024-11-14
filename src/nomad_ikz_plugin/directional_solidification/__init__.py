@@ -34,7 +34,9 @@ schema = DirSolEntryPoint(
 
 class DirSolManualProtocolParserEntryPoint(ParserEntryPoint):
     def load(self):
-        from nomad_ikz_plugin.directional_solidification.parser import DSManualProtocolParserIKZ
+        from nomad_ikz_plugin.directional_solidification.parser import (
+            DSManualProtocolParserIKZ,
+        )
 
         return DSManualProtocolParserIKZ(**self.dict())
 
@@ -49,7 +51,9 @@ manual_protocol_parser = DirSolManualProtocolParserEntryPoint(
 
 class DirSolDigitalProtocolParserEntryPoint(ParserEntryPoint):
     def load(self):
-        from nomad_ikz_plugin.directional_solidification.parser import DSDigitalProtocolParserIKZ
+        from nomad_ikz_plugin.directional_solidification.parser import (
+            DSDigitalProtocolParserIKZ,
+        )
 
         return DSDigitalProtocolParserIKZ(**self.dict())
 
@@ -60,7 +64,7 @@ digital_protocol_parser = DirSolDigitalProtocolParserEntryPoint(
     mainfile_name_re=r'.+\.csv',
     mainfile_mime_re='text/plain',
     # mainfile_contents_dict={
-    #     'MBE sources': {'__has_all_keys': ['source_type', 'EPIC_loop']},
-    #     '__comment_symbol': '#',
+    #     '__has_all_keys': ['T Ist H1 Time', 'T Ist H5 ValueY'],
+    #     '__has_comment': '#',
     # },
 )
