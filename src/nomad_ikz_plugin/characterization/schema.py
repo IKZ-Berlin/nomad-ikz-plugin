@@ -160,7 +160,7 @@ class LightMicroscope(Measurement, SubstratePreparationStep, EntryData):
 
 class IKZUVVisNirTransmissionSettings(UVVisNirTransmissionSettings):
     """
-    Section for the settings of the instrument used for transmission measurement.
+    A specialized section for IKZ based on the `UVVisNirTransmissionSettings` section.
     """
 
     ordinate_type = Quantity(
@@ -175,7 +175,7 @@ class IKZUVVisNirTransmissionSettings(UVVisNirTransmissionSettings):
 
 class IKZUVVisNirTransmissionResult(UVVisNirTransmissionResult):
     """
-    Section for the results of the UV-Vis NIR Transmission measurement.
+    A specialized section for IKZ based on the `UVVisNirTransmissionResult` section.
     """
 
     m_def = Section(
@@ -304,7 +304,12 @@ class IKZUVVisNirTransmissionResult(UVVisNirTransmissionResult):
 
 
 class IKZELNUVVisNirTransmission(ELNUVVisNirTransmission):
+    """
+    A specialized section for IKZ based on the `ELNUVVisNirTransmission` section.
+    """
+
     m_def = Section(
+        categories=[IKZCategory],
         label='IKZ UV-Vis-NIR Transmission',
         a_template={
             'measurement_identifiers': {},
