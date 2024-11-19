@@ -16,7 +16,6 @@
 #
 
 from nomad.config.models.plugins import ParserEntryPoint, SchemaPackageEntryPoint
-from pydantic import Field
 
 
 class CharacterizationEntryPoint(SchemaPackageEntryPoint):
@@ -24,6 +23,7 @@ class CharacterizationEntryPoint(SchemaPackageEntryPoint):
         from nomad_ikz_plugin.characterization.schema import m_package
 
         return m_package
+
 
 class TransmissionParserEntryPoint(ParserEntryPoint):
     """
@@ -34,6 +34,7 @@ class TransmissionParserEntryPoint(ParserEntryPoint):
         from nomad_ikz_plugin.characterization.parser import TransmissionParser
 
         return TransmissionParser(**self.dict())
+
 
 schema = CharacterizationEntryPoint(
     name='CharacterizationSchema',
