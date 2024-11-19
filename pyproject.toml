@@ -39,7 +39,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["ruff", "pytest", "structlog"]
+dev = [
+    "ruff",
+    "pytest",
+    "structlog",
+    "python-logstash>=0.4.6",
+]
 
 [project.urls]
 "Homepage" = "https://github.com/IKZ-Berlin/nomad-ikz-plugin"
