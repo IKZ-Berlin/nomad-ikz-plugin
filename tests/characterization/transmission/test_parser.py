@@ -16,10 +16,11 @@
 # limitations under the License.
 #
 
-import pytest
-import os
 import glob
-from nomad.client import parse, normalize_all
+import os
+
+import pytest
+from nomad.client import normalize_all, parse
 
 test_files = glob.glob(os.path.join(os.path.dirname(__file__), 'data', '*.asc'))
 

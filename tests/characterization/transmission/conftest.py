@@ -1,10 +1,7 @@
-import glob
 import logging
-import os
 
 import pytest
 import structlog
-from nomad.client import parse
 from nomad.utils import structlogging
 from structlog.testing import LogCapture
 

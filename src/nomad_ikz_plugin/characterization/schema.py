@@ -19,7 +19,6 @@ from nomad.datamodel.metainfo.plot import (
 from nomad.metainfo import Datetime, MEnum, Quantity, SchemaPackage, Section, SubSection
 from transmission.schema import (
     ELNUVVisNirTransmission,
-    UVVisNirTransmission,
     UVVisNirTransmissionResult,
     UVVisNirTransmissionSettings,
 )
