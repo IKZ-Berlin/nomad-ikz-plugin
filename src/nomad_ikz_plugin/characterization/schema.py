@@ -310,6 +310,13 @@ class IKZELNUVVisNirTransmission(ELNUVVisNirTransmission):
             'measurement_identifiers': {},
         },
     )
+    results = SubSection(
+        section_def=IKZUVVisNirTransmissionResult,
+        repeats=True,
+    )
+    transmission_settings = SubSection(
+        section_def=IKZUVVisNirTransmissionSettings,
+    )
 
     def compose_subsections(self):
         """
