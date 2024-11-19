@@ -318,18 +318,6 @@ class IKZELNUVVisNirTransmission(ELNUVVisNirTransmission):
         section_def=IKZUVVisNirTransmissionSettings,
     )
 
-    def compose_subsections(self):
-        """
-        Composing the specialized subsections for IKZ into the `UVVisNirTransmission`
-        class. The method overrides the `compose_subsections` method of the parent
-        `ELNUVVisNirTransmission` class.
-        """
-        transmission = UVVisNirTransmission()
-        transmission.results = [IKZUVVisNirTransmissionResult()]
-        transmission.transmission_settings = IKZUVVisNirTransmissionSettings()
-
-        return transmission
-
     def write_transmission_data(self, transmission, data_dict, archive, logger):
         """
         Specialized method to write the transmission data for the IKZ plugin. The method
