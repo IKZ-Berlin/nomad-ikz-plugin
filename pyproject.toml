@@ -35,7 +35,7 @@ dependencies = [
     'nomad-analysis', # develop branch
     'lakeshore-nomad-plugin @ git+https://github.com/IKZ-Berlin/lakeshore-nomad-plugin.git@69a6deb3f0e99d7b0dc66714105dd62a56f157e9',
     'laytec_epitt_plugin @ git+https://github.com/IKZ-Berlin/laytec_epitt_nomad_plugin.git@f4953ac4ecb55b7003dee323d7d7f473e49ab4e3',
-    'transmission @ git+https://github.com/FAIRmat-NFDI/AreaA-data_modeling_and_schemas.git@a502a20b4915e65f68f0493089cd613b189b09d9#subdirectory=transmission/transmission_plugin/uv_vis_nir_transmission_plugin',
+    'transmission @ git+https://github.com/FAIRmat-NFDI/AreaA-data_modeling_and_schemas.git@3b05b9e0f8fa842e928768506ed4ba64aab83a46#subdirectory=transmission/transmission_plugin/uv_vis_nir_transmission_plugin',
 ]
 
 [project.optional-dependencies]

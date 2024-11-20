@@ -44,12 +44,11 @@ def parsed_archive(request):
         os.remove(measurement)
 
 
-@pytest.mark.usefixtures('caplog')
 @pytest.mark.parametrize(
     'caplog',
     ['error', 'critical'],
     indirect=True,
 )
-def test_normalize_all(parsed_archive):
+def test_normalize_all(parsed_archive, caplog):
     normalize_all(parsed_archive)
     assert parsed_archive.metadata.entry_type == 'IKZELNUVVisNirTransmission'
