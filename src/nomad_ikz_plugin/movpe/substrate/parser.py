@@ -33,10 +33,14 @@ from nomad.utils import hash
 from nomad_material_processing.general import (
     Parallelepiped,
     SubstrateCrystalProperties,
+    CrystallographicDirection,
+    MillerIndices,
+    Miscut,
+    CartesianMiscut,
+    ProjectedMiscutOrientation,
 )
 
 from nomad_ikz_plugin.movpe.schema import (
-    MiscutMovpe,
     SubstrateInventory,
     SubstrateMovpe,
     SubstrateMovpeReference,
@@ -50,6 +54,29 @@ from .utils import (
     populate_dopant,
     populate_element,
 )
+
+
+def safe_float(value):
+    return float(value) if value is not None else 0.0
+
+
+def handle_miller(value: str):
+    indices = []
+    values = list(value.replace(' ', ''))
+    while values:
+        char = values.pop(0)
+        print(f'char {char}')
+        if char == '-':
+            char2 = values.pop(0)
+            indices.append(-safe_float(char2))
+        elif char == '0':
+            indices.append(0)
+        else:
+            indices.append(safe_float(char))
+    print(f'ind {indices}')
+    assert len(indices) == 3, f'Invalid Miller indices: {list(value.replace(" ", ""))}'
+
+    return indices
 
 
 class RawFileSubstrateInventory(EntryData):
@@ -80,6 +107,7 @@ class MovpeSubstrateParser(MatchingParser):
             substrate_filename = (
                 f'{substrate_id}_{index}.SubstrateIKZ.archive.{filetype}'
             )
+
             substrate_data = SubstrateMovpe(
                 lab_id=substrate_id,
                 supplier=(typed_df_value(substrates_file, 'Supplier', str, index)),
@@ -104,25 +132,74 @@ class MovpeSubstrateParser(MatchingParser):
                     length=(typed_df_value(substrates_file, 'Size Y', float, index)),
                 ),
                 crystal_properties=SubstrateCrystalProperties(
-                    orientation=(
-                        typed_df_value(substrates_file, 'Orientation', str, index)
+                    surface_orientation=CrystallographicDirection(
+                        hkl_reciprocal=MillerIndices(
+                            h_index=handle_miller(
+                                typed_df_value(
+                                    substrates_file, 'Orientation', str, index
+                                )
+                            )[0],
+                            k_index=handle_miller(
+                                typed_df_value(
+                                    substrates_file, 'Orientation', str, index
+                                )
+                            )[1],
+                            l_index=handle_miller(
+                                typed_df_value(
+                                    substrates_file, 'Orientation', str, index
+                                )
+                            )[2],
+                        ),
                     ),
                     miscut=[
-                        MiscutMovpe(
-                            b_angle=(
-                                typed_df_value(
-                                    substrates_file, 'Miscut b angle', float, index
-                                )
-                            ),
-                            angle=(
-                                typed_df_value(
-                                    substrates_file, 'Miscut c angle', float, index
-                                )
-                            ),
-                            orientation=(
-                                typed_df_value(
-                                    substrates_file, 'Miscut c Orientation', str, index
-                                )
+                        Miscut(
+                            cartesian_miscut=CartesianMiscut(
+                                reference_orientation=ProjectedMiscutOrientation(
+                                    angle=safe_float(
+                                        typed_df_value(
+                                            substrates_file,
+                                            'Miscut c angle',
+                                            float,
+                                            index,
+                                        )
+                                    ),
+                                    hkl_reciprocal=MillerIndices(
+                                        h_index=handle_miller(
+                                            typed_df_value(
+                                                substrates_file,
+                                                'Miscut c Orientation',
+                                                str,
+                                                index,
+                                            )
+                                        )[0],
+                                        k_index=handle_miller(
+                                            typed_df_value(
+                                                substrates_file,
+                                                'Miscut c Orientation',
+                                                str,
+                                                index,
+                                            )
+                                        )[1],
+                                        l_index=handle_miller(
+                                            typed_df_value(
+                                                substrates_file,
+                                                'Miscut c Orientation',
+                                                str,
+                                                index,
+                                            )
+                                        )[2],
+                                    ),
+                                ),
+                                perpendicular_orientation=ProjectedMiscutOrientation(
+                                    angle=safe_float(
+                                        typed_df_value(
+                                            substrates_file,
+                                            'Miscut b angle',
+                                            float,
+                                            index,
+                                        )
+                                    ),
+                                ),
                             ),
                         ),
                     ],
