@@ -232,59 +232,59 @@ class Cylinder(Geometry):
     )
 
 
-class MiscutMovpe(Miscut):
-    """
-    The miscut in a crystalline substrate refers to
-    the intentional deviation from a specific crystallographic orientation,
-    commonly expressed as the angular displacement of a crystal plane.
-    """
+# class MiscutMovpe(Miscut):
+#     """
+#     The miscut in a crystalline substrate refers to
+#     the intentional deviation from a specific crystallographic orientation,
+#     commonly expressed as the angular displacement of a crystal plane.
+#     """
 
-    m_def = Section(label='Miscut')
+#     m_def = Section(label='Miscut')
 
-    b_angle = Quantity(
-        type=float,
-        description='crystallographic orientation of the substrate in [hkl]',
-        a_eln=ELNAnnotation(
-            component='NumberEditQuantity',
-        ),
-        a_tabular={
-            'name': 'Substrate/Miscut b angle',
-            # "unit": "deg"
-        },
-        unit='deg',
-    )
-    angle = Quantity(
-        type=float,
-        description='angular displacement from crystallographic orientation of the substrate',
-        a_eln=ELNAnnotation(
-            component='NumberEditQuantity',
-            defaultDisplayUnit='deg',
-            label='c angle',
-        ),
-        unit='deg',
-        a_tabular={
-            'name': 'Substrate/Miscut c angle',
-            # "unit": "deg"
-        },
-    )
-    angle_deviation = Quantity(
-        type=float,
-        description='uncertainty on the angular displacement',
-        a_eln=ELNAnnotation(
-            component='NumberEditQuantity',
-            defaultDisplayUnit='deg',
-            label='c angle deviation',
-        ),
-        unit='deg',
-    )
-    orientation = Quantity(
-        type=str,
-        description='crystallographic orientation of the substrate in [hkl]',
-        a_eln=ELNAnnotation(
-            component='StringEditQuantity',
-        ),
-        a_tabular={'name': 'Substrate/Miscut c Orientation'},
-    )
+#     b_angle = Quantity(
+#         type=float,
+#         description='crystallographic orientation of the substrate in [hkl]',
+#         a_eln=ELNAnnotation(
+#             component='NumberEditQuantity',
+#         ),
+#         a_tabular={
+#             'name': 'Substrate/Miscut b angle',
+#             # "unit": "deg"
+#         },
+#         unit='deg',
+#     )
+#     angle = Quantity(
+#         type=float,
+#         description='angular displacement from crystallographic orientation of the substrate',
+#         a_eln=ELNAnnotation(
+#             component='NumberEditQuantity',
+#             defaultDisplayUnit='deg',
+#             label='c angle',
+#         ),
+#         unit='deg',
+#         a_tabular={
+#             'name': 'Substrate/Miscut c angle',
+#             # "unit": "deg"
+#         },
+#     )
+#     angle_deviation = Quantity(
+#         type=float,
+#         description='uncertainty on the angular displacement',
+#         a_eln=ELNAnnotation(
+#             component='NumberEditQuantity',
+#             defaultDisplayUnit='deg',
+#             label='c angle deviation',
+#         ),
+#         unit='deg',
+#     )
+#     orientation = Quantity(
+#         type=str,
+#         description='crystallographic orientation of the substrate in [hkl]',
+#         a_eln=ELNAnnotation(
+#             component='StringEditQuantity',
+#         ),
+#         a_tabular={'name': 'Substrate/Miscut c Orientation'},
+#     )
 
 
 class SubstrateMovpe(CrystallineSubstrate, EntryData):
