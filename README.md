@@ -65,12 +65,7 @@ There are at least two ways of installing them, depending on your aim:
 - Develop the plugin in your development environment.
   Refer to the [nomad-distro-dev repository](https://github.com/FAIRmat-NFDI/nomad-distro-dev) to setup your environment.
   You will then need to add all the dependencies as submodules and also to use the uv command `add` to have them in your python env.
-
-
-    READMEMMMMM
-
-
-
+  
   ```
   git submodule add https://github.com/FAIRmat-NFDI/nomad-measurements packages/nomad-measurements
   git submodule add https://github.com/FAIRmat-NFDI/nomad-material-processing packages/nomad-material-processing
