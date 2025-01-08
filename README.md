@@ -59,8 +59,8 @@ There are at least two ways of installing them, depending on your aim:
     nomad-ikz-plugin = { git = "https://github.com/IKZ-Berlin/nomad-ikz-plugin.git", rev = "v0.1.2" }
   ```
   
-    !!! note
-        the toml above shows that the `nomad-ikz-plugin` is not bound to a commit, rather to a release
+!!! note
+    the toml above shows that the `nomad-ikz-plugin` is not bound to a commit, rather to a release
 
 - Develop the plugin in your development environment.
   Refer to the [nomad-distro-dev repository](https://github.com/FAIRmat-NFDI/nomad-distro-dev) to setup your environment.
