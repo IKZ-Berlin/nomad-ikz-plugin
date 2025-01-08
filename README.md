@@ -41,7 +41,7 @@ There are at least two ways of installing them, depending on your aim:
 
 - Deploy a custom NOMAD Oasis image.
   Refer to the [IKZ NOMAD Oasis custom image](https://github.com/IKZ-Berlin/nomad-oasis-ikz/tree/main) to discover how the `pyproject.toml` is composed.
-  You will need the following lines to fulfill the dependencies of this plugin:
+  If you are using some plugins in your Oasis deployment that are also dependencies of this plugin, make sure to have compatible version tags. To do this, you will need the following lines in your Oasis deployment's `pyproject.toml`:
 
   ```
   [project.optional-dependencies]
