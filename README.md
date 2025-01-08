@@ -59,14 +59,16 @@ There are at least two ways of installing them, depending on your aim:
     nomad-ikz-plugin = { git = "https://github.com/IKZ-Berlin/nomad-ikz-plugin.git", rev = "v0.1.2" }
   ```
   
-    > [!NOTE]
-    > the toml above shows that the `nomad-ikz-plugin` is not bound to a commit, rather to a release
+    !!! note
+        the toml above shows that the `nomad-ikz-plugin` is not bound to a commit, rather to a release
 
 - Develop the plugin in your development environment.
   Refer to the [nomad-distro-dev repository](https://github.com/FAIRmat-NFDI/nomad-distro-dev) to setup your environment.
   You will then need to add all the dependencies as submodules and also to use the uv command `add` to have them in your python env.
 
   ```
+  git submodule add https://github.com/FAIRmat-NFDI/nomad-measurements packages/nomad-measurements
+  git submodule add https://github.com/FAIRmat-NFDI/nomad-material-processing packages/nomad-material-processing
   git submodule add https://github.com/IKZ-Berlin/nomad-ikz-plugin packages/nomad-ikz-plugin
   git submodule add https://github.com/IKZ-Berlin/laytec_epitt_nomad_plugin packages/laytec_epitt_nomad_plugin
   git submodule add https://github.com/IKZ-Berlin/lakeshore-nomad-plugin packages/lakeshore-nomad-plugin
@@ -74,6 +76,8 @@ There are at least two ways of installing them, depending on your aim:
   uv add packages/nomad-ikz-plugin
   uv add packages/lakeshore-nomad-plugin
   uv add packages/laytec_epitt_nomad_plugin
+  uv add packages/nomad-measurements
+  uv add packages/nomad-material-processing 
   ```
 
 - Pip install everything manually (also nomad-lab)
