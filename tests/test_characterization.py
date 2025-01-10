@@ -52,3 +52,25 @@ def parsed_archive(request):
 def test_normalize_all(parsed_archive, caplog):
     normalize_all(parsed_archive)
     assert parsed_archive.metadata.entry_type == 'IKZELNUVVisNirTransmission'
+
+
+test_files = [
+    'tests/data/transmission/backcompatibility/KTF-D.Probe.Raw.archive.json',
+    # 'tests/data/transmission/backcompatibility/instrument.archive.json',
+    # 'tests/data/transmission/backcompatibility/MySample.archive.json',
+]
+
+
+@pytest.mark.parametrize(
+    'parsed_json_archive, caplog',
+    [(file, log_level) for file in test_files for log_level in log_levels],
+    indirect=True,
+)
+def test_backcompatibility(parsed_json_archive, caplog):
+    """
+    Tests the backcompatibility of the parser.
+
+    Args:
+        parsed_measurement_archive (pytest.fixture): Fixture to setup the archive.
+    """
+    normalize_all(parsed_json_archive)
