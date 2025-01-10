@@ -19,6 +19,7 @@ configuration = config.get_plugin_entry_point(
 m_package = SchemaPackage(
     aliases=[
         'ikz_plugin.characterization.schema',
+        'transmission.schema',
     ],
 )
 
@@ -135,5 +136,39 @@ class LightMicroscope(Measurement, SubstratePreparationStep, EntryData):
         repeats=True,
     )
 
+    def backcompatibility(self):
+        """
+        Makes changes to the section to ensure backward compatibility.
+
+        Args:
+            archive (EntryArchive): The archive containing the section that is being
+            logger (BoundLogger): A structlog logger.
+        """
+        if self.get('transmission_settings') and self.transmission_settings.get(
+            'accessory'
+        ):
+            for accessory in self.transmission_settings.accessory:
+                self.transmission_settings.accessories.append(accessory)
+            self.transmission_settings.accessory = None
+        if self.get('samples') and self.samples.get('reference'):
+            # change the class of the sample from `TransmissionSample` to `ELNSample`
+            pass
+
+    def normalize(self, archive, logger):
+        """
+        The normalizer for the `IKZELNUVVisNirTransmission` section.
+
+        Args:
+            archive (EntryArchive): The archive containing the section that is being
+            normalized.
+            logger (BoundLogger): A structlog logger.
+        """
+        self.backcompatibility()
+        super().normalize(archive, logger)
+
+
+ELNUVVisTransmission = IKZELNUVVisNirTransmission
+TransmissionSpectrophotometer = Spectrophotometer
+TransmissionSample = ELNSample
 
 m_package.__init_metainfo__()
