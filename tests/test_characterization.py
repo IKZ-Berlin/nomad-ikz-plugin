@@ -22,40 +22,35 @@ import os
 import pytest
 from nomad.client import normalize_all, parse
 
-test_files = glob.glob(os.path.join(os.path.dirname(__file__), 'data', '*.asc'))
-
-
-@pytest.fixture(params=test_files)
-def parsed_archive(request):
-    """
-    Sets up data for testing and cleans up after the test.
-    """
-    rel_file = os.path.join('tests', 'data', request.param)
-    file_archive = parse(rel_file)[0]
-    measurement = os.path.join(
-        'tests', 'data', '.'.join(request.param.split('.')[:-1]) + '.archive.json'
+test_files = glob.glob(
+    os.path.join(
+        os.path.dirname(__file__), 'data/characterization/transmission', '*.asc'
     )
-    assert file_archive.data.measurement.m_proxy_value == os.path.abspath(measurement)
-    measurement_archive = parse(measurement)[0]
-
-    yield measurement_archive
-
-    if os.path.exists(measurement):
-        os.remove(measurement)
+)
+log_levels = ['error', 'critical']
 
 
 @pytest.mark.parametrize(
-    'caplog',
-    ['error', 'critical'],
+    'parsed_measurement_archive, caplog',
+    [(file, log_level) for file in test_files for log_level in log_levels],
     indirect=True,
 )
-def test_normalize_all(parsed_archive, caplog):
-    normalize_all(parsed_archive)
-    assert parsed_archive.metadata.entry_type == 'IKZELNUVVisNirTransmission'
+def test_normalize_all(parsed_measurement_archive):
+    """
+    Tests the normalization of the parsed archive.
+
+    Args:
+        parsed_archive (pytest.fixture): Fixture to handle the parsing of archive.
+        caplog (pytest.fixture): Fixture to capture errors from the logger.
+    """
+    normalize_all(parsed_measurement_archive)
+    assert (
+        parsed_measurement_archive.metadata.entry_type == 'IKZELNUVVisNirTransmission'
+    )
 
 
 test_files = [
-    'tests/data/transmission/backcompatibility/KTF-D.Probe.Raw.archive.json',
+    'tests/data/characterization/transmission/backcompatibility/KTF-D.Probe.Raw.archive.json',
     # 'tests/data/transmission/backcompatibility/instrument.archive.json',
     # 'tests/data/transmission/backcompatibility/MySample.archive.json',
 ]
