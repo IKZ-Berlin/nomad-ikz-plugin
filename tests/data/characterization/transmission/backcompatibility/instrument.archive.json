@@ -1,0 +1,10 @@
+{
+    "data": {
+        "m_def": "transmission.schema.TransmissionSpectrophotometer",
+        "name": "Lambda 1050",
+        "datetime": "2024-01-17T09:26:08+00:00",
+        "lab_id": "FAI_SaKa_20250109_KTF-D",
+        "serial_number": "1050L1611222",
+        "software_version": "PerkinElmer UV WinLab 6.3.2.0749 / 2.02.06 Lambda 900 UV/VIS/NIR, Jan 28 2016 16:58:34"
+    }
+}
