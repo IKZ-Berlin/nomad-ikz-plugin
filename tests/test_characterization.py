@@ -35,7 +35,7 @@ log_levels = ['error', 'critical']
     [(file, log_level) for file in test_files for log_level in log_levels],
     indirect=True,
 )
-def test_normalize_all(parsed_measurement_archive):
+def test_normalize_all(parsed_measurement_archive, caplog):
     """
     Tests the normalization of the parsed archive.
 
