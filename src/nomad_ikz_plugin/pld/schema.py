@@ -38,6 +38,7 @@ from nomad.datamodel.metainfo.annotations import (
     BrowserAnnotation,
     ELNAnnotation,
     ELNComponentEnum,
+    Filter,
     SectionProperties,
 )
 from nomad.datamodel.metainfo.basesections import (
@@ -180,6 +181,32 @@ class IKZPLDTargetComponent(PLDTargetComponent):
 class IKZPLDPossibleSubstrate(CompositeSystem):
     pass
 
+
+class RoughParallelepiped(Parallelepiped):
+    """
+    A parallelepiped with roughness.
+    """
+    height = Quantity(
+        type=float,
+        description='The z dimension of the parallelepiped.',
+        a_eln=ELNAnnotation(
+            component=ELNComponentEnum.NumberEditQuantity,
+            defaultDisplayUnit='nm',
+            label='Height (z)',
+        ),
+        unit='meter',
+    )
+    roughness = Quantity(
+        type=float,
+        unit='meter',
+        description="""
+        The root mean square roughness of the top surface.
+        """,
+        a_eln=ELNAnnotation(
+            component='NumberEditQuantity',
+            defaultDisplayUnit='pm',
+        ),
+    )
 
 class IKZPLDSubstrate(CrystallineSubstrate, IKZPLDPossibleSubstrate, EntryData):
     m_def = Section(
@@ -663,6 +690,12 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
         links=['http://purl.obolibrary.org/obo/CHMO_0001363'],
         a_eln=ELNAnnotation(
             properties=SectionProperties(
+                visible=Filter(
+                    exclude=[
+                        '_thicknesses',
+                        '_rms',
+                    ],
+                ),
                 order=[
                     'name',
                     'datetime',
@@ -672,6 +705,7 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
                     'laser_spot_size',
                     'substrate',
                     'targets',
+                    'target_distances',
                     'data_log',
                     'recipe_log',
                     'steps',
@@ -679,6 +713,7 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
                     'location',
                     'method',
                 ],
+
             ),
             lane_width='800px',
         ),
@@ -696,6 +731,15 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
         a_eln=ELNAnnotation(
             component=ELNComponentEnum.ReferenceEditQuantity,
         ),
+    )
+    target_distances = Quantity(
+        type=float,
+        shape=['*'],
+        a_eln=ELNAnnotation(
+            component='NumberEditQuantity',
+            defaultDisplayUnit='millimeter',
+        ),
+        unit='meter',
     )
     attenuated_laser_energy = Quantity(
         type=float,
@@ -759,6 +803,22 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
         """,
         section_def=IKZPLDStep,
         repeats=True,
+    )
+    _rms = Quantity(
+        type=float,
+        unit='pm',
+        shape=['*'],
+        description="""
+        The root mean square deviation of the created layers.
+        """,
+    )
+    _thicknesses = Quantity(
+        type=float,
+        unit='nm',
+        shape=['*'],
+        description="""
+        The thickness of the created layers.
+        """,
     )
 
     def plot(self) -> None:
@@ -988,6 +1048,8 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
                 ]
             else:
                 target_distances = [None] * len(df_steps)
+            distance_counter = 0
+            prop_counter = 0
             for target_distance, (_, row) in zip(target_distances, df_steps.iterrows()):
                 if target_distance is not None:
                     target_distance = target_distance.to('meter').magnitude
@@ -1044,6 +1106,12 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
                 )
                 target_source = []
                 if creates_new_thin_film:
+                    if self.target_distances is not None:
+                        if distance_counter < len(self.target_distances):
+                            target_distance = self.target_distances[distance_counter]
+                        else:
+                            target_distance = self.target_distances[-1]
+                    distance_counter += 1
                     target_source = [
                         IKZPLDTargetComponent(
                             name=target_name,
@@ -1103,9 +1171,18 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
                     if target is not None:
                         elemental_composition = target.elemental_composition
                     if substrate_ref is not None and substrate_ref.geometry is not None:
-                        geometry = Parallelepiped()
+                        geometry = RoughParallelepiped()
                         geometry.width = substrate_ref.geometry.width
                         geometry.length = substrate_ref.geometry.length
+                        if self._thicknesses is not None and prop_counter < len(self._thicknesses):
+                            geometry.height = self._thicknesses[prop_counter]
+                        if (
+                            self._rms is not None 
+                            and prop_counter < len(self._rms)
+                            and not np.isnan(self._rms[prop_counter])
+                        ):
+                            geometry.roughness = self._rms[prop_counter]
+                        prop_counter += 1
                     else:
                         geometry = None
                     name = f'{sample_id} Layer {layer_count}'
