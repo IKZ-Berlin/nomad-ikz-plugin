@@ -47,8 +47,8 @@ from nomad.datamodel.metainfo.plot import (
 )
 from nomad.metainfo import (
     MEnum,
-    Package,
     Quantity,
+    SchemaPackage,
     Section,
     SubSection,
 )
@@ -60,7 +60,10 @@ if TYPE_CHECKING:
     from structlog.stdlib import BoundLogger
 
 
-m_package = Package(name='uv-vis-nir-transmission')
+m_package = SchemaPackage(
+    name='uv-vis-nir-transmission',
+    aliases=['uv_vis_nir_transmission.schema'],
+)
 
 
 class TransmissionSpectrophotometer(Instrument, EntryData):
