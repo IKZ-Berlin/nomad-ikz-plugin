@@ -19,7 +19,6 @@ configuration = config.get_plugin_entry_point(
 m_package = SchemaPackage(
     aliases=[
         'ikz_plugin.characterization.schema',
-        'transmission.schema',
     ],
 )
 
