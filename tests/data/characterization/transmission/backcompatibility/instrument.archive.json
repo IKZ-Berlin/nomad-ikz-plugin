@@ -1,6 +1,6 @@
 {
     "data": {
-        "m_def": "transmission.schema.TransmissionSpectrophotometer",
+        "m_def": "uv_vis_nir_transmission.schema.TransmissionSpectrophotometer",
         "name": "Lambda 1050",
         "datetime": "2024-01-17T09:26:08+00:00",
         "lab_id": "FAI_SaKa_20250109_KTF-D",

@@ -49,11 +49,13 @@ def test_normalize_all(parsed_measurement_archive, caplog):
     )
 
 
-test_files = [
-    'tests/data/characterization/transmission/backcompatibility/KTF-D.Probe.Raw.archive.json',
-    # 'tests/data/transmission/backcompatibility/instrument.archive.json',
-    # 'tests/data/transmission/backcompatibility/MySample.archive.json',
-]
+test_files = glob.glob(
+    os.path.join(
+        os.path.dirname(__file__),
+        'data/characterization/transmission/backcompatibility',
+        '*.archive.json',
+    )
+)
 
 
 @pytest.mark.parametrize(

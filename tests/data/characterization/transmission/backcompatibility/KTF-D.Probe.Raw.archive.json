@@ -1,6 +1,6 @@
 {
     "data": {
-        "m_def": "transmission.schema.ELNUVVisTransmission",
+        "m_def": "uv_vis_nir_transmission.schema.ELNUVVisTransmission",
         "name": "KTF-D",
         "datetime": "2024-01-17T09:26:08+00:00",
         "lab_id": "FAI_SaKa_20250109_KTF-D",
@@ -3106,7 +3106,7 @@
             },
             "accessory": [
                 {
-                    "m_def": "transmission.schema.Aperture",
+                    "m_def": "uv_vis_nir_transmission.schema.Aperture",
                     "name": "test",
                     "diameter": 23
                 }
