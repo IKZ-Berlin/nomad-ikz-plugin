@@ -61,7 +61,6 @@ if TYPE_CHECKING:
 
 
 m_package = SchemaPackage(
-    name='uv-vis-nir-transmission',
     aliases=['uv_vis_nir_transmission.schema'],
 )
 
