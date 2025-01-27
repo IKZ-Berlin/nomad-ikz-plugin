@@ -7,6 +7,7 @@ from nomad.datamodel.metainfo.basesections import (
 )
 from nomad.metainfo import Datetime, MEnum, Quantity, SchemaPackage, Section, SubSection
 
+from nomad_ikz_plugin.characterization.v1 import *  # noqa: F403
 from nomad_ikz_plugin.general.schema import (
     IKZCategory,
     SubstratePreparationStep,
