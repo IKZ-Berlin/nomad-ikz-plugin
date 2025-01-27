@@ -5,13 +5,6 @@
         "datetime": "2024-02-27T14:41:25+00:00",
         "user": "Hiroki Tanaka",
         "data_file": "sphere_test01.Probe.Raw.asc",
-        "instruments": [
-            {
-                "name": "Lambda1050-IKZ",
-                "reference": "../uploads/rtCiqWbMREGQpdOqE6T4OQ/archive/G2hHAWmtcjAq1GERf8FIZAX1fqwm#/data",
-                "lab_id": "Lambda1050-IKZ"
-            }
-        ],
         "results": [
             {
                 "transmittance": [
@@ -1156,15 +1149,7 @@
             "owner": "SaKa",
             "datetime": "2025-01-24T15:37:57.592362+00:00",
             "short_name": "sphere-test01ProbeRaw"
-        },
-        "samples": [
-            {
-                "m_def": "transmission.schema.TransmissionSampleReference",
-                "reference": "../uploads/kDgqgLBBRzyXIXz4NVex0w/archive/6B2F9v7OcQ_lZTguLs4uTFqgPZZi#data",
-                "thickness": 0.023,
-                "orientation": "111"
-            }
-        ]
+        }
     },
     "workflow2": {
         "name": "sphere test01ProbeRaw",
