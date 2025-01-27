@@ -24,7 +24,7 @@ from typing import (
 
 import numpy as np
 import plotly.express as px
-from fairmat_readers_transmission import read_perkin_elmer_asc
+from nomad_ikz_plugin.characterization.v1.readers import read_asc
 from nomad.datamodel.data import (
     ArchiveSection,
     EntryData,
@@ -631,7 +631,7 @@ class ELNUVVisTransmission(UVVisTransmission, PlotSection, EntryData):
             tuple[Callable, Callable]: The read, write functions.
         """
         if self.data_file.endswith('.asc'):
-            return read_perkin_elmer_asc, self.write_transmission_data
+            return read_asc, self.write_transmission_data
         return None, None
 
     def create_instrument_entry(
