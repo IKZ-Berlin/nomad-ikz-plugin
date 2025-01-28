@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-from nomad.config.models.plugins import SchemaPackageEntryPoint
+from nomad.config.models.plugins import ParserEntryPoint, SchemaPackageEntryPoint
 
 
 class CharacterizationEntryPoint(SchemaPackageEntryPoint):
@@ -25,7 +25,25 @@ class CharacterizationEntryPoint(SchemaPackageEntryPoint):
         return m_package
 
 
+class TransmissionParserEntryPoint(ParserEntryPoint):
+    """
+    Entry point for lazy loading of the TransmissionParser.
+    """
+
+    def load(self):
+        from nomad_ikz_plugin.characterization.parser import TransmissionParser
+
+        return TransmissionParser(**self.dict())
+
+
 schema = CharacterizationEntryPoint(
     name='CharacterizationSchema',
     description='Schema package for general characterization methods used at IKZ.',
+)
+
+transmission_parser = TransmissionParserEntryPoint(
+    name='Transmission Parser',
+    description='Parser for data from Transmission Spectrophotometry.',
+    mainfile_mime_re='text/.*|application/zip',
+    mainfile_name_re='^.*\.asc$',
 )
