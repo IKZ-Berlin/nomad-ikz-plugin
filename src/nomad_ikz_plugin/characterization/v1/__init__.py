@@ -19,6 +19,10 @@ from nomad.config.models.plugins import SchemaPackageEntryPoint
 
 
 class CharacterizationV1EntryPoint(SchemaPackageEntryPoint):
+    """
+    Entry point for lazy loading of the schema package.
+    """
+
     def load(self):
         from nomad_ikz_plugin.characterization.v1.schema import m_package
 

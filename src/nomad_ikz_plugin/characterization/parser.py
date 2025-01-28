@@ -18,8 +18,8 @@
 from typing import TYPE_CHECKING
 
 from nomad.parsing import MatchingParser
-from transmission.schema import RawFileTransmissionData
-from transmission.utils import create_archive
+from nomad_measurements.transmission.schema import RawFileTransmissionData
+from nomad_measurements.utils import create_archive
 
 from nomad_ikz_plugin.characterization.schema import IKZELNUVVisNirTransmission
 

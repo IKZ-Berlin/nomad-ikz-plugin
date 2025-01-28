@@ -17,7 +17,7 @@ from nomad.datamodel.metainfo.plot import (
     PlotlyFigure,
 )
 from nomad.metainfo import Datetime, MEnum, Quantity, SchemaPackage, Section, SubSection
-from transmission.schema import (
+from nomad_measurements.transmission.schema import (
     ELNUVVisNirTransmission,
     UVVisNirTransmissionResult,
     UVVisNirTransmissionSettings,
@@ -186,10 +186,6 @@ class LightMicroscope(Measurement, SubstratePreparationStep, EntryData):
         self.backcompatibility()
         super().normalize(archive, logger)
 
-
-ELNUVVisTransmission = IKZELNUVVisNirTransmission
-TransmissionSpectrophotometer = Spectrophotometer
-TransmissionSample = ELNSample
 
 class IKZUVVisNirTransmissionSettings(UVVisNirTransmissionSettings):
     """
