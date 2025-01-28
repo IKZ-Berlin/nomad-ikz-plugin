@@ -20,7 +20,7 @@ import glob
 import os
 
 import pytest
-from nomad.client import normalize_all
+from nomad.client import normalize_all, parse
 
 test_files = glob.glob(
     os.path.join(
@@ -57,6 +57,11 @@ test_files = glob.glob(
     )
 )
 
+file_to_initialize_aliases = os.path.join(
+    os.path.dirname(__file__),
+    'data/characterization/transmission/setup_aliases.archive.json',
+)
+
 
 @pytest.mark.parametrize(
     'parsed_json_archive, caplog',
@@ -70,4 +75,5 @@ def test_backcompatibility(parsed_json_archive, caplog):
     Args:
         parsed_measurement_archive (pytest.fixture): Fixture to setup the archive.
     """
+    parse(file_to_initialize_aliases)
     normalize_all(parsed_json_archive)
