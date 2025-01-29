@@ -33,9 +33,9 @@ dependencies = [
     'nomad-material-processing',
     'nomad-measurements',
     'nomad-analysis', # develop branch
-    'lakeshore-nomad-plugin @ git+https://github.com/IKZ-Berlin/lakeshore-nomad-plugin.git@69a6deb3f0e99d7b0dc66714105dd62a56f157e9',
-    'laytec_epitt_plugin @ git+https://github.com/IKZ-Berlin/laytec_epitt_nomad_plugin.git@f4953ac4ecb55b7003dee323d7d7f473e49ab4e3',
-]
+    'lakeshore-nomad-plugin', 
+    'laytec_epitt_plugin',
+    ]
 
 [project.optional-dependencies]
 dev = [
@@ -51,6 +51,10 @@ dev = [
 
 [tool.uv]
 index-url = "https://gitlab.mpcdf.mpg.de/api/v4/projects/2187/packages/pypi/simple"
+
+[tool.uv.sources]
+lakeshore-nomad-plugin = { git = "https://github.com/IKZ-Berlin/lakeshore-nomad-plugin.git", branch = "main" }
+laytec_epitt_plugin = { git = "https://github.com/IKZ-Berlin/laytec_epitt_nomad_plugin.git", branch = "main" }
 
 [tool.ruff]
 include = ["src/*.py", "tests/*.py"]

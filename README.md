@@ -35,15 +35,52 @@ nomad-ikz-plugin/
 
 ## Installation
 
-To use the plugin, you need to clone this repo in your local machine and install the package with pip:
+To use this plugin you need to install several dependent packages.
 
-```bash
-git clone https://github.com/IKZ-Berlin/nomad-ikz-plugin
-cd nomad-ikz-plugin
-pip install -e .[dev]
-```
+There are at least two ways of installing them, depending on your aim:
 
-For more details on what happens under the hood, check the `.toml` file in the `nomad-ikz-plugin` folder:
+- Deploy a custom NOMAD Oasis image.
+  Refer to the [IKZ NOMAD Oasis custom image](https://github.com/IKZ-Berlin/nomad-oasis-ikz/tree/main) to discover how the `pyproject.toml` is composed.
+  If you are using some plugins in your Oasis deployment that are also dependencies of this plugin, make sure to have compatible version tags. To do this, you will need the following lines in your Oasis deployment's `pyproject.toml`:
+
+  ```bash
+  [project.optional-dependencies]
+  plugins = [
+    "nomad-material-processing @ git+https://github.com/FAIRmat-NFDI/nomad-material-processing.git@<desired_commit_id>",
+    "nomad-measurements @ git+https://github.com/FAIRmat-NFDI/nomad-measurements.git@<desired_commit_id>",
+    "nomad-analysis @ git+https://github.com/FAIRmat-NFDI/nomad-analysis.git@<desired_commit_id>",
+    "nomad-ikz-plugin",
+    "uv_vis_nir_transmission @ git+https://github.com/FAIRmat-NFDI/AreaA-data_modeling_and_schemas.git@<desired_commit_id>#subdirectory=transmission/transmission_plugin/uv_vis_nir_transmission_plugin",
+    "lakeshore-nomad-plugin @ git+https://github.com/IKZ-Berlin/lakeshore-nomad-plugin.git@<desired_commit_id>",
+    "laytec_epitt_plugin @ git+https://github.com/IKZ-Berlin/laytec_epitt_nomad_plugin.git@<desired_commit_id>",
+    "statsmodels" 
+    ]
+    [tool.uv.sources]
+    nomad-ikz-plugin = { git = "https://github.com/IKZ-Berlin/nomad-ikz-plugin.git", rev = "v0.1.2" }
+  ```
+  
+> [!NOTE]
+> the toml above shows that the `nomad-ikz-plugin` is not bound to a commit, rather to a release
+
+- Develop the plugin in your development environment.
+  Refer to the [nomad-distro-dev repository](https://github.com/FAIRmat-NFDI/nomad-distro-dev) to setup your environment.
+  You will then need to add all the dependencies as submodules and also to use the uv command `add` to have them in your python env.
+
+  ```bash
+  git submodule add https://github.com/FAIRmat-NFDI/nomad-measurements packages/nomad-measurements
+  git submodule add https://github.com/FAIRmat-NFDI/nomad-material-processing packages/nomad-material-processing
+  git submodule add https://github.com/IKZ-Berlin/nomad-ikz-plugin packages/nomad-ikz-plugin
+  git submodule add https://github.com/IKZ-Berlin/laytec_epitt_nomad_plugin packages/laytec_epitt_nomad_plugin
+  git submodule add https://github.com/IKZ-Berlin/lakeshore-nomad-plugin packages/lakeshore-nomad-plugin
+  git submodule update --init --recursive
+  uv add packages/nomad-ikz-plugin
+  uv add packages/lakeshore-nomad-plugin
+  uv add packages/laytec_epitt_nomad_plugin
+  uv add packages/nomad-measurements
+  uv add packages/nomad-material-processing 
+  ```
+
+For more details on what happens in this plugin under the hood, check the `.toml` file in the `nomad-ikz-plugin` folder:
 
 - all the installed subpackages are listed under the section `[project.entry-points.'nomad.plugin']`.
 - `dependencies` and `[project.optional-dependencies]` contain all the other packages installed along to this one.
