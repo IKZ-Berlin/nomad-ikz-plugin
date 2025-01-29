@@ -52,6 +52,9 @@ dev = [
 [tool.uv]
 index-url = "https://gitlab.mpcdf.mpg.de/api/v4/projects/2187/packages/pypi/simple"
 
+[tool.uv.sources]
+nomad-ikz-plugin = { git = "https://github.com/IKZ-Berlin/nomad-ikz-plugin.git", branch = "main" }
+
 [tool.ruff]
 include = ["src/*.py", "tests/*.py"]
 # Exclude a variety of commonly ignored directories.
