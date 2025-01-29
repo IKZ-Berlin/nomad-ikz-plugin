@@ -140,7 +140,7 @@ class TransmissionSample(CompositeSystem, EntryData):
             normalized.
             logger (BoundLogger): A structlog logger.
         """
-        super(TransmissionSample, self).normalize(archive, logger)
+        super().normalize(archive, logger)
 
 
 class Accessory(ArchiveSection):
@@ -560,7 +560,7 @@ class UVVisNirTransmissionResult(MeasurementResult):
             normalized.
             logger (BoundLogger): A structlog logger.
         """
-        super(UVVisNirTransmissionResult, self).normalize(archive, logger)
+        super().normalize(archive, logger)
         if archive.data.samples:
             sample = archive.data.samples[0]
             if sample.reference is None:

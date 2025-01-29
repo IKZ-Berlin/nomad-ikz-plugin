@@ -20,7 +20,7 @@ import glob
 import os
 
 import pytest
-from nomad.client import normalize_all, parse
+from nomad.client import normalize_all
 
 test_files = glob.glob(
     os.path.join(
