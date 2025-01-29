@@ -53,7 +53,6 @@ dev = [
 index-url = "https://gitlab.mpcdf.mpg.de/api/v4/projects/2187/packages/pypi/simple"
 
 [tool.uv.sources]
-nomad-ikz-plugin = { git = "https://github.com/IKZ-Berlin/nomad-ikz-plugin.git", branch = "main" }
 lakeshore-nomad-plugin = { git = "https://github.com/IKZ-Berlin/lakeshore-nomad-plugin.git", branch = "main" }
 laytec_epitt_plugin = { git = "https://github.com/IKZ-Berlin/laytec_epitt_nomad_plugin.git", branch = "main" }
 
