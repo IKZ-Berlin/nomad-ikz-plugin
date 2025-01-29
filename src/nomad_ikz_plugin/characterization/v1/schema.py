@@ -683,6 +683,11 @@ class ELNUVVisTransmission(UVVisTransmission, PlotSection, EntryData):
         Returns:
             Union[InstrumentReference, None]: The instrument reference or None.
         """
+        from nomad.datamodel.context import ClientContext
+
+        if isinstance(archive.m_context, ClientContext):
+            return None
+
         from nomad.search import search
 
         serial_number = data_dict['instrument_serial_number']
