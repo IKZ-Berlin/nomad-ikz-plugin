@@ -45,5 +45,5 @@ transmission_parser = TransmissionParserEntryPoint(
     name='Transmission Parser',
     description='Parser for data from Transmission Spectrophotometry.',
     mainfile_mime_re='text/.*|application/zip',
-    mainfile_name_re='^.*\.asc$',
+    mainfile_name_re=r'^.*\.asc$',
 )
