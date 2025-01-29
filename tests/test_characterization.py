@@ -52,14 +52,34 @@ def test_normalize_all(parsed_measurement_archive, caplog):
 test_files = glob.glob(
     os.path.join(
         os.path.dirname(__file__),
-        'data/characterization/transmission/backcompatibility',
-        '*.archive.json',
+        'data/characterization/transmission/setup_aliases.archive.json',
     )
 )
 
-file_to_initialize_aliases = os.path.join(
-    os.path.dirname(__file__),
-    'data/characterization/transmission/setup_aliases.archive.json',
+
+@pytest.mark.parametrize(
+    'parsed_json_archive, caplog',
+    [(file, log_level) for file in test_files for log_level in log_levels],
+    indirect=True,
+)
+def test_patch_for_activating_aliases(parsed_json_archive, caplog):
+    """
+    A patch for activating aliases. NOMAD parser only matches the aliases used in
+    `m_def` as long as the given schema package is previously loaded with the original
+    paths.
+
+    Args:
+        parsed_json_archive (pytest.fixture): Fixture to setup the archive.
+    """
+    normalize_all(parsed_json_archive)
+
+
+test_files = glob.glob(
+    os.path.join(
+        os.path.dirname(__file__),
+        'data/characterization/transmission/backcompatibility',
+        '*.archive.json',
+    )
 )
 
 
@@ -75,5 +95,4 @@ def test_backcompatibility(parsed_json_archive, caplog):
     Args:
         parsed_measurement_archive (pytest.fixture): Fixture to setup the archive.
     """
-    parse(file_to_initialize_aliases)
     normalize_all(parsed_json_archive)
