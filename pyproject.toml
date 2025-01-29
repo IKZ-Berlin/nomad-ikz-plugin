@@ -39,6 +39,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "nomad-lab[infrastructure]>=1.3.13",
     "pytest",
     "ruff",
     "structlog",
