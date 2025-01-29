@@ -1,5 +1,5 @@
 {
     "data": {
-        "m_def": "nomad_ikz_plugin.characterization.v1.schema.TransmissionSpectrophotometer"
+        "m_def": "nomad_ikz_plugin.deprecated.characterization.schema.TransmissionSpectrophotometer"
     }
 }

@@ -18,18 +18,21 @@
 from nomad.config.models.plugins import SchemaPackageEntryPoint
 
 
-class CharacterizationV1EntryPoint(SchemaPackageEntryPoint):
+class DeprecatedCharacterizationEntryPoint(SchemaPackageEntryPoint):
     """
     Entry point for lazy loading of the schema package.
     """
 
     def load(self):
-        from nomad_ikz_plugin.characterization.v1.schema import m_package
+        from nomad_ikz_plugin.deprecated.characterization.schema import m_package
 
         return m_package
 
 
-schema = CharacterizationV1EntryPoint(
-    name='CharacterizationSchemaV1',
-    description='Schema package containing old schemas (some deprecated) used at IKZ.',
+schema = DeprecatedCharacterizationEntryPoint(
+    name='DeprecatedCharacterizationSchema',
+    description="""
+    Schema package containing deprecated schemas for characterization
+    methods used at IKZ.
+    """,
 )

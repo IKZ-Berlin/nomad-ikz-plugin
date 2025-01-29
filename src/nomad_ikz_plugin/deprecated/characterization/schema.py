@@ -54,7 +54,7 @@ from nomad.metainfo import (
 from nomad.units import ureg
 from nomad_measurements.utils import create_archive, merge_sections
 
-from nomad_ikz_plugin.characterization.v1.readers import read_asc
+from nomad_ikz_plugin.deprecated.characterization.readers import read_asc
 
 if TYPE_CHECKING:
     from nomad.datamodel.datamodel import EntryArchive
