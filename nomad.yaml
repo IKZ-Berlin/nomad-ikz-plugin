@@ -1,0 +1,3 @@
+plugins:
+  exclude:
+    - nomad_measurements.transmission:parser

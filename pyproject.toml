@@ -39,8 +39,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "ruff",
     "pytest",
+    "ruff",
     "structlog",
     "python-logstash>=0.4.6",
 ]
@@ -53,6 +53,7 @@ dev = [
 index-url = "https://gitlab.mpcdf.mpg.de/api/v4/projects/2187/packages/pypi/simple"
 
 [tool.ruff]
+include = ["src/*.py", "tests/*.py"]
 # Exclude a variety of commonly ignored directories.
 exclude = [
     ".bzr",
@@ -111,6 +112,7 @@ ignore = [
     "PLW2901", # redefined-loop-name
     "PLR1714", # consider-using-in
     "PLR5501", # else-if-used
+    "F403", # 'from module import *' used; unable to detect undefined names
 ]
 
 fixable = ["ALL"]
@@ -138,11 +140,11 @@ package-dir = { "" = "src" }
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.setuptools_scm]
-
 [project.entry-points.'nomad.plugin']
 general_schema = "nomad_ikz_plugin.general:schema"
 characterization_schema = "nomad_ikz_plugin.characterization:schema"
+characterization_transmission_parser = "nomad_ikz_plugin.characterization:transmission_parser"
+deprecated_characterization_schema = "nomad_ikz_plugin.deprecated.characterization:schema"
 pld_schema = "nomad_ikz_plugin.pld:schema"
 movpe_schema = "nomad_ikz_plugin.movpe:schema"
 movpe2_growth_excel_parser = "nomad_ikz_plugin.movpe.movpe2.growth_excel:parser"
@@ -158,4 +160,4 @@ movpe_substrate_app = "nomad_ikz_plugin.movpe.movpe_app:movpesubstrateapp"
 movpe_growth_run_app = "nomad_ikz_plugin.movpe.movpe_app:movpegrowthrunapp"
 movpe_layers_app = "nomad_ikz_plugin.movpe.movpe_app:movpelayersapp"
 
-
+[tool.setuptools_scm]
