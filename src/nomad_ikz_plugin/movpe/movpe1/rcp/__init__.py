@@ -21,7 +21,7 @@ from pydantic import Field
 
 class Movpe1RcpParserEntryPoint(ParserEntryPoint):
     def load(self):
-        from nomad_ikz_plugin.movpe.movpe1.rcp_parser.parser import ParserMovpe1RcpIKZ
+        from nomad_ikz_plugin.movpe.movpe1.rcp.parser import ParserMovpe1RcpIKZ
 
         return ParserMovpe1RcpIKZ(**self.dict())
 
@@ -31,11 +31,4 @@ parser = Movpe1RcpParserEntryPoint(
     description='Parse rcp plain text files containing logs from the MOVPE 1 machine in IKZ.',
     mainfile_name_re=r'.+\.rcp',
     mainfile_mime_re=r'text/plain',
-    mainfile_contents_dict={
-        'Deposition Control': {
-            '__has_all_keys': ['Constant Parameters ID', 'Sample ID', 'Date', 'number']
-        },
-        'Precursors': {'__has_all_keys': ['Sample ID']},
-        '__has_comment': '#',
-    },
 )
