@@ -92,12 +92,9 @@ class RcpFileMovpe1(EntryData):
             component='StringEditQuantity',
         ),
     )
-    growth_run_deposition_control = Quantity(
-        type=ExperimentMovpeIKZ,
-        a_eln=ELNAnnotation(
-            component='ReferenceEditQuantity',
-        ),
-        shape=['*'],
+    recipe_file = Quantity(
+        type=str,
+        a_browser={'adaptor': 'RawFileAdaptor'},
     )
 
 
@@ -132,10 +129,10 @@ class ParserMovpe1RcpIKZ(MatchingParser):
                 if header[0] == '3':
                     for step in range(int(step_number)):
                         process_data.steps[step].environment.uniform_gas_flow_rate = VolumetricFlowRate(
-                            # value=ureg.Quantity(
-                            #         float(value[step]),
-                            #         ureg('centimeter ** 3 / minute'),
-                    #)
+                            value=[ureg.Quantity(
+                                    float(value[step]),
+                                    ureg('centimeter ** 3 / minute'),
+                    )]
                         )
         process_filename = f'{mainfile.split("/")[-1]}.archive.{filetype}'
         process_archive = EntryArchive(
@@ -267,5 +264,5 @@ class ParserMovpe1RcpIKZ(MatchingParser):
 
         # populate the raw file archive
         archive.data = RcpFileMovpe1(
-            name=mainfile.split('/')[-1], growth_run_deposition_control=mainfile.split('/')[-1]
+            name=mainfile.split('/')[-1], recipe_file=mainfile.split('/')[-1]
         )
