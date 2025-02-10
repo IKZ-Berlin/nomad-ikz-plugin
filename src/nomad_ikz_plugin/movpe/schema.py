@@ -46,6 +46,7 @@ from nomad_material_processing.general import (
 from nomad_material_processing.vapor_deposition.cvd.general import (
     CVDSource,
     Rotation,
+    FlashEvaporator,
 )
 from nomad_material_processing.vapor_deposition.general import (
     ChamberEnvironment,
@@ -963,7 +964,7 @@ class GrowthStepMovpe1IKZ(GrowthStepMovpeIKZ):
     """
 
     m_def = Section(
-        a_eln={'overview': True},
+        # a_eln={'overview': True},
         label='Growth Step Movpe 1',
     )
     comment = Quantity(
@@ -1012,123 +1013,123 @@ class GrowthStepMovpe1IKZ(GrowthStepMovpeIKZ):
         section_def=ChamberEnvironmentMovpe,
     )
 
-    def normalize(self, archive, logger):
-        super(GrowthStepMovpe1IKZ, self).normalize(archive, logger)
+    # def normalize(self, archive, logger):
+    #     super(GrowthStepMovpe1IKZ, self).normalize(archive, logger)
 
-        max_rows = 4
-        max_cols = 2
-        figure1 = make_subplots(
-            rows=max_rows,
-            cols=max_cols,
-            subplot_titles=[
-                'Chamber Pressure',
-                'Filament T',
-                'FE1 Back Pressure',
-                'FE2 Back Pressure',
-                'Oxygen T',
-                'Rotation',
-                'Shaft T',
-                'Throttle Valve',
-            ],
-        )  # , shared_yaxes=True)
-        arrays = {
-            'chamber_pressure': self.environment.pressure,
-            'filament_temp': self.sample_parameters[0].filament_temperature,
-            'flash_evap1': self.sources[0].vapor_source.pressure,
-            'flash_evap2': self.sources[1].vapor_source.pressure,
-            'oxy_temp': self.sources[2].vapor_source.temperature,
-            'rotation': self.environment.rotation,
-            'shaft_temp': self.sample_parameters[0].shaft_temperature,
-            'throttle_valve': self.environment.throttle_valve,
-        }
-        row = 1
-        col = 0
-        # for logged_par in sorted(arrays):
-        #     # for logged_par_instance in arrays[logged_par]['obj']:
-        #     if (
-        #         arrays[logged_par]["obj"].value.m.any()
-        #         and arrays[logged_par]["obj"].time.m.any()
-        #     ):
-        #         arrays[logged_par]["x"].append(arrays[logged_par]["obj"].time.m)
-        #         arrays[logged_par]["y"].append(arrays[logged_par]["obj"].value.m)
-        #     # else:
-        #     #     logger.warning(f"{str(logged_par_instance)} was empty, check the cells or the column headers in your excel file.")
-        #     if arrays[logged_par]["x"] and arrays[logged_par]["y"]:
-        #         scatter = px.scatter(
-        #             x=arrays[logged_par]["x"], y=arrays[logged_par]["y"]
-        #         )
-        #         if col == max_cols:
-        #             row += 1
-        #             col = 0
-        #         if col < max_cols:
-        #             col += 1
-        #         figure1.add_trace(scatter.data[0], row=row, col=col)
-        for logged_par in sorted(arrays):
-            if (
-                arrays[logged_par] is not None
-                and arrays[logged_par].value is not None
-                and arrays[logged_par].value.m is not None
-                and arrays[logged_par].time is not None
-                and arrays[logged_par].time.m is not None
-            ):
-                #     arrays[logged_par]["x"].append(arrays[logged_par]["obj"].time.m)
-                #     arrays[logged_par]["y"].append(arrays[logged_par]["obj"].value.m)
-                # else:
-                #     print("empty")
-                # if arrays[logged_par]["x"] and arrays[logged_par]["y"]:
-                #     for x, y in zip(arrays[logged_par]["x"], arrays[logged_par]["y"]):
-                #         figure1.add_trace(
-                #             px.scatter(x=x, y=y).data[0], row=row, col=(col % max_cols) + 1
-                #         )
-                #     col += 1
-                #     if col % max_cols == 0:
-                #         row += 1
-                x = arrays[logged_par].time.m
-                y = arrays[logged_par].value.m
-                col += 1
-                if col > max_cols:
-                    col = 1
-                    row += 1
-                if np.any(np.isfinite(x)) and np.any(np.isfinite(y)):
-                    scatter = px.scatter(
-                        x=x,
-                        y=y,
-                    )
-                    figure1.add_trace(scatter.data[0], row=row, col=col)
-                figure1.update_layout(
-                    template='plotly_white',
-                    height=800,
-                    width=300,
-                    # title_text='Creating Subplots in Plotly',
-                )
-            else:
-                logger.warning(
-                    f'{arrays[logged_par]} is an empty path, check your excel file and your parser.'
-                )
-        figure1.update_traces(line=dict(width=10), marker=dict(size=10))
-        figure1.update_yaxes(
-            ticks='outside',  # "",
-            showticklabels=True,
-            showline=True,
-            linewidth=1,
-            linecolor='black',
-            mirror=True,
-            row=[1, 2, 3, 4],
-            col=[1, 2],
-        )
-        figure1.update_xaxes(
-            ticks='outside',  # "",
-            showticklabels=True,
-            showline=True,
-            linewidth=1,
-            linecolor='black',
-            mirror=True,
-            row=[1, 2, 3, 4],
-            col=[1, 2],
-        )
-        self.figures = [
-            PlotlyFigure(label='figure 1', figure=figure1.to_plotly_json())
-        ]  # .append(PlotlyFigure(label='figure 1', figure=figure1.to_plotly_json()))
+    #     max_rows = 4
+    #     max_cols = 2
+    #     figure1 = make_subplots(
+    #         rows=max_rows,
+    #         cols=max_cols,
+    #         subplot_titles=[
+    #             'Chamber Pressure',
+    #             'Filament T',
+    #             'FE1 Back Pressure',
+    #             'FE2 Back Pressure',
+    #             'Oxygen T',
+    #             'Rotation',
+    #             'Shaft T',
+    #             'Throttle Valve',
+    #         ],
+    #     )  # , shared_yaxes=True)
+    #     arrays = {
+    #         'chamber_pressure': self.environment.pressure,
+    #         'filament_temp': self.sample_parameters[0].filament_temperature,
+    #         'flash_evap1': self.sources[0].vapor_source.pressure,
+    #         'flash_evap2': self.sources[1].vapor_source.pressure,
+    #         'oxy_temp': self.sources[2].vapor_source.temperature,
+    #         'rotation': self.environment.rotation,
+    #         'shaft_temp': self.sample_parameters[0].shaft_temperature,
+    #         'throttle_valve': self.environment.throttle_valve,
+    #     }
+    #     row = 1
+    #     col = 0
+    #     # for logged_par in sorted(arrays):
+    #     #     # for logged_par_instance in arrays[logged_par]['obj']:
+    #     #     if (
+    #     #         arrays[logged_par]["obj"].value.m.any()
+    #     #         and arrays[logged_par]["obj"].time.m.any()
+    #     #     ):
+    #     #         arrays[logged_par]["x"].append(arrays[logged_par]["obj"].time.m)
+    #     #         arrays[logged_par]["y"].append(arrays[logged_par]["obj"].value.m)
+    #     #     # else:
+    #     #     #     logger.warning(f"{str(logged_par_instance)} was empty, check the cells or the column headers in your excel file.")
+    #     #     if arrays[logged_par]["x"] and arrays[logged_par]["y"]:
+    #     #         scatter = px.scatter(
+    #     #             x=arrays[logged_par]["x"], y=arrays[logged_par]["y"]
+    #     #         )
+    #     #         if col == max_cols:
+    #     #             row += 1
+    #     #             col = 0
+    #     #         if col < max_cols:
+    #     #             col += 1
+    #     #         figure1.add_trace(scatter.data[0], row=row, col=col)
+    #     for logged_par in sorted(arrays):
+    #         if (
+    #             arrays[logged_par] is not None
+    #             and arrays[logged_par].value is not None
+    #             and arrays[logged_par].value.m is not None
+    #             and arrays[logged_par].time is not None
+    #             and arrays[logged_par].time.m is not None
+    #         ):
+    #             #     arrays[logged_par]["x"].append(arrays[logged_par]["obj"].time.m)
+    #             #     arrays[logged_par]["y"].append(arrays[logged_par]["obj"].value.m)
+    #             # else:
+    #             #     print("empty")
+    #             # if arrays[logged_par]["x"] and arrays[logged_par]["y"]:
+    #             #     for x, y in zip(arrays[logged_par]["x"], arrays[logged_par]["y"]):
+    #             #         figure1.add_trace(
+    #             #             px.scatter(x=x, y=y).data[0], row=row, col=(col % max_cols) + 1
+    #             #         )
+    #             #     col += 1
+    #             #     if col % max_cols == 0:
+    #             #         row += 1
+    #             x = arrays[logged_par].time.m
+    #             y = arrays[logged_par].value.m
+    #             col += 1
+    #             if col > max_cols:
+    #                 col = 1
+    #                 row += 1
+    #             if np.any(np.isfinite(x)) and np.any(np.isfinite(y)):
+    #                 scatter = px.scatter(
+    #                     x=x,
+    #                     y=y,
+    #                 )
+    #                 figure1.add_trace(scatter.data[0], row=row, col=col)
+    #             figure1.update_layout(
+    #                 template='plotly_white',
+    #                 height=800,
+    #                 width=300,
+    #                 # title_text='Creating Subplots in Plotly',
+    #             )
+    #         else:
+    #             logger.warning(
+    #                 f'{arrays[logged_par]} is an empty path, check your excel file and your parser.'
+    #             )
+    #     figure1.update_traces(line=dict(width=10), marker=dict(size=10))
+    #     figure1.update_yaxes(
+    #         ticks='outside',  # "",
+    #         showticklabels=True,
+    #         showline=True,
+    #         linewidth=1,
+    #         linecolor='black',
+    #         mirror=True,
+    #         row=[1, 2, 3, 4],
+    #         col=[1, 2],
+    #     )
+    #     figure1.update_xaxes(
+    #         ticks='outside',  # "",
+    #         showticklabels=True,
+    #         showline=True,
+    #         linewidth=1,
+    #         linecolor='black',
+    #         mirror=True,
+    #         row=[1, 2, 3, 4],
+    #         col=[1, 2],
+    #     )
+    #     self.figures = [
+    #         PlotlyFigure(label='figure 1', figure=figure1.to_plotly_json())
+    #     ]  # .append(PlotlyFigure(label='figure 1', figure=figure1.to_plotly_json()))
 
 
 class GrowthStepMovpe2IKZ(GrowthStepMovpeIKZ):
@@ -1229,6 +1230,7 @@ class GrowthMovpeIKZ(VaporDeposition, EntryData):
         type=str,
         default='MOVPE IKZ',
     )
+    # TODO get rid of this quantity
     data_file = Quantity(
         type=str,
         description='Upload here the spreadsheet file containing the deposition control data',

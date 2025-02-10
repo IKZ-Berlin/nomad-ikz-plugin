@@ -111,7 +111,38 @@ class ParserMovpe1RcpIKZ(MatchingParser):
             file.readline()
             for step in range(int(step_number)):
                 process_step_data = GrowthStepMovpe1IKZ(
-                    sources=[],
+                    sources=[
+                        GasLineSource(
+                            vapor_source=GasLineEvaporator(
+                                total_flow_rate=VolumetricFlowRate(
+                                ),
+                            )
+                        ),
+                        FlashSource(
+                            name = "Flash Evaporator 1",
+                            vapor_source=FlashEvaporator(
+                            carrier_gas=PubChemPureSubstanceSection(
+                                name="Argon",
+                            ),
+                            carrier_push_flow_rate=VolumetricFlowRate(
+                            ),
+                            carrier_purge_flow_rate=VolumetricFlowRate(
+                            ),
+                        )
+                        ),
+                        FlashSource(
+                            name = "Flash Evaporator 2",
+                            vapor_source=FlashEvaporator(
+                            carrier_gas=PubChemPureSubstanceSection(
+                                name="Argon",
+                            ),
+                            carrier_push_flow_rate=VolumetricFlowRate(
+                            ),
+                            carrier_purge_flow_rate=VolumetricFlowRate(
+                            ),
+                        )
+                        ),
+                    ],
                     environment=ChamberEnvironmentMovpe(),
                     duration=int(duration[step])
                 )
@@ -119,8 +150,10 @@ class ParserMovpe1RcpIKZ(MatchingParser):
                     GrowthStepMovpe1IKZ.sample_parameters, SampleParametersMovpe())
                 process_data.m_add_sub_section(GrowthMovpeIKZ.steps, 
                                                process_step_data)
-            while True:
-                header = file.readline().split()
+            
+            line = file.readline()
+            while line != '':
+                header = line.split() # a new line it is read at the bottom of the loop
                 value = file.readline().split()
                 ramp = file.readline().split() # not used
                 state = file.readline().split() # 0=ON, 1=OFF, 2=VENT
@@ -134,7 +167,33 @@ class ParserMovpe1RcpIKZ(MatchingParser):
                                     ureg('centimeter ** 3 / minute'),
                     )]
                         )
-        process_filename = f'{mainfile.split("/")[-1]}.archive.{filetype}'
+                elif header[0] == '6': # O2 GasLineSource
+                    for step in range(int(step_number)):
+                        process_data.steps[step].sources[0].vapor_source.carrier_push_flow_rate = VolumetricFlowRate(
+                            value=[ureg.Quantity(
+                                    float(value[step]),
+                                    ureg('centimeter ** 3 / minute'),
+                    )]
+                        )
+                elif header[0] == '9':
+                    for step in range(int(step_number)):
+                        process_data.steps[step].sources[1].vapor_source.carrier_push_flow_rate = VolumetricFlowRate(
+                            value=[ureg.Quantity(
+                                    float(value[step]),
+                                    ureg('centimeter ** 3 / minute'),
+                    )]
+                        )
+                elif header[0] == '12':
+                    for step in range(int(step_number)):
+                        process_data.steps[step].sources[1].vapor_source.carrier_purge_flow_rate = VolumetricFlowRate(
+                            value=[ureg.Quantity(
+                                    float(value[step]),
+                                    ureg('centimeter ** 3 / minute'),
+                    )]
+                        )
+                line = file.readline()
+                
+        process_filename = f"test.archive.{filetype}" # f'{mainfile.split("/")[-1]}.archive.{filetype}'
         process_archive = EntryArchive(
             data=process_data,
             m_context=archive.m_context,
