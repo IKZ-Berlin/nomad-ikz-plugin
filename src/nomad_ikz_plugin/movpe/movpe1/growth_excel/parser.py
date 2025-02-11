@@ -63,7 +63,7 @@ from nomad_ikz_plugin.movpe.schema import (
     FilamentTemperature,
     GrowthMovpeIKZ,
     GrowthMovpeIKZReference,
-    GrowthStepMovpe1IKZ,
+    GrowthStepMovpeIKZ,
     PrecursorsPreparationIKZ,
     PrecursorsPreparationIKZReference,
     SampleParametersMovpe,
@@ -389,7 +389,7 @@ class ParserMovpe1IKZ(MatchingParser):
                         else None
                     ),
                     steps=[
-                        GrowthStepMovpe1IKZ(
+                        GrowthStepMovpeIKZ(
                             name='Deposition',
                             duration=(
                                 float(dep_control['Duration'].loc[index])

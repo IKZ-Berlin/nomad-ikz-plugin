@@ -63,7 +63,7 @@ from nomad_ikz_plugin.movpe.schema import (
     FilamentTemperature,
     GrowthMovpeIKZ,
     GrowthMovpeIKZReference,
-    GrowthStepMovpe1IKZ,
+    GrowthStepMovpeIKZ,
     PrecursorsPreparationIKZ,
     PrecursorsPreparationIKZReference,
     SampleParametersMovpe,
@@ -110,9 +110,10 @@ class ParserMovpe1RcpIKZ(MatchingParser):
             duration = file.readline().split()
             file.readline()
             for step in range(int(step_number)):
-                process_step_data = GrowthStepMovpe1IKZ(
+                process_step_data = GrowthStepMovpeIKZ(
                     sources=[
                         GasLineSource(
+                            name="Oxygen",
                             vapor_source=GasLineEvaporator(
                                 total_flow_rate=VolumetricFlowRate(
                                 ),
@@ -148,8 +149,6 @@ class ParserMovpe1RcpIKZ(MatchingParser):
                     )],
                     duration=int(duration[step])
                 )
-                process_step_data.m_add_sub_section(
-                    GrowthStepMovpe1IKZ.sample_parameters, SampleParametersMovpe())
                 process_data.m_add_sub_section(GrowthMovpeIKZ.steps, 
                                                process_step_data)
             
@@ -276,7 +275,7 @@ class ParserMovpe1RcpIKZ(MatchingParser):
                 
                 line = file.readline()
                 
-        process_filename = f"test.archive.{filetype}" # f'{mainfile.split("/")[-1]}.archive.{filetype}'
+        process_filename = f'{mainfile.split("/")[-1][:-4]}.archive.{filetype}'
         process_archive = EntryArchive(
             data=process_data,
             m_context=archive.m_context,
