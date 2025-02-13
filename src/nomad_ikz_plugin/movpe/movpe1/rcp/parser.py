@@ -149,7 +149,8 @@ class ParserMovpe1RcpIKZ(MatchingParser):
                     environment=ChamberEnvironmentMovpe(),
                     sample_parameters=[SampleParametersMovpe(
                     )],
-                    duration=int(duration[step])
+                    duration=int(duration[step]),
+                    step_index=step+1,
                 )
                 process_data.m_add_sub_section(GrowthMovpeIKZ.steps, 
                                                process_step_data)
@@ -177,7 +178,7 @@ class ParserMovpe1RcpIKZ(MatchingParser):
                         )
                 elif header[0] == '6': # O2 GasLineSource
                     for step in range(int(total_steps)):
-                        process_data.steps[step].sources[0].vapor_source.carrier_push_flow_rate = VolumetricFlowRate(
+                        process_data.steps[step].sources[0].vapor_source.total_flow_rate = VolumetricFlowRate(
                             set_time=[ureg.Quantity(
                                     set_recipe_time[step],
                                     ureg.second,
