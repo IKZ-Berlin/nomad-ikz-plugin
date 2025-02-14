@@ -53,8 +53,8 @@ dev = [
 index-url = "https://gitlab.mpcdf.mpg.de/api/v4/projects/2187/packages/pypi/simple"
 
 [tool.uv.sources]
-lakeshore-nomad-plugin = { git = "https://github.com/IKZ-Berlin/lakeshore-nomad-plugin.git", branch = "main" }
-laytec_epitt_plugin = { git = "https://github.com/IKZ-Berlin/laytec_epitt_nomad_plugin.git", branch = "main" }
+# lakeshore-nomad-plugin = { git = "https://github.com/IKZ-Berlin/lakeshore-nomad-plugin.git", branch = "main" }
+# laytec_epitt_plugin = { git = "https://github.com/IKZ-Berlin/laytec_epitt_nomad_plugin.git", branch = "main" }
 
 [tool.ruff]
 include = ["src/*.py", "tests/*.py"]
@@ -153,6 +153,7 @@ pld_schema = "nomad_ikz_plugin.pld:schema"
 movpe_schema = "nomad_ikz_plugin.movpe:schema"
 movpe2_growth_excel_parser = "nomad_ikz_plugin.movpe.movpe2.growth_excel:parser"
 movpe1_growth_excel_parser = "nomad_ikz_plugin.movpe.movpe1.growth_excel:parser"
+movpe1_rcp_parser = "nomad_ikz_plugin.movpe.movpe1.rcp:parser"
 substrate_excel_parser = "nomad_ikz_plugin.movpe.substrate:parser"
 mbe_schema = "nomad_ikz_plugin.mbe:schema"
 #dir_sol_schema = "nomad_ikz_plugin.directional_solidification:schema"

@@ -23,6 +23,10 @@ from nomad.datamodel.metainfo.plot import (
     PlotlyFigure,
     PlotSection,
 )
+from nomad.datamodel.metainfo.plot import (
+    PlotlyFigure,
+    PlotSection,
+)
 from nomad.datamodel.metainfo.workflow import (
     Link,
 )
@@ -46,6 +50,7 @@ from nomad_material_processing.general import (
 from nomad_material_processing.vapor_deposition.cvd.general import (
     CVDSource,
     Rotation,
+    FlashEvaporator,
 )
 from nomad_material_processing.vapor_deposition.general import (
     ChamberEnvironment,
@@ -230,61 +235,6 @@ class Cylinder(Geometry):
         ),
         unit='millimeter ** 2',
     )
-
-
-# class MiscutMovpe(Miscut):
-#     """
-#     The miscut in a crystalline substrate refers to
-#     the intentional deviation from a specific crystallographic orientation,
-#     commonly expressed as the angular displacement of a crystal plane.
-#     """
-
-#     m_def = Section(label='Miscut')
-
-#     b_angle = Quantity(
-#         type=float,
-#         description='crystallographic orientation of the substrate in [hkl]',
-#         a_eln=ELNAnnotation(
-#             component='NumberEditQuantity',
-#         ),
-#         a_tabular={
-#             'name': 'Substrate/Miscut b angle',
-#             # "unit": "deg"
-#         },
-#         unit='deg',
-#     )
-#     angle = Quantity(
-#         type=float,
-#         description='angular displacement from crystallographic orientation of the substrate',
-#         a_eln=ELNAnnotation(
-#             component='NumberEditQuantity',
-#             defaultDisplayUnit='deg',
-#             label='c angle',
-#         ),
-#         unit='deg',
-#         a_tabular={
-#             'name': 'Substrate/Miscut c angle',
-#             # "unit": "deg"
-#         },
-#     )
-#     angle_deviation = Quantity(
-#         type=float,
-#         description='uncertainty on the angular displacement',
-#         a_eln=ELNAnnotation(
-#             component='NumberEditQuantity',
-#             defaultDisplayUnit='deg',
-#             label='c angle deviation',
-#         ),
-#         unit='deg',
-#     )
-#     orientation = Quantity(
-#         type=str,
-#         description='crystallographic orientation of the substrate in [hkl]',
-#         a_eln=ELNAnnotation(
-#             component='StringEditQuantity',
-#         ),
-#         a_tabular={'name': 'Substrate/Miscut c Orientation'},
-#     )
 
 
 class SubstrateMovpe(CrystallineSubstrate, EntryData):
@@ -807,98 +757,98 @@ class SampleParametersMovpe(SampleParameters):
                 ],
             ),
         ),
-        a_plotly_graph_object=[
-            {
-                'label': 'shaft temperature',
-                'index': 0,
-                'dragmode': 'pan',
-                'data': {
-                    'type': 'scattergl',
-                    'line': {'width': 2},
-                    'marker': {'size': 6},
-                    'mode': 'lines+markers',
-                    'name': 'Temperature',
-                    'x': '#shaft_temperature/time',
-                    'y': '#shaft_temperature/value',
-                },
-                'layout': {
-                    'title': {'text': 'Shaft Temperature'},
-                    'xaxis': {
-                        'showticklabels': True,
-                        'fixedrange': True,
-                        'ticks': '',
-                        'title': {'text': 'Process time [min]'},
-                        'showline': True,
-                        'linewidth': 1,
-                        'linecolor': 'black',
-                        'mirror': True,
-                    },
-                    'yaxis': {
-                        'showticklabels': True,
-                        'fixedrange': True,
-                        'ticks': '',
-                        'title': {'text': 'Temperature [°C]'},
-                        'showline': True,
-                        'linewidth': 1,
-                        'linecolor': 'black',
-                        'mirror': True,
-                    },
-                    'showlegend': False,
-                },
-                'config': {
-                    'displayModeBar': False,
-                    'scrollZoom': False,
-                    'responsive': False,
-                    'displaylogo': False,
-                    'dragmode': False,
-                },
-            },
-            {
-                'label': 'filament temperature',
-                'index': 1,
-                'dragmode': 'pan',
-                'data': {
-                    'type': 'scattergl',
-                    'line': {'width': 2},
-                    'marker': {'size': 6},
-                    'mode': 'lines+markers',
-                    'name': 'Filament Temperature',
-                    'x': '#filament_temperature/time',
-                    'y': '#filament_temperature/value',
-                },
-                'layout': {
-                    'title': {'text': 'Filament Temperature'},
-                    'xaxis': {
-                        'showticklabels': True,
-                        'fixedrange': True,
-                        'ticks': '',
-                        'title': {'text': 'Process time [min]'},
-                        # "showline": True,
-                        'linewidth': 1,
-                        'linecolor': 'black',
-                        'mirror': True,
-                    },
-                    'yaxis': {
-                        'showticklabels': True,
-                        'fixedrange': True,
-                        'ticks': '',
-                        'title': {'text': 'Temperature [°C]'},
-                        # "showline": True,
-                        'linewidth': 1,
-                        'linecolor': 'black',
-                        'mirror': True,
-                    },
-                    'showlegend': False,
-                },
-                'config': {
-                    'displayModeBar': False,
-                    'scrollZoom': False,
-                    'responsive': False,
-                    'displaylogo': False,
-                    'dragmode': False,
-                },
-            },
-        ],
+        # a_plotly_graph_object=[
+        #     {
+        #         'label': 'shaft temperature',
+        #         'index': 0,
+        #         'dragmode': 'pan',
+        #         'data': {
+        #             'type': 'scattergl',
+        #             'line': {'width': 2},
+        #             'marker': {'size': 6},
+        #             'mode': 'lines+markers',
+        #             'name': 'Temperature',
+        #             'x': '#shaft_temperature/time',
+        #             'y': '#shaft_temperature/value',
+        #         },
+        #         'layout': {
+        #             'title': {'text': 'Shaft Temperature'},
+        #             'xaxis': {
+        #                 'showticklabels': True,
+        #                 'fixedrange': True,
+        #                 'ticks': '',
+        #                 'title': {'text': 'Process time [min]'},
+        #                 'showline': True,
+        #                 'linewidth': 1,
+        #                 'linecolor': 'black',
+        #                 'mirror': True,
+        #             },
+        #             'yaxis': {
+        #                 'showticklabels': True,
+        #                 'fixedrange': True,
+        #                 'ticks': '',
+        #                 'title': {'text': 'Temperature [°C]'},
+        #                 'showline': True,
+        #                 'linewidth': 1,
+        #                 'linecolor': 'black',
+        #                 'mirror': True,
+        #             },
+        #             'showlegend': False,
+        #         },
+        #         'config': {
+        #             'displayModeBar': False,
+        #             'scrollZoom': False,
+        #             'responsive': False,
+        #             'displaylogo': False,
+        #             'dragmode': False,
+        #         },
+        #     },
+        #     {
+        #         'label': 'filament temperature',
+        #         'index': 1,
+        #         'dragmode': 'pan',
+        #         'data': {
+        #             'type': 'scattergl',
+        #             'line': {'width': 2},
+        #             'marker': {'size': 6},
+        #             'mode': 'lines+markers',
+        #             'name': 'Filament Temperature',
+        #             'x': '#filament_temperature/time',
+        #             'y': '#filament_temperature/value',
+        #         },
+        #         'layout': {
+        #             'title': {'text': 'Filament Temperature'},
+        #             'xaxis': {
+        #                 'showticklabels': True,
+        #                 'fixedrange': True,
+        #                 'ticks': '',
+        #                 'title': {'text': 'Process time [min]'},
+        #                 # "showline": True,
+        #                 'linewidth': 1,
+        #                 'linecolor': 'black',
+        #                 'mirror': True,
+        #             },
+        #             'yaxis': {
+        #                 'showticklabels': True,
+        #                 'fixedrange': True,
+        #                 'ticks': '',
+        #                 'title': {'text': 'Temperature [°C]'},
+        #                 # "showline": True,
+        #                 'linewidth': 1,
+        #                 'linecolor': 'black',
+        #                 'mirror': True,
+        #             },
+        #             'showlegend': False,
+        #         },
+        #         'config': {
+        #             'displayModeBar': False,
+        #             'scrollZoom': False,
+        #             'responsive': False,
+        #             'displaylogo': False,
+        #             'dragmode': False,
+        #         },
+        #     },
+        # ],
     )
     name = Quantity(
         type=str,
@@ -937,7 +887,9 @@ class GrowthStepMovpeIKZ(VaporDepositionStep, PlotSection):
     """
     Growth step for MOVPE IKZ
     """
-
+    m_def = Section(
+        label_quantity='step_index',
+    )
     # name
     # step_index
     # creates_new_thin_film
@@ -955,224 +907,6 @@ class GrowthStepMovpeIKZ(VaporDepositionStep, PlotSection):
             'component': 'StringEditQuantity',
         },
     )
-
-
-class GrowthStepMovpe1IKZ(GrowthStepMovpeIKZ):
-    """
-    Class autogenerated from yaml schema.
-    """
-
-    m_def = Section(
-        a_eln={'overview': True},
-        label='Growth Step Movpe 1',
-    )
-    comment = Quantity(
-        type=str,
-        description='description',
-        a_eln={'component': 'StringEditQuantity'},
-        label='Notes',
-    )
-    temperature_substrate = Quantity(  # CHECK why they are not in the new excel
-        type=np.float64,
-        description='FILL THE DESCRIPTION',
-        a_tabular={'name': 'Constant Parameters/Substrate temperature'},
-        a_eln={'component': 'NumberEditQuantity', 'defaultDisplayUnit': 'celsius'},
-        unit='celsius',
-    )
-    peristaltic_pump_rotation_titan = (
-        Quantity(  # CHECK why they are not in the new excel
-            type=np.float64,
-            description='FILL THE DESCRIPTION',
-            a_tabular={'name': 'Constant Parameters/Peristaltic pump rotation Titan'},
-            a_eln={'component': 'NumberEditQuantity', 'defaultDisplayUnit': 'celsius'},
-            unit='celsius',
-        )
-    )
-    peristaltic_pump_rotation_Sr_La = (
-        Quantity(  # CHECK why they are not in the new excel
-            type=np.float64,
-            description='FILL THE DESCRIPTION',
-            a_tabular={'name': 'Constant Parameters/Peristaltic pump rotation Sr La'},
-            a_eln={'component': 'NumberEditQuantity', 'defaultDisplayUnit': 'celsius'},
-            unit='celsius',
-        )
-    )
-    duration = VaporDepositionStep.duration.m_copy()
-
-    sample_parameters = SubSection(
-        section_def=SampleParametersMovpe,
-        repeats=True,
-        label='Samples',
-    )
-    sources = SubSection(
-        section_def=CVDSource,
-        repeats=True,
-    )
-    environment = SubSection(
-        section_def=ChamberEnvironmentMovpe,
-    )
-
-    def normalize(self, archive, logger):
-        super(GrowthStepMovpe1IKZ, self).normalize(archive, logger)
-
-        max_rows = 4
-        max_cols = 2
-        figure1 = make_subplots(
-            rows=max_rows,
-            cols=max_cols,
-            subplot_titles=[
-                'Chamber Pressure',
-                'Filament T',
-                'FE1 Back Pressure',
-                'FE2 Back Pressure',
-                'Oxygen T',
-                'Rotation',
-                'Shaft T',
-                'Throttle Valve',
-            ],
-        )  # , shared_yaxes=True)
-        arrays = {
-            'chamber_pressure': self.environment.pressure,
-            'filament_temp': self.sample_parameters[0].filament_temperature,
-            'flash_evap1': self.sources[0].vapor_source.pressure,
-            'flash_evap2': self.sources[1].vapor_source.pressure,
-            'oxy_temp': self.sources[2].vapor_source.temperature,
-            'rotation': self.environment.rotation,
-            'shaft_temp': self.sample_parameters[0].shaft_temperature,
-            'throttle_valve': self.environment.throttle_valve,
-        }
-        row = 1
-        col = 0
-        # for logged_par in sorted(arrays):
-        #     # for logged_par_instance in arrays[logged_par]['obj']:
-        #     if (
-        #         arrays[logged_par]["obj"].value.m.any()
-        #         and arrays[logged_par]["obj"].time.m.any()
-        #     ):
-        #         arrays[logged_par]["x"].append(arrays[logged_par]["obj"].time.m)
-        #         arrays[logged_par]["y"].append(arrays[logged_par]["obj"].value.m)
-        #     # else:
-        #     #     logger.warning(f"{str(logged_par_instance)} was empty, check the cells or the column headers in your excel file.")
-        #     if arrays[logged_par]["x"] and arrays[logged_par]["y"]:
-        #         scatter = px.scatter(
-        #             x=arrays[logged_par]["x"], y=arrays[logged_par]["y"]
-        #         )
-        #         if col == max_cols:
-        #             row += 1
-        #             col = 0
-        #         if col < max_cols:
-        #             col += 1
-        #         figure1.add_trace(scatter.data[0], row=row, col=col)
-        for logged_par in sorted(arrays):
-            if (
-                arrays[logged_par] is not None
-                and arrays[logged_par].value is not None
-                and arrays[logged_par].value.m is not None
-                and arrays[logged_par].time is not None
-                and arrays[logged_par].time.m is not None
-            ):
-                #     arrays[logged_par]["x"].append(arrays[logged_par]["obj"].time.m)
-                #     arrays[logged_par]["y"].append(arrays[logged_par]["obj"].value.m)
-                # else:
-                #     print("empty")
-                # if arrays[logged_par]["x"] and arrays[logged_par]["y"]:
-                #     for x, y in zip(arrays[logged_par]["x"], arrays[logged_par]["y"]):
-                #         figure1.add_trace(
-                #             px.scatter(x=x, y=y).data[0], row=row, col=(col % max_cols) + 1
-                #         )
-                #     col += 1
-                #     if col % max_cols == 0:
-                #         row += 1
-                x = arrays[logged_par].time.m
-                y = arrays[logged_par].value.m
-                col += 1
-                if col > max_cols:
-                    col = 1
-                    row += 1
-                if np.any(np.isfinite(x)) and np.any(np.isfinite(y)):
-                    scatter = px.scatter(
-                        x=x,
-                        y=y,
-                    )
-                    figure1.add_trace(scatter.data[0], row=row, col=col)
-                figure1.update_layout(
-                    template='plotly_white',
-                    height=800,
-                    width=300,
-                    # title_text='Creating Subplots in Plotly',
-                )
-            else:
-                logger.warning(
-                    f'{arrays[logged_par]} is an empty path, check your excel file and your parser.'
-                )
-        figure1.update_traces(line=dict(width=10), marker=dict(size=10))
-        figure1.update_yaxes(
-            ticks='outside',  # "",
-            showticklabels=True,
-            showline=True,
-            linewidth=1,
-            linecolor='black',
-            mirror=True,
-            row=[1, 2, 3, 4],
-            col=[1, 2],
-        )
-        figure1.update_xaxes(
-            ticks='outside',  # "",
-            showticklabels=True,
-            showline=True,
-            linewidth=1,
-            linecolor='black',
-            mirror=True,
-            row=[1, 2, 3, 4],
-            col=[1, 2],
-        )
-        self.figures = [
-            PlotlyFigure(label='figure 1', figure=figure1.to_plotly_json())
-        ]  # .append(PlotlyFigure(label='figure 1', figure=figure1.to_plotly_json()))
-
-
-class GrowthStepMovpe2IKZ(GrowthStepMovpeIKZ):
-    """
-    Class autogenerated from yaml schema.
-    """
-
-    m_def = Section(
-        label='Growth Step Movpe 2',
-        a_eln=None,
-    )
-    name = Quantity(
-        type=str,
-        description="""
-        A short and descriptive name for this step.
-        """,
-        a_tabular={'name': 'GrowthRun/Step name'},
-        a_eln=ELNAnnotation(
-            component='StringEditQuantity',
-            label='Step name',
-        ),
-    )
-    step_index = Quantity(
-        type=str,
-        description='the ID from RTG',
-        a_tabular={'name': 'GrowthRun/Step Index'},
-        a_eln={
-            'component': 'StringEditQuantity',
-        },
-    )
-    duration = Quantity(
-        type=float,
-        unit='second',
-        a_eln=ELNAnnotation(
-            component='NumberEditQuantity',
-        ),
-    )
-
-    comment = Quantity(
-        type=str,
-        description='description',
-        a_eln={'component': 'StringEditQuantity'},
-        label='Notes',
-    )
     sample_parameters = SubSection(
         section_def=SampleParametersMovpe,
         repeats=True,
@@ -1188,8 +922,126 @@ class GrowthStepMovpe2IKZ(GrowthStepMovpeIKZ):
         section_def=InSituMonitoringReference,
     )
 
+    # def normalize(self, archive, logger):
+    #     super(GrowthStepMovpe1IKZ, self).normalize(archive, logger)
 
-class GrowthMovpeIKZ(VaporDeposition, EntryData):
+    #     max_rows = 4
+    #     max_cols = 2
+    #     figure1 = make_subplots(
+    #         rows=max_rows,
+    #         cols=max_cols,
+    #         subplot_titles=[
+    #             'Chamber Pressure',
+    #             'Filament T',
+    #             'FE1 Back Pressure',
+    #             'FE2 Back Pressure',
+    #             'Oxygen T',
+    #             'Rotation',
+    #             'Shaft T',
+    #             'Throttle Valve',
+    #         ],
+    #     )  # , shared_yaxes=True)
+    #     arrays = {
+    #         'chamber_pressure': self.environment.pressure,
+    #         'filament_temp': self.sample_parameters[0].filament_temperature,
+    #         'flash_evap1': self.sources[0].vapor_source.pressure,
+    #         'flash_evap2': self.sources[1].vapor_source.pressure,
+    #         'oxy_temp': self.sources[2].vapor_source.temperature,
+    #         'rotation': self.environment.rotation,
+    #         'shaft_temp': self.sample_parameters[0].shaft_temperature,
+    #         'throttle_valve': self.environment.throttle_valve,
+    #     }
+    #     row = 1
+    #     col = 0
+    #     # for logged_par in sorted(arrays):
+    #     #     # for logged_par_instance in arrays[logged_par]['obj']:
+    #     #     if (
+    #     #         arrays[logged_par]["obj"].value.m.any()
+    #     #         and arrays[logged_par]["obj"].time.m.any()
+    #     #     ):
+    #     #         arrays[logged_par]["x"].append(arrays[logged_par]["obj"].time.m)
+    #     #         arrays[logged_par]["y"].append(arrays[logged_par]["obj"].value.m)
+    #     #     # else:
+    #     #     #     logger.warning(f"{str(logged_par_instance)} was empty, check the cells or the column headers in your excel file.")
+    #     #     if arrays[logged_par]["x"] and arrays[logged_par]["y"]:
+    #     #         scatter = px.scatter(
+    #     #             x=arrays[logged_par]["x"], y=arrays[logged_par]["y"]
+    #     #         )
+    #     #         if col == max_cols:
+    #     #             row += 1
+    #     #             col = 0
+    #     #         if col < max_cols:
+    #     #             col += 1
+    #     #         figure1.add_trace(scatter.data[0], row=row, col=col)
+    #     for logged_par in sorted(arrays):
+    #         if (
+    #             arrays[logged_par] is not None
+    #             and arrays[logged_par].value is not None
+    #             and arrays[logged_par].value.m is not None
+    #             and arrays[logged_par].time is not None
+    #             and arrays[logged_par].time.m is not None
+    #         ):
+    #             #     arrays[logged_par]["x"].append(arrays[logged_par]["obj"].time.m)
+    #             #     arrays[logged_par]["y"].append(arrays[logged_par]["obj"].value.m)
+    #             # else:
+    #             #     print("empty")
+    #             # if arrays[logged_par]["x"] and arrays[logged_par]["y"]:
+    #             #     for x, y in zip(arrays[logged_par]["x"], arrays[logged_par]["y"]):
+    #             #         figure1.add_trace(
+    #             #             px.scatter(x=x, y=y).data[0], row=row, col=(col % max_cols) + 1
+    #             #         )
+    #             #     col += 1
+    #             #     if col % max_cols == 0:
+    #             #         row += 1
+    #             x = arrays[logged_par].time.m
+    #             y = arrays[logged_par].value.m
+    #             col += 1
+    #             if col > max_cols:
+    #                 col = 1
+    #                 row += 1
+    #             if np.any(np.isfinite(x)) and np.any(np.isfinite(y)):
+    #                 scatter = px.scatter(
+    #                     x=x,
+    #                     y=y,
+    #                 )
+    #                 figure1.add_trace(scatter.data[0], row=row, col=col)
+    #             figure1.update_layout(
+    #                 template='plotly_white',
+    #                 height=800,
+    #                 width=300,
+    #                 # title_text='Creating Subplots in Plotly',
+    #             )
+    #         else:
+    #             logger.warning(
+    #                 f'{arrays[logged_par]} is an empty path, check your excel file and your parser.'
+    #             )
+    #     figure1.update_traces(line=dict(width=10), marker=dict(size=10))
+    #     figure1.update_yaxes(
+    #         ticks='outside',  # "",
+    #         showticklabels=True,
+    #         showline=True,
+    #         linewidth=1,
+    #         linecolor='black',
+    #         mirror=True,
+    #         row=[1, 2, 3, 4],
+    #         col=[1, 2],
+    #     )
+    #     figure1.update_xaxes(
+    #         ticks='outside',  # "",
+    #         showticklabels=True,
+    #         showline=True,
+    #         linewidth=1,
+    #         linecolor='black',
+    #         mirror=True,
+    #         row=[1, 2, 3, 4],
+    #         col=[1, 2],
+    #     )
+    #     self.figures = [
+    #         PlotlyFigure(label='figure 1', figure=figure1.to_plotly_json())
+    #     ]  # .append(PlotlyFigure(label='figure 1', figure=figure1.to_plotly_json()))
+
+
+class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
     """
     Class autogenerated from yaml schema.
     """
@@ -1229,6 +1081,7 @@ class GrowthMovpeIKZ(VaporDeposition, EntryData):
         type=str,
         default='MOVPE IKZ',
     )
+    # TODO get rid of this quantity
     data_file = Quantity(
         type=str,
         description='Upload here the spreadsheet file containing the deposition control data',
@@ -1249,7 +1102,6 @@ class GrowthMovpeIKZ(VaporDeposition, EntryData):
         type=str,
         description='description',
         a_eln={'component': 'StringEditQuantity'},
-        label='Notes',
     )
     recipe_id = Quantity(
         type=str,
@@ -1313,6 +1165,145 @@ class GrowthMovpeIKZ(VaporDeposition, EntryData):
                                 )
             archive.workflow2.outputs.extend(set(outputs))
             archive.workflow2.inputs.extend(set(inputs))
+        
+        # arrays for plotly figures
+        filament_temp_array = []
+        shaft_temp = {"value": [], "time": []}
+        chamber_pressure = {"value": [], "time": []}
+        rotation_array = []
+        sources_pressure = {}
+        sources_temperature = {}
+        if self.steps is not None:
+            for step in self.steps:
+                # TODO handle aff if statements with hasattr
+                if step.sample_parameters is not None:
+                    for sample_param in step.sample_parameters:
+                        if sample_param.filament_temperature is not None:
+                            filament_temp_array.append(sample_param.filament_temperature.set_value)
+                        if sample_param.shaft_temperature is not None:
+                            shaft_temp["value"].append(sample_param.shaft_temperature.set_value)
+                            shaft_temp["time"].append(sample_param.shaft_temperature.set_time)
+                if step.environment is not None:
+                    if step.environment.pressure is not None:
+                        chamber_pressure["value"].append(step.environment.pressure.set_value)
+                        chamber_pressure["time"].append(step.environment.pressure.set_time)
+                    if step.environment.rotation is not None:
+                        rotation_array.append(step.environment.rotation.set_value)
+                # if step.sources is not None:
+                #     for source in step.sources:
+                #         if hasattr(source, 'vapor_source') and source.vapor_source is not None:
+                #             if source.name not in sources_pressure:
+                #                 sources_pressure[source.name] = []
+                #             if source.name not in sources_temperature:
+                #                 sources_temperature[source.name] = []
+                #             sources_pressure[source.name].append(source.vapor_source.pressure.set_value)
+                #             sources_temperature[source.name].append(source.vapor_source.temperature.set_value)
+
+        # plotly figures
+        max_rows = 4
+        max_cols = 2
+        figure1 = make_subplots(
+            rows=max_rows,
+            cols=max_cols,
+            subplot_titles=[
+                'Chamber Pressure',
+                'Filament T',
+                'FE1 Back Pressure',
+                'FE2 Back Pressure',
+                'Oxygen T',
+                'Rotation',
+                'Shaft T',
+                'Throttle Valve',
+            ],
+        )  # , shared_yaxes=True)
+        arrays = {
+            'shaft_temp': shaft_temp,
+        }
+        row = 1
+        col = 0
+        # for logged_par in sorted(arrays):
+        #     # for logged_par_instance in arrays[logged_par]['obj']:
+        #     if (
+        #         arrays[logged_par]["obj"].value.m.any()
+        #         and arrays[logged_par]["obj"].time.m.any()
+        #     ):
+        #         arrays[logged_par]["x"].append(arrays[logged_par]["obj"].time.m)
+        #         arrays[logged_par]["y"].append(arrays[logged_par]["obj"].value.m)
+        #     # else:
+        #     #     logger.warning(f"{str(logged_par_instance)} was empty, check the cells or the column headers in your excel file.")
+        #     if arrays[logged_par]["x"] and arrays[logged_par]["y"]:
+        #         scatter = px.scatter(
+        #             x=arrays[logged_par]["x"], y=arrays[logged_par]["y"]
+        #         )
+        #         if col == max_cols:
+        #             row += 1
+        #             col = 0
+        #         if col < max_cols:
+        #             col += 1
+        #         figure1.add_trace(scatter.data[0], row=row, col=col)
+        for logged_par in sorted(arrays):
+            if (
+                arrays[logged_par] is not None
+            ):
+                #     arrays[logged_par]["x"].append(arrays[logged_par]["obj"].time.m)
+                #     arrays[logged_par]["y"].append(arrays[logged_par]["obj"].value.m)
+                # else:
+                #     print("empty")
+                # if arrays[logged_par]["x"] and arrays[logged_par]["y"]:
+                #     for x, y in zip(arrays[logged_par]["x"], arrays[logged_par]["y"]):
+                #         figure1.add_trace(
+                #             px.scatter(x=x, y=y).data[0], row=row, col=(col % max_cols) + 1
+                #         )
+                #     col += 1
+                #     if col % max_cols == 0:
+                #         row += 1
+                x = arrays[logged_par]["time"]
+                y = arrays[logged_par]["value"]
+                col += 1
+                if col > max_cols:
+                    col = 1
+                    row += 1
+                if np.any(np.isfinite(x)) and np.any(np.isfinite(y)):
+                    scatter = px.scatter(
+                        x=x,
+                        y=y,
+                    )
+                    figure1.add_trace(scatter.data[0], row=row, col=col)
+                figure1.update_layout(
+                    template='plotly_white',
+                    height=800,
+                    width=300,
+                    # title_text='Creating Subplots in Plotly',
+                )
+            else:
+                logger.warning(
+                    f'{arrays[logged_par]} is an empty path, check your excel file and your parser.'
+                )
+        figure1.update_traces(line=dict(width=10), marker=dict(size=10))
+        figure1.update_yaxes(
+            ticks='outside',  # "",
+            showticklabels=True,
+            showline=True,
+            linewidth=1,
+            linecolor='black',
+            mirror=True,
+            row=[1, 2, 3, 4],
+            col=[1, 2],
+        )
+        figure1.update_xaxes(
+            ticks='outside',  # "",
+            showticklabels=True,
+            showline=True,
+            linewidth=1,
+            linecolor='black',
+            mirror=True,
+            row=[1, 2, 3, 4],
+            col=[1, 2],
+        )
+        self.figures = [
+            PlotlyFigure(label='figure 1', figure=figure1.to_plotly_json())
+        ]  # .append(PlotlyFigure(label='figure 1', figure=figure1.to_plotly_json()))
+
 
 
 class GrowthMovpeIKZReference(ActivityReference):
@@ -1398,7 +1389,7 @@ class GrowthMovpe1IKZConstantParameters(Process, EntryData, TableData):
         },
     )
     steps = SubSection(
-        section_def=GrowthStepMovpe1IKZ,
+        section_def=GrowthStepMovpeIKZ,
         repeats=True,
     )
 

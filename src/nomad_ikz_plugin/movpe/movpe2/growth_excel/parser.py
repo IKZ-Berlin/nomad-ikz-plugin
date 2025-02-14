@@ -55,7 +55,7 @@ from nomad_ikz_plugin.movpe.schema import (
     FilamentTemperature,
     GrowthMovpeIKZ,
     GrowthMovpeIKZReference,
-    GrowthStepMovpe2IKZ,
+    GrowthStepMovpeIKZ,
     LayTecTemperature,
     SampleParametersMovpe,
     ShaftTemperature,
@@ -110,7 +110,7 @@ class ParserMovpe2IKZ(MatchingParser):
         # initializing experiments dict
         growth_processes: Dict[str, GrowthMovpeIKZ] = {}
         # initializing steps dict
-        process_steps_lists: Dict[str, Dict[str, GrowthStepMovpe2IKZ]] = {}
+        process_steps_lists: Dict[str, Dict[str, GrowthStepMovpeIKZ]] = {}
         # initializing samples dict
         samples_lists: Dict[str, Dict[str, List]] = {}
 
@@ -245,7 +245,7 @@ class ParserMovpe2IKZ(MatchingParser):
                 process_steps_lists[recipe_id] = {}
             if step_id not in process_steps_lists[recipe_id]:
                 process_steps_lists[recipe_id][step_id] = []
-            process_steps_lists[recipe_id][step_id] = GrowthStepMovpe2IKZ(
+            process_steps_lists[recipe_id][step_id] = GrowthStepMovpeIKZ(
                 name=str(
                     growth_run_file['Step name'][index]
                     if 'Step name' in growth_run_file.columns
