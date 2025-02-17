@@ -25,7 +25,7 @@ from nomad.datamodel.metainfo.annotations import (
     ELNAnnotation,
 )
 from nomad.datamodel.metainfo.basesections import (
-    PubChemPureSubstanceSection,
+    PureSubstanceSection,
     PureSubstanceComponent,
     PureSubstanceSection,
 )
@@ -41,7 +41,6 @@ from nomad_material_processing.general import (
     ThinFilmReference,
 )
 from nomad_material_processing.vapor_deposition.cvd.general import (
-    FlashEvaporator,
     FlashSource,
     GasLineEvaporator,
     GasLineSource,
@@ -72,6 +71,7 @@ from nomad_ikz_plugin.movpe.schema import (
     ThinFilmMovpeIKZ,
     ThinFilmStackMovpe,
     ThinFilmStackMovpeReference,
+    FlashEvaporatorIKZ,
 )
 from nomad_ikz_plugin.utils import (
     clean_dataframe_headers,
@@ -123,8 +123,8 @@ class ParserMovpe1RcpIKZ(MatchingParser):
                         ),
                         FlashSource(
                             name = "Flash Evaporator 1",
-                            vapor_source=FlashEvaporator(
-                            carrier_gas=PubChemPureSubstanceSection(
+                            vapor_source=FlashEvaporatorIKZ(
+                            carrier_gas=PureSubstanceSection(
                                 name="Argon",
                             ),
                             carrier_push_flow_rate=VolumetricFlowRate(
@@ -135,8 +135,8 @@ class ParserMovpe1RcpIKZ(MatchingParser):
                         ),
                         FlashSource(
                             name = "Flash Evaporator 2",
-                            vapor_source=FlashEvaporator(
-                            carrier_gas=PubChemPureSubstanceSection(
+                            vapor_source=FlashEvaporatorIKZ(
+                            carrier_gas=PureSubstanceSection(
                                 name="Argon",
                             ),
                             carrier_push_flow_rate=VolumetricFlowRate(
