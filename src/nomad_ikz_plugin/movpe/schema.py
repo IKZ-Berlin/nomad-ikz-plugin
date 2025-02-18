@@ -1256,19 +1256,27 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
             rows=max_rows,
             cols=max_cols,
             subplot_titles=[
-                'Chamber Pressure',
+                'Shaft T',
                 'Filament T',
+                'Chamber Pressure',
                 'FE1 Back Pressure',
                 'FE2 Back Pressure',
                 'Oxygen T',
                 'Rotation',
-                'Shaft T',
                 'Throttle Valve',
             ],
         )  # , shared_yaxes=True)
-        arrays = {
-            'shaft_t': shaft_t['Shaft T'],
-        }
+        arrays = [
+            shaft_t['Shaft T'],
+            fil_t['Filament T'],
+            chamber_p['Chamber P'],
+            throttle_valve['Throttle Valve'],
+            rotation['Rotation'],
+        ]
+        for source in sources_p.values():
+            arrays.append(source)
+        for source in sources_t:
+            arrays.append(source)
         row = 1
         col = 0
         # for logged_par in sorted(arrays):
@@ -1291,8 +1299,8 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
         #         if col < max_cols:
         #             col += 1
         #         figure1.add_trace(scatter.data[0], row=row, col=col)
-        for logged_par in sorted(arrays):
-            if arrays[logged_par] is not None:
+        for parameter in arrays:
+            if parameter is not None:
                 #     arrays[logged_par]["x"].append(arrays[logged_par]["obj"].time.m)
                 #     arrays[logged_par]["y"].append(arrays[logged_par]["obj"].value.m)
                 # else:
@@ -1305,8 +1313,8 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
                 #     col += 1
                 #     if col % max_cols == 0:
                 #         row += 1
-                x = arrays[logged_par]['time']
-                y = arrays[logged_par]['value']
+                x = parameter['time']
+                y = parameter['value']
                 col += 1
                 if col > max_cols:
                     col = 1
@@ -1325,7 +1333,7 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
                 )
             else:
                 logger.warning(
-                    f'{arrays[logged_par]} is an empty path, check your excel file and your parser.'
+                    f'{parameter} is an empty path, check your excel file and your parser.'
                 )
         figure1.update_traces(line=dict(width=10), marker=dict(size=10))
         figure1.update_yaxes(
