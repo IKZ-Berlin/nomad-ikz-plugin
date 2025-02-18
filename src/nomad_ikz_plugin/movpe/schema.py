@@ -15,13 +15,10 @@ from nomad.datamodel.metainfo.basesections import (
     Experiment,
     Process,
     PureSubstance,
+    PureSubstanceSection,
     SectionReference,
     System,
     SystemComponent,
-)
-from nomad.datamodel.metainfo.plot import (
-    PlotlyFigure,
-    PlotSection,
 )
 from nomad.datamodel.metainfo.plot import (
     PlotlyFigure,
@@ -41,7 +38,6 @@ from nomad.parsing.tabular import TableData
 from nomad_material_processing.general import (
     CrystallineSubstrate,
     Geometry,
-    Miscut,
     SubstrateReference,
     ThinFilm,
     ThinFilmStack,
@@ -49,9 +45,8 @@ from nomad_material_processing.general import (
 )
 from nomad_material_processing.vapor_deposition.cvd.general import (
     CVDSource,
-    Rotation,
     FlashEvaporator,
-    PureSubstanceSection,
+    Rotation,
 )
 from nomad_material_processing.vapor_deposition.general import (
     ChamberEnvironment,
@@ -888,6 +883,7 @@ class GrowthStepMovpeIKZ(VaporDepositionStep, PlotSection):
     """
     Growth step for MOVPE IKZ
     """
+
     m_def = Section(
         label_quantity='step_index',
     )
@@ -1043,7 +1039,6 @@ class GrowthStepMovpeIKZ(VaporDepositionStep, PlotSection):
 
 
 class FlashEvaporatorIKZ(FlashEvaporator):
-
     carrier_gas = SubSection(
         section_def=PureSubstanceSection,
     )
@@ -1156,45 +1151,103 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
                                 )
             archive.workflow2.outputs.extend(set(outputs))
             archive.workflow2.inputs.extend(set(inputs))
-        
+
         # arrays for plotly figures
-        fil_temp = {"value": np.array([]), "time": np.array([])}
-        shaft_temp = {"value": np.array([]), "time": np.array([])}
-        chamber_pressure = {"value": np.array([]), "time": np.array([])}
-        throttle_valve = {"value": np.array([]), "time": np.array([])}
-        rotation_array = {"value": np.array([]), "time": np.array([])}
-        sources_pressure = {}
-        sources_temperature = {}
+        fil_t = {'Filament T': {'value': np.array([]), 'time': np.array([])}}
+        shaft_t = {'Shaft T': {'value': np.array([]), 'time': np.array([])}}
+        chamber_p = {'Chamber P': {'value': np.array([]), 'time': np.array([])}}
+        throttle_valve = {
+            'Throttle Valve': {'value': np.array([]), 'time': np.array([])}
+        }
+        rotation = {'Rotation': {'value': np.array([]), 'time': np.array([])}}
+        sources_p = {}
+        sources_t = {}
         if self.steps is not None:
             for step in self.steps:
                 # TODO handle aff if statements with hasattr
                 if step.sample_parameters is not None:
                     for sample_param in step.sample_parameters:
                         if sample_param.filament_temperature is not None:
-                            fil_temp["value"] = np.append(fil_temp["value"], sample_param.filament_temperature.set_value.m)
-                            fil_temp["time"] = np.append(fil_temp["time"], sample_param.filament_temperature.set_time.m)
+                            fil_t['Filament T']['value'] = np.append(
+                                fil_t['Filament T']['value'],
+                                sample_param.filament_temperature.set_value.m,
+                            )
+                            fil_t['Filament T']['time'] = np.append(
+                                fil_t['Filament T']['time'],
+                                sample_param.filament_temperature.set_time.m,
+                            )
                         if sample_param.shaft_temperature is not None:
-                            shaft_temp["value"] = np.append(shaft_temp["value"], sample_param.shaft_temperature.set_value.m)
-                            shaft_temp["time"] = np.append(shaft_temp["time"], sample_param.shaft_temperature.set_time.m)
+                            shaft_t['Shaft T']['value'] = np.append(
+                                shaft_t['Shaft T']['value'],
+                                sample_param.shaft_temperature.set_value.m,
+                            )
+                            shaft_t['Shaft T']['time'] = np.append(
+                                shaft_t['Shaft T']['time'],
+                                sample_param.shaft_temperature.set_time.m,
+                            )
                 if step.environment is not None:
                     if step.environment.pressure is not None:
-                        chamber_pressure["value"] = np.append(chamber_pressure["value"], step.environment.pressure.set_value.m)
-                        chamber_pressure["time"] = np.append(chamber_pressure["time"], step.environment.pressure.set_time.m)
+                        chamber_p['Chamber P']['value'] = np.append(
+                            chamber_p['Chamber P']['value'],
+                            step.environment.pressure.set_value.m,
+                        )
+                        chamber_p['Chamber P']['time'] = np.append(
+                            chamber_p['Chamber P']['time'],
+                            step.environment.pressure.set_time.m,
+                        )
                     if step.environment.rotation is not None:
-                        rotation_array["value"] = np.append(rotation_array["value"], step.environment.rotation.set_value.m)
-                        rotation_array["time"] = np.append(rotation_array["time"], step.environment.rotation.set_time.m)
+                        rotation['Rotation']['value'] = np.append(
+                            rotation['Rotation']['value'],
+                            step.environment.rotation.set_value.m,
+                        )
+                        rotation['Rotation']['time'] = np.append(
+                            rotation['Rotation']['time'],
+                            step.environment.rotation.set_time.m,
+                        )
                     if step.environment.throttle_valve is not None:
-                        throttle_valve["value"] = np.append(throttle_valve["value"], step.environment.throttle_valve.set_value.m)
-                        throttle_valve["time"] = np.append(throttle_valve["time"], step.environment.throttle_valve.set_time.m)
-                # if step.sources is not None:
-                #     for source in step.sources:
-                #         if hasattr(source, 'vapor_source') and source.vapor_source is not None:
-                #             if source.name not in sources_pressure:
-                #                 sources_pressure[source.name] = []
-                #             if source.name not in sources_temperature:
-                #                 sources_temperature[source.name] = []
-                #             sources_pressure[source.name].append(source.vapor_source.pressure.set_value)
-                #             sources_temperature[source.name].append(source.vapor_source.temperature.set_value)
+                        throttle_valve['Throttle Valve']['value'] = np.append(
+                            throttle_valve['Throttle Valve']['value'],
+                            step.environment.throttle_valve.set_value.m,
+                        )
+                        throttle_valve['Throttle Valve']['time'] = np.append(
+                            throttle_valve['Throttle Valve']['time'],
+                            step.environment.throttle_valve.set_time.m,
+                        )
+                if step.sources is not None:
+                    for source in step.sources:
+                        if (
+                            hasattr(source, 'vapor_source')
+                            and hasattr(source.vapor_source, 'pressure')
+                            and source.vapor_source.pressure is not None
+                            and hasattr(source.vapor_source, 'temperature')
+                            and source.vapor_source.temperature is not None
+                        ):
+                            if source.name not in sources_p:
+                                sources_p[source.name] = {
+                                    'value': np.array([]),
+                                    'time': np.array([]),
+                                }
+                            if source.name not in sources_t:
+                                sources_t[source.name] = {
+                                    'value': np.array([]),
+                                    'time': np.array([]),
+                                }
+                            sources_p[source.name]['value'] = np.append(
+                                sources_p[source.name]['value'],
+                                source.vapor_source.pressure.set_value.m,
+                            )
+                            sources_p[source.name]['time'] = np.append(
+                                sources_p[source.name]['time'],
+                                source.vapor_source.pressure.set_time.m,
+                            )
+                            sources_t[source.name]['value'] = np.append(
+                                sources_t[source.name]['value'],
+                                source.vapor_source.temperature.set_value.m,
+                            )
+                            sources_t[source.name]['time'] = np.append(
+                                sources_t[source.name]['time'],
+                                source.vapor_source.temperature.set_time.m,
+                            )
 
         # plotly figures
         max_rows = 4
@@ -1214,7 +1267,7 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
             ],
         )  # , shared_yaxes=True)
         arrays = {
-            'shaft_temp': shaft_temp,
+            'shaft_t': shaft_t['Shaft T'],
         }
         row = 1
         col = 0
@@ -1239,9 +1292,7 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
         #             col += 1
         #         figure1.add_trace(scatter.data[0], row=row, col=col)
         for logged_par in sorted(arrays):
-            if (
-                arrays[logged_par] is not None
-            ):
+            if arrays[logged_par] is not None:
                 #     arrays[logged_par]["x"].append(arrays[logged_par]["obj"].time.m)
                 #     arrays[logged_par]["y"].append(arrays[logged_par]["obj"].value.m)
                 # else:
@@ -1254,8 +1305,8 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
                 #     col += 1
                 #     if col % max_cols == 0:
                 #         row += 1
-                x = arrays[logged_par]["time"]
-                y = arrays[logged_par]["value"]
+                x = arrays[logged_par]['time']
+                y = arrays[logged_par]['value']
                 col += 1
                 if col > max_cols:
                     col = 1
@@ -1300,7 +1351,6 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
         self.figures = [
             PlotlyFigure(label='figure 1', figure=figure1.to_plotly_json())
         ]  # .append(PlotlyFigure(label='figure 1', figure=figure1.to_plotly_json()))
-
 
 
 class GrowthMovpeIKZReference(ActivityReference):

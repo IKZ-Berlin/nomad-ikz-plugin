@@ -16,17 +16,14 @@
 # limitations under the License.
 #
 
-import pandas as pd
 from nomad.datamodel.data import (
     EntryData,
 )
-from nomad.datamodel.datamodel import EntryArchive, EntryMetadata
+from nomad.datamodel.datamodel import EntryArchive
 from nomad.datamodel.metainfo.annotations import (
     ELNAnnotation,
 )
 from nomad.datamodel.metainfo.basesections import (
-    PureSubstanceSection,
-    PureSubstanceComponent,
     PureSubstanceSection,
 )
 from nomad.metainfo import (
@@ -35,11 +32,6 @@ from nomad.metainfo import (
 )
 from nomad.parsing import MatchingParser
 from nomad.units import ureg
-from nomad.utils import hash
-from nomad_material_processing.general import (
-    SubstrateReference,
-    ThinFilmReference,
-)
 from nomad_material_processing.vapor_deposition.cvd.general import (
     FlashSource,
     GasLineEvaporator,
@@ -52,32 +44,17 @@ from nomad_material_processing.vapor_deposition.general import (
     VolumetricFlowRate,
 )
 
-from nomad_ikz_plugin.general.schema import (
-    LiquidComponent,
-    Solution,
-)
 from nomad_ikz_plugin.movpe.schema import (
     ChamberEnvironmentMovpe,
-    ExperimentMovpeIKZ,
     FilamentTemperature,
+    FlashEvaporatorIKZ,
     GrowthMovpeIKZ,
-    GrowthMovpeIKZReference,
     GrowthStepMovpeIKZ,
-    PrecursorsPreparationIKZ,
-    PrecursorsPreparationIKZReference,
     SampleParametersMovpe,
     ShaftTemperature,
-    SystemComponentIKZ,
-    ThinFilmMovpeIKZ,
-    ThinFilmStackMovpe,
-    ThinFilmStackMovpeReference,
-    FlashEvaporatorIKZ,
 )
 from nomad_ikz_plugin.utils import (
-    clean_dataframe_headers,
     create_archive,
-    get_hash_ref,
-    row_timeseries,
 )
 
 
@@ -100,12 +77,11 @@ class RcpFileMovpe1(EntryData):
 
 class ParserMovpe1RcpIKZ(MatchingParser):
     def parse(self, mainfile: str, archive: EntryArchive, logger) -> None:
-
         filetype = 'yaml'
 
         process_data = GrowthMovpeIKZ()
 
-        with open(mainfile, 'r') as file:
+        with open(mainfile) as file:
             total_steps = file.readline().split()[0]
             duration = file.readline().split()
             set_recipe_time = [0]
@@ -115,239 +91,298 @@ class ParserMovpe1RcpIKZ(MatchingParser):
                 process_step_data = GrowthStepMovpeIKZ(
                     sources=[
                         GasLineSource(
-                            name="Oxygen",
+                            name='Oxygen',
                             vapor_source=GasLineEvaporator(
-                                total_flow_rate=VolumetricFlowRate(
+                                total_flow_rate=VolumetricFlowRate(),
+                            ),
+                        ),
+                        FlashSource(
+                            name='Flash Evaporator 1',
+                            vapor_source=FlashEvaporatorIKZ(
+                                carrier_gas=PureSubstanceSection(
+                                    name='Argon',
                                 ),
-                            )
+                                carrier_push_flow_rate=VolumetricFlowRate(),
+                                carrier_purge_flow_rate=VolumetricFlowRate(),
+                            ),
                         ),
                         FlashSource(
-                            name = "Flash Evaporator 1",
+                            name='Flash Evaporator 2',
                             vapor_source=FlashEvaporatorIKZ(
-                            carrier_gas=PureSubstanceSection(
-                                name="Argon",
+                                carrier_gas=PureSubstanceSection(
+                                    name='Argon',
+                                ),
+                                carrier_push_flow_rate=VolumetricFlowRate(),
+                                carrier_purge_flow_rate=VolumetricFlowRate(),
                             ),
-                            carrier_push_flow_rate=VolumetricFlowRate(
-                            ),
-                            carrier_purge_flow_rate=VolumetricFlowRate(
-                            ),
-                        )
-                        ),
-                        FlashSource(
-                            name = "Flash Evaporator 2",
-                            vapor_source=FlashEvaporatorIKZ(
-                            carrier_gas=PureSubstanceSection(
-                                name="Argon",
-                            ),
-                            carrier_push_flow_rate=VolumetricFlowRate(
-                            ),
-                            carrier_purge_flow_rate=VolumetricFlowRate(
-                            ),
-                        )
                         ),
                     ],
                     environment=ChamberEnvironmentMovpe(),
-                    sample_parameters=[SampleParametersMovpe(
-                    )],
+                    sample_parameters=[SampleParametersMovpe()],
                     duration=int(duration[step]),
-                    step_index=step+1,
+                    step_index=step + 1,
                 )
-                process_data.m_add_sub_section(GrowthMovpeIKZ.steps, 
-                                               process_step_data)
-            
+                process_data.m_add_sub_section(GrowthMovpeIKZ.steps, process_step_data)
+
             line = file.readline()
             while line != '':
-                header = line.split() # a new line it is read at the bottom of the loop
+                header = line.split()  # a new line it is read at the bottom of the loop
                 value = file.readline().split()
-                ramp = file.readline().split() # not used
-                state = file.readline().split() # 0=ON, 1=OFF, 2=VENT
+                ramp = file.readline().split()  # not used
+                state = file.readline().split()  # 0=ON, 1=OFF, 2=VENT
                 if not header or not value or not ramp or not state:
                     break
                 if header[0] == '3':
                     for step in range(int(total_steps)):
-                        process_data.steps[step].environment.uniform_gas_flow_rate = VolumetricFlowRate(
-                            set_time=[ureg.Quantity(
+                        process_data.steps[
+                            step
+                        ].environment.uniform_gas_flow_rate = VolumetricFlowRate(
+                            set_time=[
+                                ureg.Quantity(
                                     set_recipe_time[step],
                                     ureg.second,
-                            )
+                                )
                             ],
-                            set_value=[ureg.Quantity(
+                            set_value=[
+                                ureg.Quantity(
                                     float(value[step]),
                                     ureg('centimeter ** 3 / minute'),
-                    )]
+                                )
+                            ],
                         )
-                elif header[0] == '6': # O2 GasLineSource
+                elif header[0] == '6':  # O2 GasLineSource
                     for step in range(int(total_steps)):
-                        process_data.steps[step].sources[0].vapor_source.total_flow_rate = VolumetricFlowRate(
-                            set_time=[ureg.Quantity(
+                        process_data.steps[step].sources[
+                            0
+                        ].vapor_source.total_flow_rate = VolumetricFlowRate(
+                            set_time=[
+                                ureg.Quantity(
                                     set_recipe_time[step],
                                     ureg.second,
-                            )
+                                )
                             ],
-                            set_value=[ureg.Quantity(
+                            set_value=[
+                                ureg.Quantity(
                                     float(value[step]),
                                     ureg('centimeter ** 3 / minute'),
-                    )]
+                                )
+                            ],
                         )
-                elif header[0] == '9': # flash evap no. 1
+                elif header[0] == '9':  # flash evap no. 1
                     for step in range(int(total_steps)):
-                        process_data.steps[step].sources[1].vapor_source.carrier_push_flow_rate = VolumetricFlowRate(
-                            set_time=[ureg.Quantity(
+                        process_data.steps[step].sources[
+                            1
+                        ].vapor_source.carrier_push_flow_rate = VolumetricFlowRate(
+                            set_time=[
+                                ureg.Quantity(
                                     set_recipe_time[step],
                                     ureg.second,
-                            )
+                                )
                             ],
-                            set_value=[ureg.Quantity(
+                            set_value=[
+                                ureg.Quantity(
                                     float(value[step]),
                                     ureg('centimeter ** 3 / minute'),
-                    )]
+                                )
+                            ],
                         )
-                elif header[0] == '12': # flash evap no. 1
+                elif header[0] == '12':  # flash evap no. 1
                     for step in range(int(total_steps)):
-                        process_data.steps[step].sources[1].vapor_source.carrier_purge_flow_rate = VolumetricFlowRate(
-                            set_time=[ureg.Quantity(
+                        process_data.steps[step].sources[
+                            1
+                        ].vapor_source.carrier_purge_flow_rate = VolumetricFlowRate(
+                            set_time=[
+                                ureg.Quantity(
                                     set_recipe_time[step],
                                     ureg.second,
-                            )
+                                )
                             ],
-                            set_value=[ureg.Quantity(
+                            set_value=[
+                                ureg.Quantity(
                                     float(value[step]),
                                     ureg('centimeter ** 3 / minute'),
-                    )]
+                                )
+                            ],
                         )
-                elif header[0] == '28': # flash evap no. 2
+                elif header[0] == '28':  # flash evap no. 2
                     for step in range(int(total_steps)):
-                        process_data.steps[step].sources[2].vapor_source.carrier_push_flow_rate = VolumetricFlowRate(
-                            set_time=[ureg.Quantity(
+                        process_data.steps[step].sources[
+                            2
+                        ].vapor_source.carrier_push_flow_rate = VolumetricFlowRate(
+                            set_time=[
+                                ureg.Quantity(
                                     set_recipe_time[step],
                                     ureg.second,
-                            )
+                                )
                             ],
-                            set_value=[ureg.Quantity(
+                            set_value=[
+                                ureg.Quantity(
                                     float(value[step]),
                                     ureg('centimeter ** 3 / minute'),
-                    )]
+                                )
+                            ],
                         )
-                elif header[0] == '31': # flash evap no. 2
+                elif header[0] == '31':  # flash evap no. 2
                     for step in range(int(total_steps)):
-                        process_data.steps[step].sources[2].vapor_source.carrier_purge_flow_rate = VolumetricFlowRate(
-                            set_time=[ureg.Quantity(
+                        process_data.steps[step].sources[
+                            2
+                        ].vapor_source.carrier_purge_flow_rate = VolumetricFlowRate(
+                            set_time=[
+                                ureg.Quantity(
                                     set_recipe_time[step],
                                     ureg.second,
-                            )
+                                )
                             ],
-                            set_value=[ureg.Quantity(
+                            set_value=[
+                                ureg.Quantity(
                                     float(value[step]),
                                     ureg('centimeter ** 3 / minute'),
-                    )]
+                                )
+                            ],
                         )
-                elif header[0] == '36': # peristaltic pump no. 2: Ca - Sr - Ba
+                elif header[0] == '36':  # peristaltic pump no. 2: Ca - Sr - Ba
                     for step in range(int(total_steps)):
-                        process_data.steps[step].sources[2].peristaltic_pump_flux = VolumetricFlowRate(
-                            set_time=[ureg.Quantity(
+                        process_data.steps[step].sources[
+                            2
+                        ].peristaltic_pump_flux = VolumetricFlowRate(
+                            set_time=[
+                                ureg.Quantity(
                                     set_recipe_time[step],
                                     ureg.second,
-                            )
+                                )
                             ],
-                            set_value=[ureg.Quantity(
+                            set_value=[
+                                ureg.Quantity(
                                     float(value[step]),
                                     ureg('centimeter ** 3 / minute'),
-                    )]
+                                )
+                            ],
                         )
-                elif header[0] == '34': # peristaltic pump no. 1: Ti
+                elif header[0] == '34':  # peristaltic pump no. 1: Ti
                     for step in range(int(total_steps)):
-                        process_data.steps[step].sources[1].peristaltic_pump_flux = VolumetricFlowRate(
-                            set_time=[ureg.Quantity(
+                        process_data.steps[step].sources[
+                            1
+                        ].peristaltic_pump_flux = VolumetricFlowRate(
+                            set_time=[
+                                ureg.Quantity(
                                     set_recipe_time[step],
                                     ureg.second,
-                            )
+                                )
                             ],
-                            set_value=[ureg.Quantity(
+                            set_value=[
+                                ureg.Quantity(
                                     float(value[step]),
                                     ureg('centimeter ** 3 / minute'),
-                    )]
+                                )
+                            ],
                         )
-                elif header[0] == '17': # filament temperature
+                elif header[0] == '17':  # filament temperature
                     for step in range(int(total_steps)):
-                        process_data.steps[step].sample_parameters[0].filament_temperature = FilamentTemperature(
-                            set_time=[ureg.Quantity(
+                        process_data.steps[step].sample_parameters[
+                            0
+                        ].filament_temperature = FilamentTemperature(
+                            set_time=[
+                                ureg.Quantity(
                                     set_recipe_time[step],
                                     ureg.second,
-                            )
+                                )
                             ],
-                            set_value=[ureg.Quantity(
+                            set_value=[
+                                ureg.Quantity(
                                     float(value[step]),
                                     ureg('celsius'),
-                    )]
+                                )
+                            ],
                         )
-                elif header[0] == '19': # shaft temperature
+                elif header[0] == '19':  # shaft temperature
                     for step in range(int(total_steps)):
-                        process_data.steps[step].sample_parameters[0].shaft_temperature = ShaftTemperature(
-                            set_time=[ureg.Quantity(
+                        process_data.steps[step].sample_parameters[
+                            0
+                        ].shaft_temperature = ShaftTemperature(
+                            set_time=[
+                                ureg.Quantity(
                                     set_recipe_time[step],
                                     ureg.second,
-                            )
+                                )
                             ],
-                            set_value=[ureg.Quantity(
+                            set_value=[
+                                ureg.Quantity(
                                     float(value[step]),
                                     ureg('celsius'),
-                    )]
+                                )
+                            ],
                         )
-                elif header[0] == '21': # rotation
+                elif header[0] == '21':  # rotation
                     for step in range(int(total_steps)):
                         process_data.steps[step].environment.rotation = Rotation(
-                            set_time=[ureg.Quantity(
+                            set_time=[
+                                ureg.Quantity(
                                     set_recipe_time[step],
                                     ureg.second,
-                            )
+                                )
                             ],
-                            set_value=[ureg.Quantity(
+                            set_value=[
+                                ureg.Quantity(
                                     float(value[step]),
                                     ureg('rpm'),
-                    )]
+                                )
+                            ],
                         )
-                elif header[0] == '15': # FE1 temperature
+                elif header[0] == '15':  # FE1 temperature
                     for step in range(int(total_steps)):
-                        process_data.steps[step].sources[1].vapor_source.temperature = Temperature(
-                            set_time=[ureg.Quantity(
+                        process_data.steps[step].sources[
+                            1
+                        ].vapor_source.temperature = Temperature(
+                            set_time=[
+                                ureg.Quantity(
                                     set_recipe_time[step],
                                     ureg.second,
-                            )
+                                )
                             ],
-                            set_value=[ureg.Quantity(
+                            set_value=[
+                                ureg.Quantity(
                                     float(value[step]),
                                     ureg('celsius'),
-                    )]
+                                )
+                            ],
                         )
-                elif header[0] == '26': # FE2 temperature
+                elif header[0] == '26':  # FE2 temperature
                     for step in range(int(total_steps)):
-                        process_data.steps[step].sources[2].vapor_source.temperature = Temperature(
-                            set_time=[ureg.Quantity(
+                        process_data.steps[step].sources[
+                            2
+                        ].vapor_source.temperature = Temperature(
+                            set_time=[
+                                ureg.Quantity(
                                     set_recipe_time[step],
                                     ureg.second,
-                            )
+                                )
                             ],
-                            set_value=[ureg.Quantity(
+                            set_value=[
+                                ureg.Quantity(
                                     float(value[step]),
                                     ureg('celsius'),
-                    )]
+                                )
+                            ],
                         )
-                elif header[0] == '23': # chamber pressure
+                elif header[0] == '23':  # chamber pressure
                     for step in range(int(total_steps)):
                         process_data.steps[step].environment.pressure = Pressure(
-                            set_time=[ureg.Quantity(
+                            set_time=[
+                                ureg.Quantity(
                                     set_recipe_time[step],
                                     ureg.second,
-                            )
+                                )
                             ],
-                            set_value=[ureg.Quantity(
+                            set_value=[
+                                ureg.Quantity(
                                     float(value[step]),
                                     ureg('mbar'),
-                    )]
+                                )
+                            ],
                         )
-                
+
                 line = file.readline()
-                
+
         process_filename = f'{mainfile.split("/")[-1][:-4]}.archive.{filetype}'
         process_archive = EntryArchive(
             data=process_data,
@@ -360,8 +395,6 @@ class ParserMovpe1RcpIKZ(MatchingParser):
             filetype,
             logger,
         )
-
-
 
         # # create experiment archive
         # experiment_filename = (
@@ -474,7 +507,6 @@ class ParserMovpe1RcpIKZ(MatchingParser):
         #         logger,
         #         bypass_check=True,
         #     )
-
 
         # populate the raw file archive
         archive.data = RcpFileMovpe1(

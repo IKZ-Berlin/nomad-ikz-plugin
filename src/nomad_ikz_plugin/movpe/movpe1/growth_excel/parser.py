@@ -123,18 +123,18 @@ class ParserMovpe1IKZ(MatchingParser):
 
         if not len(dep_control['Sample ID']) == len(precursors['Sample ID']):
             logger.error(
-                f"Excel sheets mismatch: "
+                f'Excel sheets mismatch: '
                 f"'Deposition Control' has {len(dep_control['Sample ID'])} rows "
                 f"and 'Precursors' has {len(precursors['Sample ID'])} rows. "
-                f"Please check the file and try again."
+                f'Please check the file and try again.'
             )
 
         for index, dep_control_run in enumerate(dep_control['Sample ID']):
             assert dep_control_run == precursors['Sample ID'].loc[index], (
-                f"Not matching Sample ID at line {index} in "
+                f'Not matching Sample ID at line {index} in '
                 f"'deposition control' [{dep_control_run}] "
                 f"and 'precursors' [{precursors['Sample ID'].loc[index]}] sheets."
-                f"Please check the files and try again."
+                f'Please check the files and try again.'
             )
 
             # check if experiment archive exists already
@@ -167,13 +167,13 @@ class ParserMovpe1IKZ(MatchingParser):
                         matches['upload_id'].append(match['upload_id'])
                 if len(matches['entry_id']) == 1:
                     logger.warning(
-                        f"One entry with lab_id {set(matches['lab_id'])} and entry_id {set(matches['entry_id'])} already exists. "
-                        f"Please check the upload with upload id {set(matches['upload_id'])}."
+                        f'One entry with lab_id {set(matches["lab_id"])} and entry_id {set(matches["entry_id"])} already exists. '
+                        f'Please check the upload with upload id {set(matches["upload_id"])}.'
                     )
                     continue
                 elif len(matches['entry_id']) > 1:
                     logger.warning(
-                        f"Some entries with lab_id {set(matches['lab_id'])} and entry_id {set(matches['entry_id'])} are duplicated. Please check them."
+                        f'Some entries with lab_id {set(matches["lab_id"])} and entry_id {set(matches["entry_id"])} are duplicated. Please check them.'
                     )
                     continue
             elif search_experiments.pagination.total == 0:
@@ -533,26 +533,26 @@ class ParserMovpe1IKZ(MatchingParser):
                 i = 0
                 while True:
                     if all(
-                        f"{key}{'' if i == 0 else '.' + str(i)}" in precursors.columns
+                        f'{key}{"" if i == 0 else "." + str(i)}' in precursors.columns
                         for key in precursor_quantities
                     ):
                         solute_name = precursors.get(
-                            f"MO Precursor{'' if i == 0 else '.' + str(i)}", ''
+                            f'MO Precursor{"" if i == 0 else "." + str(i)}', ''
                         ).loc[index]
                         solvent_name = (
                             precursors.get(
-                                f"Solvent{'' if i == 0 else '.' + str(i)}",
+                                f'Solvent{"" if i == 0 else "." + str(i)}',
                                 0,
                             ).loc[index]
                             if not None
                             else 'unknown'
                         )
                         solute_mass = precursors.get(
-                            f"Weight{'' if i == 0 else '.' + str(i)}",
+                            f'Weight{"" if i == 0 else "." + str(i)}',
                             0,
                         ).loc[index]
                         solvent_volume = precursors.get(
-                            f"Volume{'' if i == 0 else '.' + str(i)}",
+                            f'Volume{"" if i == 0 else "." + str(i)}',
                             0,
                         ).loc[index]
                         solution_filename = f'{solute_name}-mass{solute_mass}_{solvent_name}-vol{solvent_volume}.Solution.archive.{filetype}'
@@ -564,7 +564,7 @@ class ParserMovpe1IKZ(MatchingParser):
                                     name=solute_name,
                                     pure_substance=PureSubstanceSection(
                                         cas_number=precursors.get(
-                                            f"CAS{'' if i == 0 else '.' + str(i)}",
+                                            f'CAS{"" if i == 0 else "." + str(i)}',
                                             0,
                                         ).loc[index],
                                     ),
@@ -576,7 +576,7 @@ class ParserMovpe1IKZ(MatchingParser):
                                     volume=float(solvent_volume),
                                     pure_substance=PureSubstanceSection(
                                         cas_number=precursors.get(
-                                            f"Solvent CAS{'' if i == 0 else '.' + str(i)}",
+                                            f'Solvent CAS{"" if i == 0 else "." + str(i)}',
                                             0,
                                         ).loc[index],
                                     ),
@@ -604,7 +604,7 @@ class ParserMovpe1IKZ(MatchingParser):
                                     archive.m_context.upload_id, solution_filename
                                 ),
                                 molar_concentration=precursors.get(
-                                    f"Molar conc{'' if i == 0 else '.' + str(i)}", 0
+                                    f'Molar conc{"" if i == 0 else "." + str(i)}', 0
                                 ).loc[index],
                             ),
                         )
@@ -615,15 +615,15 @@ class ParserMovpe1IKZ(MatchingParser):
                 # create precursors preparation archive
                 precursors_data = PrecursorsPreparationIKZ(
                     data_file=data_file_with_path,
-                    lab_id=f"{precursors['Sample ID'].loc[index]} precursor preparation",
+                    lab_id=f'{precursors["Sample ID"].loc[index]} precursor preparation',
                     name='Precursors',
-                    description=f"{precursors['Weekday'].loc[index]}. Sequential number: {precursors['number'].loc[index]}.",
+                    description=f'{precursors["Weekday"].loc[index]}. Sequential number: {precursors["number"].loc[index]}.',
                     flow_titanium=precursors['Set flow Ti'].loc[index],
                     flow_calcium=precursors['Set flow Ca'].loc[index],
                     components=component_objects,
                 )
 
-                precursors_filename = f"{precursors['Sample ID'].loc[index]}.PrecursorsPreparationIKZ.archive.{filetype}"
+                precursors_filename = f'{precursors["Sample ID"].loc[index]}.PrecursorsPreparationIKZ.archive.{filetype}'
                 precursors_archive = EntryArchive(
                     data=precursors_data,
                     m_context=archive.m_context,

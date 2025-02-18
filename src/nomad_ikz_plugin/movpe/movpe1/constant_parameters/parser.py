@@ -67,7 +67,7 @@ class ParserMovpe1IKZ(MatchingParser):
                 f'Only one line expected in the Overview sheet of {data_file_with_path}'
             )
         filetype = 'yaml'
-        filename = f"{overview['Constant Parameters ID'][0]}_constant_parameters_growth.archive.{filetype}"
+        filename = f'{overview["Constant Parameters ID"][0]}_constant_parameters_growth.archive.{filetype}'
         growth_archive = EntryArchive(
             data=GrowthMovpe1IKZConstantParameters(
                 lab_id=overview['Constant Parameters ID'][0],
