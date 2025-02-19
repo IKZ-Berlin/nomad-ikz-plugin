@@ -126,8 +126,8 @@ class ParserMovpe1RcpIKZ(MatchingParser):
 
             line = file.readline()
             while line != '':
-                header = line.split()  # a new line it is read at the bottom of the loop
-                value = file.readline().split()
+                header = line.split()  # a new line it is read at the bottom of the loop!
+                value = [float(element)/10 for element in file.readline().split()]
                 ramp = file.readline().split()  # not used
                 state = file.readline().split()  # 0=ON, 1=OFF, 2=VENT
                 if not header or not value or not ramp or not state:

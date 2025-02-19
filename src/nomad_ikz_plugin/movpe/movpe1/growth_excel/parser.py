@@ -651,9 +651,6 @@ class ParserMovpe1IKZ(MatchingParser):
                                 archive.m_context.upload_id, precursors_filename
                             ),
                         ),
-                        # growth_run_constant_parameters=GrowthMovpe1IKZConstantParametersReference(
-                        #     lab_id=dep_control["Constant Parameters ID"].loc[index],
-                        # ),
                         growth_run=GrowthMovpeIKZReference(
                             reference=get_hash_ref(
                                 archive.m_context.upload_id, growth_filename

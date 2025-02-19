@@ -214,6 +214,7 @@ class ParserMovpe2IKZ(MatchingParser):
                                 )
                             ]
                         ),
+                        set_time=[0],
                     ),
                     filament_temperature=FilamentTemperature(
                         set_value=pd.Series(
@@ -225,6 +226,7 @@ class ParserMovpe2IKZ(MatchingParser):
                                 )
                             ]
                         ),
+                        set_time=[0],
                     ),
                     laytec_temperature=LayTecTemperature(
                         set_value=pd.Series(
@@ -236,6 +238,7 @@ class ParserMovpe2IKZ(MatchingParser):
                                 )
                             ]
                         ),
+                        set_time=[0],
                     ),
                 )
             )
@@ -278,6 +281,7 @@ class ParserMovpe2IKZ(MatchingParser):
                             ]
                         )
                         * ureg('mbar').to('pascal').magnitude,
+                        set_time=[0],
                     ),
                     rotation=Rotation(
                         set_value=pd.Series(
@@ -290,6 +294,7 @@ class ParserMovpe2IKZ(MatchingParser):
                             ]
                         )
                         * ureg('rpm').to('rpm').magnitude,
+                        set_time=[0],
                     ),
                     gas_flow=[
                         PushPurgeGasFlow(
@@ -314,6 +319,7 @@ class ParserMovpe2IKZ(MatchingParser):
                                 * ureg('cm ** 3 / minute')
                                 .to('meter ** 3 / second')
                                 .magnitude,
+                                set_time=[0],
                             ),
                         ),
                     ],
@@ -328,6 +334,7 @@ class ParserMovpe2IKZ(MatchingParser):
                             ]
                         )
                         * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude,
+                        set_time=[0],
                     ),
                 ),
             )
