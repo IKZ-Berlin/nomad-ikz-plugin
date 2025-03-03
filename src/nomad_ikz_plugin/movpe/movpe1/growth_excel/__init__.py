@@ -29,6 +29,7 @@ parser = Movpe1ParserEntryPoint(
     name='Movpe1Parser',
     description='Parse excel files containing growth process parameters logged manually.',
     mainfile_name_re=r'.+\.xlsx',
+    level=1,
     mainfile_mime_re=r'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     mainfile_contents_dict={
         'Ti Sr Parameter': {'__has_all_keys': ['Sample ID']},

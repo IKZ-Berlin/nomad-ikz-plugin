@@ -110,32 +110,13 @@ class ParserMovpe1IKZ(MatchingParser):
         data_file = mainfile.split('/')[-1]
         data_file_with_path = mainfile.split('raw/')[-1]
         # Read the file without headers
-        dep_control = pd.read_excel(
-            xlsx, 'Deposition Control', comment='#', header=None
+        parameter_sheet = pd.read_excel(
+            xlsx, 'Ti Sr Parameter', comment='#', header=None
         )
-        precursors = pd.read_excel(xlsx, 'Precursors', comment='#', header=None)
-
-        dep_control = clean_dataframe_headers(dep_control)
-
-        precursors = clean_dataframe_headers(precursors)
 
         deposition_control_list = []
 
-        if not len(dep_control['Sample ID']) == len(precursors['Sample ID']):
-            logger.error(
-                f'Excel sheets mismatch: '
-                f"'Deposition Control' has {len(dep_control['Sample ID'])} rows "
-                f"and 'Precursors' has {len(precursors['Sample ID'])} rows. "
-                f'Please check the file and try again.'
-            )
-
-        for index, dep_control_run in enumerate(dep_control['Sample ID']):
-            assert dep_control_run == precursors['Sample ID'].loc[index], (
-                f'Not matching Sample ID at line {index} in '
-                f"'deposition control' [{dep_control_run}] "
-                f"and 'precursors' [{precursors['Sample ID'].loc[index]}] sheets."
-                f'Please check the files and try again.'
-            )
+        for index, dep_control_run in enumerate(parameter_sheet['Sample ID']):
 
             # check if experiment archive exists already
             search_experiments = search(
@@ -204,7 +185,7 @@ class ParserMovpe1IKZ(MatchingParser):
                         name=dep_control_run + 'stack',
                         lab_id=dep_control_run,
                         substrate=SubstrateReference(
-                            lab_id=dep_control['Substrate ID'].loc[index],
+                            lab_id=parameter_sheet['Substrate ID'].loc[index],
                         ),
                         layers=[
                             ThinFilmReference(
@@ -226,20 +207,20 @@ class ParserMovpe1IKZ(MatchingParser):
                 # parsing arrays from excel file
                 uniform_setval = pd.Series(
                     [
-                        dep_control['Set of argon uniform gas'].loc[index]
+                        parameter_sheet['Set of argon uniform gas'].loc[index]
                         * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude
                     ]
                 )
 
-                fil_temp_setval = pd.Series([dep_control['Set Fil T'].loc[index]])
+                fil_temp_setval = pd.Series([parameter_sheet['Set Fil T'].loc[index]])
                 fil_temp_time, fil_temp_val = row_timeseries(
-                    dep_control, 'Fil time', 'Read Fil T', index
+                    parameter_sheet, 'Fil time', 'Read Fil T', index
                 )
                 fil_temp_time = fil_temp_time * ureg('minute').to('second').magnitude
 
-                shaft_temp_setval = pd.Series([dep_control['Set Shaft T'].loc[index]])
+                shaft_temp_setval = pd.Series([parameter_sheet['Set Shaft T'].loc[index]])
                 shaft_temp_time, shaft_temp_val = row_timeseries(
-                    dep_control, 'Shaft time', 'Read Shaft T', index
+                    parameter_sheet, 'Shaft time', 'Read Shaft T', index
                 )
                 shaft_temp_time = (
                     shaft_temp_time * ureg('minute').to('second').magnitude
@@ -248,37 +229,37 @@ class ParserMovpe1IKZ(MatchingParser):
                 pressure_setval = pd.Series(
                     [
                         (
-                            dep_control['Set Chamber P'].loc[index]
-                            if 'Set Chamber P' in dep_control.columns
+                            parameter_sheet['Set Chamber P'].loc[index]
+                            if 'Set Chamber P' in parameter_sheet.columns
                             else None
                         )
                     ]
                 )
                 pressure_time, pressure_val = row_timeseries(
-                    dep_control, 'Chamber pressure time', 'Read Chamber Pressure', index
+                    parameter_sheet, 'Chamber pressure time', 'Read Chamber Pressure', index
                 )
                 pressure_time = pressure_time * ureg('minute').to('second').magnitude
 
                 throttle_time, throttle_val = row_timeseries(
-                    dep_control, 'TV time', 'Read throttle valve', index
+                    parameter_sheet, 'TV time', 'Read throttle valve', index
                 )
 
                 rot_setval = pd.Series(
                     [
                         (
-                            dep_control['Set Rotation S'].loc[index]
-                            if 'Set Rotation S' in dep_control.columns
+                            parameter_sheet['Set Rotation S'].loc[index]
+                            if 'Set Rotation S' in parameter_sheet.columns
                             else None
                         )
                     ]
                 )
                 rot_time, rot_val = row_timeseries(
-                    dep_control, 'rot time', 'Read rotation', index
+                    parameter_sheet, 'rot time', 'Read rotation', index
                 )
                 rot_time = rot_time * ureg('minute').to('second').magnitude
 
                 fe1_pressure_time, fe1_pressure_val = row_timeseries(
-                    dep_control, 'BP FE1 time', 'BP FE1', index
+                    parameter_sheet, 'BP FE1 time', 'BP FE1', index
                 )
                 fe1_pressure_time = (
                     fe1_pressure_time * ureg('minute').to('second').magnitude
@@ -287,8 +268,8 @@ class ParserMovpe1IKZ(MatchingParser):
                 fe1_temp_setval = pd.Series(
                     [
                         (
-                            dep_control['Set FE1 Temp'].loc[index]
-                            if 'Set FE1 Temp' in dep_control.columns
+                            parameter_sheet['Set FE1 Temp'].loc[index]
+                            if 'Set FE1 Temp' in parameter_sheet.columns
                             else None
                         )
                     ]
@@ -297,8 +278,8 @@ class ParserMovpe1IKZ(MatchingParser):
                 fe1_ar_push_setval = pd.Series(
                     [
                         (
-                            dep_control['Set Ar Push 1'].loc[index]
-                            if 'Set Ar Push 1' in dep_control.columns
+                            parameter_sheet['Set Ar Push 1'].loc[index]
+                            if 'Set Ar Push 1' in parameter_sheet.columns
                             else None
                         )
                     ]
@@ -307,15 +288,15 @@ class ParserMovpe1IKZ(MatchingParser):
                 fe1_ar_purge_setval = pd.Series(
                     [
                         (
-                            dep_control['Set Ar Purge 1'].loc[index]
-                            if 'Set Ar Purge 1' in dep_control.columns
+                            parameter_sheet['Set Ar Purge 1'].loc[index]
+                            if 'Set Ar Purge 1' in parameter_sheet.columns
                             else None
                         )
                     ]
                 )
 
                 fe2_pressure_time, fe2_pressure_val = row_timeseries(
-                    dep_control, 'BP FE2 time', 'BP FE2', index
+                    parameter_sheet, 'BP FE2 time', 'BP FE2', index
                 )
                 fe2_pressure_time = (
                     fe2_pressure_time * ureg('minute').to('second').magnitude
@@ -324,8 +305,8 @@ class ParserMovpe1IKZ(MatchingParser):
                 fe2_temp_setval = pd.Series(
                     [
                         (
-                            dep_control['Set FE2 Temp'].loc[index]
-                            if 'Set FE2 Temp' in dep_control.columns
+                            parameter_sheet['Set FE2 Temp'].loc[index]
+                            if 'Set FE2 Temp' in parameter_sheet.columns
                             else None
                         )
                     ]
@@ -334,8 +315,8 @@ class ParserMovpe1IKZ(MatchingParser):
                 fe2_ar_push_setval = pd.Series(
                     [
                         (
-                            dep_control['Set Ar Push 2'].loc[index]
-                            if 'Set Ar Push 2' in dep_control.columns
+                            parameter_sheet['Set Ar Push 2'].loc[index]
+                            if 'Set Ar Push 2' in parameter_sheet.columns
                             else None
                         )
                     ]
@@ -344,37 +325,37 @@ class ParserMovpe1IKZ(MatchingParser):
                 fe2_ar_purge_setval = pd.Series(
                     [
                         (
-                            dep_control['Set Ar Purge 2'].loc[index]
-                            if 'Set Ar Purge 2' in dep_control.columns
+                            parameter_sheet['Set Ar Purge 2'].loc[index]
+                            if 'Set Ar Purge 2' in parameter_sheet.columns
                             else None
                         )
                     ]
                 )
 
                 gas_temp_time, gas_temp_val = row_timeseries(
-                    dep_control, 'Oxygen time', 'Read Oxygen T', index
+                    parameter_sheet, 'Oxygen time', 'Read Oxygen T', index
                 )
                 gas_temp_time = gas_temp_time * ureg('minute').to('second').magnitude
 
                 gas_mfc_setval = pd.Series(
                     [
                         (
-                            dep_control['Set of Oxygen uniform gas'].loc[index]
-                            if 'Set of Oxygen uniform gas' in dep_control.columns
+                            parameter_sheet['Set of Oxygen uniform gas'].loc[index]
+                            if 'Set of Oxygen uniform gas' in parameter_sheet.columns
                             else None
                         )
                     ]
                 )
                 growth_description = (
                     str(
-                        dep_control['Weekday'].loc[index]
-                        if 'Weekday' in dep_control.columns
+                        parameter_sheet['Weekday'].loc[index]
+                        if 'Weekday' in parameter_sheet.columns
                         else None
                     )
                     + '. Sequential number: '
-                    + str(dep_control['number'].loc[index])
+                    + str(parameter_sheet['number'].loc[index])
                     + '. '
-                    + str(dep_control['Comment'].loc[index])
+                    + str(parameter_sheet['Comment'].loc[index])
                 )
 
                 # creating GrowthMovpeIKZ archive
@@ -384,16 +365,16 @@ class ParserMovpe1IKZ(MatchingParser):
                     lab_id=dep_control_run,
                     description=growth_description,
                     datetime=(
-                        dep_control['Date'].loc[index]
-                        if 'Date' in dep_control.columns
+                        parameter_sheet['Date'].loc[index]
+                        if 'Date' in parameter_sheet.columns
                         else None
                     ),
                     steps=[
                         GrowthStepMovpeIKZ(
                             name='Deposition',
                             duration=(
-                                float(dep_control['Duration'].loc[index])
-                                if 'Duration' in dep_control.columns
+                                float(parameter_sheet['Duration'].loc[index])
+                                if 'Duration' in parameter_sheet.columns
                                 else None
                             ),
                             environment=ChamberEnvironmentMovpe(
@@ -518,235 +499,6 @@ class ParserMovpe1IKZ(MatchingParser):
                     growth_filename,
                     filetype,
                     logger,
-                )
-
-                # creating precursor objects
-                component_objects = []
-                precursor_quantities = [
-                    'MO Precursor',
-                    'Weight',
-                    'Solvent',
-                    'Volume',
-                    'Molar conc',
-                    'CAS',
-                ]
-                i = 0
-                while True:
-                    if all(
-                        f'{key}{"" if i == 0 else "." + str(i)}' in precursors.columns
-                        for key in precursor_quantities
-                    ):
-                        solute_name = precursors.get(
-                            f'MO Precursor{"" if i == 0 else "." + str(i)}', ''
-                        ).loc[index]
-                        solvent_name = (
-                            precursors.get(
-                                f'Solvent{"" if i == 0 else "." + str(i)}',
-                                0,
-                            ).loc[index]
-                            if not None
-                            else 'unknown'
-                        )
-                        solute_mass = precursors.get(
-                            f'Weight{"" if i == 0 else "." + str(i)}',
-                            0,
-                        ).loc[index]
-                        solvent_volume = precursors.get(
-                            f'Volume{"" if i == 0 else "." + str(i)}',
-                            0,
-                        ).loc[index]
-                        solution_filename = f'{solute_name}-mass{solute_mass}_{solvent_name}-vol{solvent_volume}.Solution.archive.{filetype}'
-                        solution_data = Solution(
-                            name=f'{solute_name} in {solvent_name}',
-                            solute=[
-                                PureSubstanceComponent(
-                                    mass=solute_mass,
-                                    name=solute_name,
-                                    pure_substance=PureSubstanceSection(
-                                        cas_number=precursors.get(
-                                            f'CAS{"" if i == 0 else "." + str(i)}',
-                                            0,
-                                        ).loc[index],
-                                    ),
-                                ),
-                            ],
-                            solvent=[
-                                LiquidComponent(
-                                    name=solvent_name,
-                                    volume=float(solvent_volume),
-                                    pure_substance=PureSubstanceSection(
-                                        cas_number=precursors.get(
-                                            f'Solvent CAS{"" if i == 0 else "." + str(i)}',
-                                            0,
-                                        ).loc[index],
-                                    ),
-                                ),
-                            ],
-                        )
-                        solution_archive = EntryArchive(
-                            data=solution_data,
-                            m_context=archive.m_context,
-                            metadata=EntryMetadata(
-                                upload_id=archive.m_context.upload_id
-                            ),
-                        )
-                        create_archive(
-                            solution_archive.m_to_dict(),
-                            archive.m_context,
-                            solution_filename,
-                            filetype,
-                            logger,
-                        )
-                        component_objects.append(
-                            SystemComponentIKZ(
-                                name=str(solute_name) + ' in ' + str(solvent_name),
-                                system=get_hash_ref(
-                                    archive.m_context.upload_id, solution_filename
-                                ),
-                                molar_concentration=precursors.get(
-                                    f'Molar conc{"" if i == 0 else "." + str(i)}', 0
-                                ).loc[index],
-                            ),
-                        )
-                        i += 1
-                    else:
-                        break
-
-                # create precursors preparation archive
-                precursors_data = PrecursorsPreparationIKZ(
-                    data_file=data_file_with_path,
-                    lab_id=f'{precursors["Sample ID"].loc[index]} precursor preparation',
-                    name='Precursors',
-                    description=f'{precursors["Weekday"].loc[index]}. Sequential number: {precursors["number"].loc[index]}.',
-                    flow_titanium=precursors['Set flow Ti'].loc[index],
-                    flow_calcium=precursors['Set flow Ca'].loc[index],
-                    components=component_objects,
-                )
-
-                precursors_filename = f'{precursors["Sample ID"].loc[index]}.PrecursorsPreparationIKZ.archive.{filetype}'
-                precursors_archive = EntryArchive(
-                    data=precursors_data,
-                    m_context=archive.m_context,
-                    metadata=EntryMetadata(upload_id=archive.m_context.upload_id),
-                )
-                create_archive(
-                    precursors_archive.m_to_dict(),
-                    archive.m_context,
-                    precursors_filename,
-                    filetype,
-                    logger,
-                )
-                # create experiment archive
-                experiment_filename = (
-                    f'{dep_control_run}.ExperimentMovpeIKZ.archive.{filetype}'
-                )
-                experiment_archive = EntryArchive(
-                    data=ExperimentMovpeIKZ(
-                        name=f'{dep_control_run} experiment',
-                        method='MOVPE 1 experiment',
-                        lab_id=f'{dep_control_run} experiment',
-                        datetime=dep_control['Date'].loc[index],
-                        precursors_preparation=PrecursorsPreparationIKZReference(
-                            reference=get_hash_ref(
-                                archive.m_context.upload_id, precursors_filename
-                            ),
-                        ),
-                        growth_run=GrowthMovpeIKZReference(
-                            reference=get_hash_ref(
-                                archive.m_context.upload_id, growth_filename
-                            ),
-                        ),
-                    ),
-                    m_context=archive.m_context,
-                    metadata=EntryMetadata(upload_id=archive.m_context.upload_id),
-                )
-                create_archive(
-                    experiment_archive.m_to_dict(),
-                    archive.m_context,
-                    experiment_filename,
-                    filetype,
-                    logger,
-                )
-
-                # !!! the following code checks if the experiment archive already exists and overwrites it
-
-                # if len(matches["lab_id"]) == 0:
-                #     experiment_archive = EntryArchive(
-                #         data=ExperimentMovpeIKZ(
-                #             lab_id=f"{dep_control_run} experiment",
-                #             datetime=dep_control["Date"].loc[index],
-                #             precursors_preparation=PrecursorsPreparationIKZReference(
-                #                 reference=f"../uploads/{archive.m_context.upload_id}/archive/{hash(archive.m_context.upload_id, precursors_filename)}#data",
-                #             ),
-                #             growth_run_constant_parameters=GrowthMovpe1IKZConstantParametersReference(
-                #                 lab_id=dep_control["Constant Parameters ID"][index],
-                #             ),
-                #             growth_run_deposition_control=growth_data,
-                #             grown_sample=ThinFilmStackMovpeReference(
-                #                 reference=f"../uploads/{archive.m_context.upload_id}/archive/{hash(archive.m_context.upload_id, sample_filename)}#data",
-                #             ),
-                #         ),
-                #         m_context=archive.m_context,
-                #         metadata=EntryMetadata(
-                #             upload_id=archive.m_context.upload_id
-                #         ),
-                #     )
-                #     create_archive(
-                #         experiment_archive.m_to_dict(),
-                #         archive.m_context,
-                #         experiment_filename,
-                #         filetype,
-                #         logger,
-                #     )
-                # elif (
-                #     len(matches["lab_id"]) > 0
-                #     and matches["entry_name"][0] == experiment_filename
-                # ):  # the experiment will be retrieved, extended, and overwritten
-                #     from nomad.app.v1.routers.uploads import get_upload_with_read_access
-
-                #     logger.warning(
-                #         f"Overwritten existing experiment archive {matches['entry_name'][0]}."
-                #     )
-
-                #     experiment_context = ServerContext(
-                #         get_upload_with_read_access(
-                #             matches["upload_id"][0],
-                #             User(
-                #                 is_admin=True,
-                #                 user_id=archive.metadata.main_author.user_id,
-                #             ),
-                #             include_others=True,
-                #         )
-                #     )  # Upload(upload_id=matches["upload_id"][0]))
-
-                #     #     filename =
-                #     with experiment_context.raw_file(
-                #         experiment_filename, "r"
-                #     ) as experiment_file:
-                #         updated_experiment = yaml.safe_load(experiment_file)
-                #         updated_experiment["data"][
-                #             "precursors_preparation"
-                #         ] = PrecursorsPreparationIKZReference(
-                #             reference=f"../uploads/{archive.m_context.upload_id}/archive/{hash(archive.m_context.upload_id, precursors_filename)}#data",
-                #         ).m_to_dict()
-                #         updated_experiment["data"][
-                #             "growth_run_deposition_control"
-                #         ] = growth_data.m_to_dict()
-                #         updated_experiment["data"]["grown_sample"] = ThinFilmStackMovpeReference(
-                #             reference=f"../uploads/{archive.m_context.upload_id}/archive/{hash(archive.m_context.upload_id, sample_filename)}#data",
-                #         ).m_to_dict()
-
-                #     create_archive(
-                #         updated_experiment,
-                #         experiment_context,
-                #         experiment_filename,
-                #         filetype,
-                #         logger,
-                #         bypass_check=True,
-                #     )
-
-                deposition_control_list.append(
-                    get_hash_ref(archive.m_context.upload_id, experiment_filename)
                 )
 
         # populate the raw file archive
