@@ -1164,10 +1164,15 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
         sources_t = {}
         if self.steps is not None:
             for step in self.steps:
-                # TODO handle aff if statements with hasattr
                 if step.sample_parameters is not None:
                     for sample_param in step.sample_parameters:
-                        if sample_param.filament_temperature is not None:
+                        if (
+                            hasattr(sample_param, 'filament_temperature')
+                            and hasattr(sample_param.filament_temperature, 'set_value')
+                            and hasattr(
+                                sample_param.filament_temperature.set_value, 'm'
+                            )
+                        ):
                             fil_t['Filament T']['value'] = np.append(
                                 fil_t['Filament T']['value'],
                                 sample_param.filament_temperature.set_value.m,
@@ -1176,7 +1181,11 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
                                 fil_t['Filament T']['time'],
                                 sample_param.filament_temperature.set_time.m,
                             )
-                        if sample_param.shaft_temperature is not None:
+                        if (
+                            hasattr(sample_param, 'shaft_temperature')
+                            and hasattr(sample_param.shaft_temperature, 'set_value')
+                            and hasattr(sample_param.shaft_temperature.set_value, 'm')
+                        ):
                             shaft_t['Shaft T']['value'] = np.append(
                                 shaft_t['Shaft T']['value'],
                                 sample_param.shaft_temperature.set_value.m,
@@ -1186,7 +1195,11 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
                                 sample_param.shaft_temperature.set_time.m,
                             )
                 if step.environment is not None:
-                    if step.environment.pressure is not None:
+                    if (
+                        hasattr(step.environment, 'rotation')
+                        and hasattr(step.environment.pressure, 'set_value')
+                        and hasattr(step.environment.pressure.set_value, 'm')
+                    ):
                         chamber_p['Chamber P']['value'] = np.append(
                             chamber_p['Chamber P']['value'],
                             step.environment.pressure.set_value.m,
@@ -1195,7 +1208,11 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
                             chamber_p['Chamber P']['time'],
                             step.environment.pressure.set_time.m,
                         )
-                    if step.environment.rotation is not None:
+                    if (
+                        hasattr(step.environment, 'rotation')
+                        and hasattr(step.environment.rotation, 'set_value')
+                        and hasattr(step.environment.rotation.set_value, 'm')
+                    ):
                         rotation['Rotation']['value'] = np.append(
                             rotation['Rotation']['value'],
                             step.environment.rotation.set_value.m,
@@ -1204,7 +1221,11 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
                             rotation['Rotation']['time'],
                             step.environment.rotation.set_time.m,
                         )
-                    if step.environment.throttle_valve is not None:
+                    if (
+                        hasattr(step.environment, 'throttle_valve')
+                        and hasattr(step.environment.throttle_valve, 'set_value')
+                        and hasattr(step.environment.throttle_valve.set_value, 'm')
+                    ):
                         throttle_valve['Throttle Valve']['value'] = np.append(
                             throttle_valve['Throttle Valve']['value'],
                             step.environment.throttle_valve.set_value.m,
@@ -1216,11 +1237,12 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
                 if step.sources is not None:
                     for source in step.sources:
                         if (
-                            hasattr(source, 'vapor_source')
-                            and hasattr(source.vapor_source, 'pressure')
-                            and source.vapor_source.pressure is not None
+                            hasattr(source.vapor_source, 'pressure')
+                            and hasattr(source.vapor_source.pressure, 'set_value')
+                            and hasattr(source.vapor_source.pressure.set_value, 'm')
                             and hasattr(source.vapor_source, 'temperature')
-                            and source.vapor_source.temperature is not None
+                            and hasattr(source.vapor_source.temperature, 'set_value')
+                            and hasattr(source.vapor_source.temperature.set_value, 'm')
                         ):
                             if source.name not in sources_p:
                                 sources_p[source.name] = {

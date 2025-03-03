@@ -186,6 +186,7 @@ class RoughParallelepiped(Parallelepiped):
     """
     A parallelepiped with roughness.
     """
+
     height = Quantity(
         type=float,
         description='The z dimension of the parallelepiped.',
@@ -207,6 +208,7 @@ class RoughParallelepiped(Parallelepiped):
             defaultDisplayUnit='pm',
         ),
     )
+
 
 class IKZPLDSubstrate(CrystallineSubstrate, IKZPLDPossibleSubstrate, EntryData):
     m_def = Section(
@@ -713,7 +715,6 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
                     'location',
                     'method',
                 ],
-
             ),
             lane_width='800px',
         ),
@@ -1174,10 +1175,12 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
                         geometry = RoughParallelepiped()
                         geometry.width = substrate_ref.geometry.width
                         geometry.length = substrate_ref.geometry.length
-                        if self._thicknesses is not None and prop_counter < len(self._thicknesses):
+                        if self._thicknesses is not None and prop_counter < len(
+                            self._thicknesses
+                        ):
                             geometry.height = self._thicknesses[prop_counter]
                         if (
-                            self._rms is not None 
+                            self._rms is not None
                             and prop_counter < len(self._rms)
                             and not np.isnan(self._rms[prop_counter])
                         ):

@@ -249,7 +249,7 @@ class GrowthRecipe(EntryData, Activity):
                         data[' Nesting Level'][step],
                     )
                     setattr(growth_recipes[step], 'periods', data[' Periods'][step])
-                    thickness = f"{data[' Thickness'][step]}".replace('-', '0').replace(
+                    thickness = f'{data[" Thickness"][step]}'.replace('-', '0').replace(
                         'nm', ''
                     )
                     setattr(growth_recipes[step], 'thickness', float(thickness))
@@ -392,13 +392,13 @@ class GrowthLog(EntryData, Activity):
                         switch_monitors = []
                         comms_status = []
                         start_time = dt.strptime(
-                            f"{data['Time'][0].strip()} " f"{data['Date'][0]}".strip(),
+                            f'{data["Time"][0].strip()} {data["Date"][0]}'.strip(),
                             '%H:%M:%S.%f %Y-%m-%d',
                         )
                         setattr(step_obj, 'timestamp', start_time)
                         for index in range(step_lines - 3):
                             current = dt.strptime(
-                                f"{data['Time'][index].strip()} {data['Date'][index]}".strip(),
+                                f'{data["Time"][index].strip()} {data["Date"][index]}'.strip(),
                                 '%H:%M:%S.%f %Y-%m-%d',
                             )
                             timesteps.append(

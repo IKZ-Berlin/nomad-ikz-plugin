@@ -16,22 +16,28 @@
 #
 
 from nomad.config.models.plugins import ParserEntryPoint
+from pydantic import Field
 
 
-class Movpe1ParserEntryPoint(ParserEntryPoint):
+class OldExcelParserEntryPoint(ParserEntryPoint):
     def load(self):
-        from nomad_ikz_plugin.movpe.movpe1.growth_excel.parser import ParserMovpe1IKZ
+        from nomad_ikz_plugin.movpe.movpe1.old_growth_excel.parser import (
+            ParserMovpe1IKZ,
+        )
 
         return ParserMovpe1IKZ(**self.dict())
 
 
-parser = Movpe1ParserEntryPoint(
-    name='Movpe1Parser',
+parser = OldExcelParserEntryPoint(
+    name='Movpe1ParserOld',
     description='Parse excel files containing growth process parameters logged manually.',
     mainfile_name_re=r'.+\.xlsx',
     mainfile_mime_re=r'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     mainfile_contents_dict={
-        'Ti Sr Parameter': {'__has_all_keys': ['Sample ID']},
+        'Deposition Control': {
+            '__has_all_keys': ['Constant Parameters ID', 'Sample ID', 'Date', 'number']
+        },
+        'Precursors': {'__has_all_keys': ['Sample ID']},
         '__has_comment': '#',
     },
 )

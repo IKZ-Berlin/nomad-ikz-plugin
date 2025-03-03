@@ -218,19 +218,19 @@ class ParserMovpe2IKZ(MatchingParser):
                     ),
                     filament_temperature=FilamentTemperature(
                         set_value=[
-                                ureg.Quantity(
-                                    growth_run_file['T Filament'][index]
-                                    if 'T Filament' in growth_run_file.columns
-                                    else None,
-                                    ureg('celsius'),
-                                )
-                            ],
+                            ureg.Quantity(
+                                growth_run_file['T Filament'][index]
+                                if 'T Filament' in growth_run_file.columns
+                                else None,
+                                ureg('celsius'),
+                            )
+                        ],
                         set_time=[
-                                ureg.Quantity(
-                                    0,
-                                    ureg.second,
-                                )
-                            ],
+                            ureg.Quantity(
+                                0,
+                                ureg.second,
+                            )
+                        ],
                     ),
                     laytec_temperature=LayTecTemperature(
                         set_value=pd.Series(
