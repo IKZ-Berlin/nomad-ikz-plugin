@@ -17,6 +17,7 @@
 #
 
 import pandas as pd
+import yaml
 from nomad.datamodel.data import (
     EntryData,
 )
@@ -111,22 +112,57 @@ class ParserMovpe1IKZ(MatchingParser):
         data_file_with_path = mainfile.split('raw/')[-1]
         # Read the file without headers
         parameter_sheet = pd.read_excel(
-            xlsx, 'Ti Sr Parameter', comment='#', header=None
+            xlsx, 'Ti Sr Parameter', comment='#' #, header=None
         )
 
         deposition_control_list = []
 
-        for index, dep_control_run in enumerate(parameter_sheet['Sample ID']):
+        for index, sample_id in enumerate(parameter_sheet['Sample ID']):
 
+            # find a growth run archive parsed by the rcp parser.
+            # The recognition is based on the folder name where the rcp file was contained
+
+            search_growth = search(
+                owner='all',
+                query={
+                    'results.eln.sections:any': ['GrowthMovpeIKZ'],
+                    'upload_id:any': [archive.m_context.upload_id],
+                    'results.eln.lab_ids:any': [sample_id],
+                },
+                pagination=MetadataPagination(page_size=10000),
+                user_id=archive.metadata.main_author.user_id,
+            )
+
+            if search_growth.pagination.total > 1:
+                logger.warn(
+                    f'{search_growth.pagination.total} growth runs with lab_id {sample_id} found. Please check the upload with upload id {archive.m_context.upload_id}.')
+                continue
+            if search_growth.pagination.total == 0:
+                logger.warn(
+                    f'{search_growth.pagination.total} growth runs with lab_id {sample_id} found. Please upload a recipe file for this sample.')
+                continue
+            if search_growth.pagination.total == 1:
+                with archive.m_context.raw_file(
+                    search_growth.data[0]["mainfile"], "r"
+                    ) as file:
+                    dict_from_rcp = yaml.safe_load(file)
+                    if "data" in dict_from_rcp:
+                        growth_from_rcp = GrowthMovpeIKZ.m_from_dict(dict_from_rcp["data"])
+                    else:
+                        logger.warn(
+                            f'No data found in the growth run archive with lab_id {sample_id}. Please check the upload with upload id {archive.m_context.upload_id}.'
+                        )
+                        continue
+                    
             # check if experiment archive exists already
             search_experiments = search(
                 owner='user',
                 query={
                     'results.eln.sections:any': ['ExperimentMovpeIKZ'],
-                    'results.eln.methods:any': ['MOVPE 1 experiment'],
+                    #'results.eln.methods:any': ['MOVPE 1 experiment'],
                     'upload_id:any': [archive.m_context.upload_id],
                 },
-                pagination=MetadataPagination(page_size=10000),
+                pagination=MetadataPagination(page_size=10000), 
                 user_id=archive.metadata.main_author.user_id,
             )
             # check if experiment entries are already indexed
@@ -139,7 +175,7 @@ class ParserMovpe1IKZ(MatchingParser):
             if search_experiments.pagination.total >= 1:
                 for match in search_experiments.data:
                     if (
-                        f'{dep_control_run} experiment'
+                        f'{sample_id} experiment'
                         in match['results']['eln']['lab_ids']
                     ):
                         matches['lab_id'].extend(match['results']['eln']['lab_ids'])
@@ -160,12 +196,12 @@ class ParserMovpe1IKZ(MatchingParser):
             elif search_experiments.pagination.total == 0:
                 # creating ThinFiln and ThinFilmStack archives
                 layer_filename = (
-                    f'{dep_control_run}_{index}.ThinFilm.archive.{filetype}'
+                    f'{sample_id}_{index}.ThinFilm.archive.{filetype}'
                 )
                 layer_archive = EntryArchive(
                     data=ThinFilmMovpeIKZ(
-                        name=dep_control_run + 'layer',
-                        lab_id=dep_control_run + 'layer',
+                        name=sample_id + 'layer',
+                        lab_id=sample_id + 'layer',
                     ),
                     m_context=archive.m_context,
                     metadata=EntryMetadata(upload_id=archive.m_context.upload_id),
@@ -178,14 +214,14 @@ class ParserMovpe1IKZ(MatchingParser):
                     logger,
                 )
                 grown_sample_filename = (
-                    f'{dep_control_run}.ThinFilmStackMovpe.archive.{filetype}'
+                    f'{sample_id}.ThinFilmStackMovpe.archive.{filetype}'
                 )
                 grown_sample_archive = EntryArchive(
                     data=ThinFilmStackMovpe(
-                        name=dep_control_run + 'stack',
-                        lab_id=dep_control_run,
+                        name=sample_id + 'stack',
+                        lab_id=sample_id,
                         substrate=SubstrateReference(
-                            lab_id=parameter_sheet['Substrate ID'].loc[index],
+                            name=parameter_sheet['substrates'].loc[index],
                         ),
                         layers=[
                             ThinFilmReference(
@@ -207,299 +243,51 @@ class ParserMovpe1IKZ(MatchingParser):
                 # parsing arrays from excel file
                 uniform_setval = pd.Series(
                     [
-                        parameter_sheet['Set of argon uniform gas'].loc[index]
+                        parameter_sheet['Ar uniform/sccm'].loc[index]
                         * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude
                     ]
                 )
+                fil_temp_setval = pd.Series([parameter_sheet['Software Temp °C'].loc[index]])
+                fil_temp_time = pd.Series([0, 2, 30, 50, 120]) * ureg('minute').to('second').magnitude
+                fil_temp_val = pd.Series([parameter_sheet['Fil. temp °C before dep.'].loc[index],
+                                          parameter_sheet['Fil. Temp °C after 2min'].loc[index],
+                                          parameter_sheet['Fil. Temp °C after 30min'].loc[index],
+                                          parameter_sheet['Fil. Temp °C after 50min'].loc[index],
+                                          parameter_sheet['Fil. Temp °C after 120min'].loc[index],
+                                          ])
+                shaft_temp_setval = pd.Series([parameter_sheet['Shaft temp °C'].loc[index]])
+                
 
-                fil_temp_setval = pd.Series([parameter_sheet['Set Fil T'].loc[index]])
-                fil_temp_time, fil_temp_val = row_timeseries(
-                    parameter_sheet, 'Fil time', 'Read Fil T', index
-                )
-                fil_temp_time = fil_temp_time * ureg('minute').to('second').magnitude
+                # TODO implement checks on the setvals found in the xlsx file 
+                # that are already present in the growth run archive from the rcp file
 
-                shaft_temp_setval = pd.Series([parameter_sheet['Set Shaft T'].loc[index]])
-                shaft_temp_time, shaft_temp_val = row_timeseries(
-                    parameter_sheet, 'Shaft time', 'Read Shaft T', index
-                )
-                shaft_temp_time = (
-                    shaft_temp_time * ureg('minute').to('second').magnitude
-                )
+                
 
-                pressure_setval = pd.Series(
-                    [
-                        (
-                            parameter_sheet['Set Chamber P'].loc[index]
-                            if 'Set Chamber P' in parameter_sheet.columns
-                            else None
-                        )
-                    ]
-                )
-                pressure_time, pressure_val = row_timeseries(
-                    parameter_sheet, 'Chamber pressure time', 'Read Chamber Pressure', index
-                )
-                pressure_time = pressure_time * ureg('minute').to('second').magnitude
+                # WARNING! deposition is taken as the 10th step in the growth run recipe file containing 16 steps in total
+                # if the recipe file is changed, the deposition step might be at a different index
+                growth_from_rcp.steps[9].sample_parameters[0].filament_temperature.value = fil_temp_val
+                growth_from_rcp.steps[9].sample_parameters[0].filament_temperature.time = fil_temp_time
 
-                throttle_time, throttle_val = row_timeseries(
-                    parameter_sheet, 'TV time', 'Read throttle valve', index
-                )
+                # if dict_from_rcp = yaml.safe_load(file) is used:
+                # growth_from_rcp["data"]["steps"][9]["sample_parameters"][0]["filament_temperature"]["time"] = fil_temp_time
+                # growth_from_rcp["data"]["steps"][9]["sample_parameters"][0]["filament_temperature"]["value"] = fil_temp_val
 
-                rot_setval = pd.Series(
-                    [
-                        (
-                            parameter_sheet['Set Rotation S'].loc[index]
-                            if 'Set Rotation S' in parameter_sheet.columns
-                            else None
-                        )
-                    ]
-                )
-                rot_time, rot_val = row_timeseries(
-                    parameter_sheet, 'rot time', 'Read rotation', index
-                )
-                rot_time = rot_time * ureg('minute').to('second').magnitude
-
-                fe1_pressure_time, fe1_pressure_val = row_timeseries(
-                    parameter_sheet, 'BP FE1 time', 'BP FE1', index
-                )
-                fe1_pressure_time = (
-                    fe1_pressure_time * ureg('minute').to('second').magnitude
-                )
-
-                fe1_temp_setval = pd.Series(
-                    [
-                        (
-                            parameter_sheet['Set FE1 Temp'].loc[index]
-                            if 'Set FE1 Temp' in parameter_sheet.columns
-                            else None
-                        )
-                    ]
-                )
-
-                fe1_ar_push_setval = pd.Series(
-                    [
-                        (
-                            parameter_sheet['Set Ar Push 1'].loc[index]
-                            if 'Set Ar Push 1' in parameter_sheet.columns
-                            else None
-                        )
-                    ]
-                )
-
-                fe1_ar_purge_setval = pd.Series(
-                    [
-                        (
-                            parameter_sheet['Set Ar Purge 1'].loc[index]
-                            if 'Set Ar Purge 1' in parameter_sheet.columns
-                            else None
-                        )
-                    ]
-                )
-
-                fe2_pressure_time, fe2_pressure_val = row_timeseries(
-                    parameter_sheet, 'BP FE2 time', 'BP FE2', index
-                )
-                fe2_pressure_time = (
-                    fe2_pressure_time * ureg('minute').to('second').magnitude
-                )
-
-                fe2_temp_setval = pd.Series(
-                    [
-                        (
-                            parameter_sheet['Set FE2 Temp'].loc[index]
-                            if 'Set FE2 Temp' in parameter_sheet.columns
-                            else None
-                        )
-                    ]
-                )
-
-                fe2_ar_push_setval = pd.Series(
-                    [
-                        (
-                            parameter_sheet['Set Ar Push 2'].loc[index]
-                            if 'Set Ar Push 2' in parameter_sheet.columns
-                            else None
-                        )
-                    ]
-                )
-
-                fe2_ar_purge_setval = pd.Series(
-                    [
-                        (
-                            parameter_sheet['Set Ar Purge 2'].loc[index]
-                            if 'Set Ar Purge 2' in parameter_sheet.columns
-                            else None
-                        )
-                    ]
-                )
-
-                gas_temp_time, gas_temp_val = row_timeseries(
-                    parameter_sheet, 'Oxygen time', 'Read Oxygen T', index
-                )
-                gas_temp_time = gas_temp_time * ureg('minute').to('second').magnitude
-
-                gas_mfc_setval = pd.Series(
-                    [
-                        (
-                            parameter_sheet['Set of Oxygen uniform gas'].loc[index]
-                            if 'Set of Oxygen uniform gas' in parameter_sheet.columns
-                            else None
-                        )
-                    ]
-                )
-                growth_description = (
-                    str(
-                        parameter_sheet['Weekday'].loc[index]
-                        if 'Weekday' in parameter_sheet.columns
-                        else None
-                    )
-                    + '. Sequential number: '
-                    + str(parameter_sheet['number'].loc[index])
-                    + '. '
-                    + str(parameter_sheet['Comment'].loc[index])
-                )
-
-                # creating GrowthMovpeIKZ archive
-                growth_data = GrowthMovpeIKZ(
-                    data_file=data_file_with_path,
-                    name=f'{dep_control_run} Growth',
-                    lab_id=dep_control_run,
-                    description=growth_description,
-                    datetime=(
-                        parameter_sheet['Date'].loc[index]
-                        if 'Date' in parameter_sheet.columns
-                        else None
-                    ),
-                    steps=[
-                        GrowthStepMovpeIKZ(
-                            name='Deposition',
-                            duration=(
-                                float(parameter_sheet['Duration'].loc[index])
-                                if 'Duration' in parameter_sheet.columns
-                                else None
-                            ),
-                            environment=ChamberEnvironmentMovpe(
-                                pressure=Pressure(
-                                    set_time=pd.Series([0]),
-                                    set_value=pressure_setval,
-                                    value=pressure_val,
-                                    time=pressure_time,
-                                ),
-                                throttle_valve=Pressure(
-                                    value=throttle_val,
-                                    time=throttle_time,
-                                ),
-                                rotation=Rotation(
-                                    set_time=pd.Series([0]),
-                                    set_value=rot_setval,
-                                    value=rot_val,
-                                    time=rot_time,
-                                ),
-                                uniform_gas_flow_rate=VolumetricFlowRate(
-                                    set_time=pd.Series([0]),
-                                    set_value=uniform_setval,
-                                ),
-                            ),
-                            sample_parameters=[
-                                SampleParametersMovpe(
-                                    layer=ThinFilmReference(
-                                        reference=f'{get_hash_ref(archive.m_context.upload_id, layer_filename)}',
-                                    ),
-                                    substrate=ThinFilmStackMovpeReference(
-                                        reference=f'{get_hash_ref(archive.m_context.upload_id, grown_sample_filename)}',
-                                    ),
-                                    shaft_temperature=ShaftTemperature(
-                                        set_time=pd.Series([0]),
-                                        set_value=shaft_temp_setval,
-                                        value=shaft_temp_val,
-                                        time=shaft_temp_time,
-                                    ),
-                                    filament_temperature=FilamentTemperature(
-                                        set_time=pd.Series([0]),
-                                        set_value=fil_temp_setval,
-                                        value=fil_temp_val,
-                                        time=fil_temp_time,
-                                    ),
-                                )
-                            ],
-                            sources=[
-                                FlashSource(
-                                    name='Flash Evaporator 1',
-                                    vapor_source=FlashEvaporator(
-                                        pressure=Pressure(
-                                            value=fe1_pressure_val,
-                                            time=fe1_pressure_time,
-                                        ),
-                                        temperature=Temperature(
-                                            set_time=pd.Series([0]),
-                                            set_value=fe1_temp_setval,
-                                        ),
-                                        carrier_gas=PubChemPureSubstanceSection(
-                                            name='Argon',
-                                        ),
-                                        carrier_push_flow_rate=VolumetricFlowRate(
-                                            set_time=pd.Series([0]),
-                                            set_value=fe1_ar_push_setval,
-                                        ),
-                                        carrier_purge_flow_rate=VolumetricFlowRate(
-                                            set_time=pd.Series([0]),
-                                            set_value=fe1_ar_purge_setval,
-                                        ),
-                                    ),
-                                ),
-                                FlashSource(
-                                    name='Flash Evaporator 2',
-                                    vapor_source=FlashEvaporator(
-                                        pressure=Pressure(
-                                            value=fe2_pressure_val,
-                                            time=fe2_pressure_time,
-                                        ),
-                                        temperature=Temperature(
-                                            set_time=pd.Series([0]),
-                                            set_value=fe2_temp_setval,
-                                        ),
-                                        carrier_gas=PubChemPureSubstanceSection(
-                                            name='Argon',
-                                        ),
-                                        carrier_push_flow_rate=VolumetricFlowRate(
-                                            set_time=pd.Series([0]),
-                                            set_value=fe2_ar_push_setval,
-                                        ),
-                                        carrier_purge_flow_rate=VolumetricFlowRate(
-                                            set_time=pd.Series([0]),
-                                            set_value=fe2_ar_purge_setval,
-                                        ),
-                                    ),
-                                ),
-                                GasLineSource(
-                                    name='Oxygen uniform gas ',
-                                    vapor_source=GasLineEvaporator(
-                                        temperature=Temperature(
-                                            value=gas_temp_val,
-                                            time=gas_temp_time,
-                                        ),
-                                        total_flow_rate=VolumetricFlowRate(
-                                            set_time=pd.Series([0]),
-                                            set_value=gas_mfc_setval,
-                                        ),
-                                    ),
-                                ),
-                            ],
-                        )
-                    ],
-                )
-                growth_filename = f'{dep_control_run}.GrowthMovpeIKZ.archive.{filetype}'
                 growth_archive = EntryArchive(
-                    data=growth_data,
-                    # m_context=archive.m_context,
-                    metadata=EntryMetadata(upload_id=archive.m_context.upload_id),
+                    data = growth_from_rcp,
+                    m_context = archive.m_context,
+                    metadata = EntryMetadata(upload_id=archive.m_context.upload_id),
                 )
+
+
                 create_archive(
-                    growth_archive.m_to_dict(),
-                    archive.m_context,
-                    growth_filename,
-                    filetype,
-                    logger,
-                )
+                        growth_archive.m_to_dict(),
+                        archive.m_context,
+                        search_growth.data[0]["mainfile"],
+                        filetype,
+                        logger,
+                        overwrite=True,
+                    )
+
 
         # populate the raw file archive
         archive.data = RawFileMovpeDepositionControl(
