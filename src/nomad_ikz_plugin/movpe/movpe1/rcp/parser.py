@@ -80,17 +80,19 @@ class ParserMovpe1RcpIKZ(MatchingParser):
         filetype = 'yaml'
 
         # check the correctness of the file location in the uploaded zip folder
-        assert mainfile.split('/')[-2] == "Software file", (
+        assert mainfile.split('/')[-2] == 'Software file', (
             f"Expected 'Software file' folder in '{mainfile.split('/')[-3]}',"
             f"got '{mainfile.split('/')[-2]}'"
         )
-        logger.info(f"Processing MOVPE 1 recipe file in folder '{mainfile.split('/')[-3]}'")
+        logger.info(
+            f"Processing MOVPE 1 recipe file in folder '{mainfile.split('/')[-3]}'"
+        )
 
         process_data = GrowthMovpeIKZ(
-                    name=mainfile.split('/')[-3],
-                    lab_id=mainfile.split('/')[-3],
-                    description=f"parsed from recipe file '{mainfile.split("/")[-1]}'",
-                    )
+            name=mainfile.split('/')[-3],
+            lab_id=mainfile.split('/')[-3],
+            description=f"parsed from recipe file '{mainfile.split('/')[-1]}'",
+        )
 
         with open(mainfile, encoding='utf-8') as file:
             total_steps = file.readline().split()[0]

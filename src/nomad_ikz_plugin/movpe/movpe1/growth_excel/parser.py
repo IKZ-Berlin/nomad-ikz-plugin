@@ -25,11 +25,6 @@ from nomad.datamodel.datamodel import EntryArchive, EntryMetadata
 from nomad.datamodel.metainfo.annotations import (
     ELNAnnotation,
 )
-from nomad.datamodel.metainfo.basesections import (
-    PubChemPureSubstanceSection,
-    PureSubstanceComponent,
-    PureSubstanceSection,
-)
 from nomad.metainfo import (
     Quantity,
     Section,
@@ -41,44 +36,15 @@ from nomad_material_processing.general import (
     SubstrateReference,
     ThinFilmReference,
 )
-from nomad_material_processing.vapor_deposition.cvd.general import (
-    FlashEvaporator,
-    FlashSource,
-    GasLineEvaporator,
-    GasLineSource,
-    Rotation,
-)
-from nomad_material_processing.vapor_deposition.general import (
-    Pressure,
-    Temperature,
-    VolumetricFlowRate,
-)
 
-from nomad_ikz_plugin.general.schema import (
-    LiquidComponent,
-    Solution,
-)
 from nomad_ikz_plugin.movpe.schema import (
-    ChamberEnvironmentMovpe,
     ExperimentMovpeIKZ,
-    FilamentTemperature,
     GrowthMovpeIKZ,
-    GrowthMovpeIKZReference,
-    GrowthStepMovpeIKZ,
-    PrecursorsPreparationIKZ,
-    PrecursorsPreparationIKZReference,
-    SampleParametersMovpe,
-    ShaftTemperature,
-    SystemComponentIKZ,
     ThinFilmMovpeIKZ,
     ThinFilmStackMovpe,
-    ThinFilmStackMovpeReference,
 )
 from nomad_ikz_plugin.utils import (
-    clean_dataframe_headers,
     create_archive,
-    get_hash_ref,
-    row_timeseries,
 )
 
 
@@ -112,13 +78,14 @@ class ParserMovpe1IKZ(MatchingParser):
         data_file_with_path = mainfile.split('raw/')[-1]
         # Read the file without headers
         parameter_sheet = pd.read_excel(
-            xlsx, 'Ti Sr Parameter', comment='#' #, header=None
+            xlsx,
+            'Ti Sr Parameter',
+            comment='#',  # , header=None
         )
 
         deposition_control_list = []
 
         for index, sample_id in enumerate(parameter_sheet['Sample ID']):
-
             # find a growth run archive parsed by the rcp parser.
             # The recognition is based on the folder name where the rcp file was contained
 
@@ -135,25 +102,29 @@ class ParserMovpe1IKZ(MatchingParser):
 
             if search_growth.pagination.total > 1:
                 logger.warn(
-                    f'{search_growth.pagination.total} growth runs with lab_id {sample_id} found. Please check the upload with upload id {archive.m_context.upload_id}.')
+                    f'{search_growth.pagination.total} growth runs with lab_id {sample_id} found. Please check the upload with upload id {archive.m_context.upload_id}.'
+                )
                 continue
             if search_growth.pagination.total == 0:
                 logger.warn(
-                    f'{search_growth.pagination.total} growth runs with lab_id {sample_id} found. Please upload a recipe file for this sample.')
+                    f'{search_growth.pagination.total} growth runs with lab_id {sample_id} found. Please upload a recipe file for this sample.'
+                )
                 continue
             if search_growth.pagination.total == 1:
                 with archive.m_context.raw_file(
-                    search_growth.data[0]["mainfile"], "r"
-                    ) as file:
+                    search_growth.data[0]['mainfile'], 'r'
+                ) as file:
                     dict_from_rcp = yaml.safe_load(file)
-                    if "data" in dict_from_rcp:
-                        growth_from_rcp = GrowthMovpeIKZ.m_from_dict(dict_from_rcp["data"])
+                    if 'data' in dict_from_rcp:
+                        growth_from_rcp = GrowthMovpeIKZ.m_from_dict(
+                            dict_from_rcp['data']
+                        )
                     else:
                         logger.warn(
                             f'No data found in the growth run archive with lab_id {sample_id}. Please check the upload with upload id {archive.m_context.upload_id}.'
                         )
                         continue
-                    
+
             # check if experiment archive exists already
             search_experiments = search(
                 owner='user',
@@ -162,7 +133,7 @@ class ParserMovpe1IKZ(MatchingParser):
                     #'results.eln.methods:any': ['MOVPE 1 experiment'],
                     'upload_id:any': [archive.m_context.upload_id],
                 },
-                pagination=MetadataPagination(page_size=10000), 
+                pagination=MetadataPagination(page_size=10000),
                 user_id=archive.metadata.main_author.user_id,
             )
             # check if experiment entries are already indexed
@@ -174,10 +145,7 @@ class ParserMovpe1IKZ(MatchingParser):
             }
             if search_experiments.pagination.total >= 1:
                 for match in search_experiments.data:
-                    if (
-                        f'{sample_id} experiment'
-                        in match['results']['eln']['lab_ids']
-                    ):
+                    if f'{sample_id} experiment' in match['results']['eln']['lab_ids']:
                         matches['lab_id'].extend(match['results']['eln']['lab_ids'])
                         matches['entry_id'].append(match['entry_id'])
                         matches['entry_name'].append(match['entry_name'])
@@ -195,9 +163,7 @@ class ParserMovpe1IKZ(MatchingParser):
                     continue
             elif search_experiments.pagination.total == 0:
                 # creating ThinFiln and ThinFilmStack archives
-                layer_filename = (
-                    f'{sample_id}_{index}.ThinFilm.archive.{filetype}'
-                )
+                layer_filename = f'{sample_id}_{index}.ThinFilm.archive.{filetype}'
                 layer_archive = EntryArchive(
                     data=ThinFilmMovpeIKZ(
                         name=sample_id + 'layer',
@@ -250,47 +216,54 @@ class ParserMovpe1IKZ(MatchingParser):
                     ]
                 )
                 # TODO check the setvals equals the one in growth run archive from the rcp file
-                fil_temp_setval = pd.Series([parameter_sheet['Software Temp °C'].loc[index]])
-                fil_temp_time = pd.Series([0, 2, 30, 50, 120]) * ureg('minute').to('second').magnitude
-                fil_temp_val = pd.Series([parameter_sheet['Fil. temp °C before dep.'].loc[index],
-                                          parameter_sheet['Fil. Temp °C after 2min'].loc[index],
-                                          parameter_sheet['Fil. Temp °C after 30min'].loc[index],
-                                          parameter_sheet['Fil. Temp °C after 50min'].loc[index],
-                                          parameter_sheet['Fil. Temp °C after 120min'].loc[index],
-                                          ])
+                fil_temp_setval = pd.Series(
+                    [parameter_sheet['Software Temp °C'].loc[index]]
+                )
+                fil_temp_time = (
+                    pd.Series([0, 2, 30, 50, 120])
+                    * ureg('minute').to('second').magnitude
+                )
+                fil_temp_val = pd.Series(
+                    [
+                        parameter_sheet['Fil. temp °C before dep.'].loc[index],
+                        parameter_sheet['Fil. Temp °C after 2min'].loc[index],
+                        parameter_sheet['Fil. Temp °C after 30min'].loc[index],
+                        parameter_sheet['Fil. Temp °C after 50min'].loc[index],
+                        parameter_sheet['Fil. Temp °C after 120min'].loc[index],
+                    ]
+                )
                 # TODO check the setvals equals the one in growth run archive from the rcp file
-                shaft_temp_setval = pd.Series([parameter_sheet['Shaft temp °C'].loc[index]])
-                
-
-                
-
-                
+                shaft_temp_setval = pd.Series(
+                    [parameter_sheet['Shaft temp °C'].loc[index]]
+                )
 
                 # WARNING! deposition is taken as the 10th step in the growth run recipe file containing 16 steps in total
                 # if the recipe file is changed, the deposition step might be at a different index
-                growth_from_rcp.steps[9].sample_parameters[0].filament_temperature.value = fil_temp_val
-                growth_from_rcp.steps[9].sample_parameters[0].filament_temperature.time = fil_temp_time
+                growth_from_rcp.steps[9].sample_parameters[
+                    0
+                ].filament_temperature.value = fil_temp_val
+                growth_from_rcp.steps[9].sample_parameters[
+                    0
+                ].filament_temperature.time = fil_temp_time
 
                 # if dict_from_rcp = yaml.safe_load(file) is used:
                 # growth_from_rcp["data"]["steps"][9]["sample_parameters"][0]["filament_temperature"]["time"] = fil_temp_time
                 # growth_from_rcp["data"]["steps"][9]["sample_parameters"][0]["filament_temperature"]["value"] = fil_temp_val
 
                 growth_archive = EntryArchive(
-                    data = growth_from_rcp,
-                    m_context = archive.m_context,
-                    metadata = EntryMetadata(upload_id=archive.m_context.upload_id),
+                    data=growth_from_rcp,
+                    m_context=archive.m_context,
+                    metadata=EntryMetadata(upload_id=archive.m_context.upload_id),
                 )
 
-
                 create_archive(
-                        growth_archive.m_to_dict(),
-                        archive.m_context,
-                        search_growth.data[0]["mainfile"],
-                        filetype,
-                        logger,
-                        overwrite=True,
-                    )
-
+                    growth_archive.m_to_dict(),
+                    archive.m_context,
+                    search_growth.data[0]['mainfile'],
+                    filetype,
+                    logger,
+                    overwrite=True,
+                )
 
         # populate the raw file archive
         archive.data = RawFileMovpeDepositionControl(
