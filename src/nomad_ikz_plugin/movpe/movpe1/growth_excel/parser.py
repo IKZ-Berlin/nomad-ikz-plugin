@@ -241,12 +241,15 @@ class ParserMovpe1IKZ(MatchingParser):
                 )
 
                 # parsing arrays from excel file
+
+                # TODO check the setvals equals the one in growth run archive from the rcp file
                 uniform_setval = pd.Series(
                     [
                         parameter_sheet['Ar uniform/sccm'].loc[index]
                         * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude
                     ]
                 )
+                # TODO check the setvals equals the one in growth run archive from the rcp file
                 fil_temp_setval = pd.Series([parameter_sheet['Software Temp °C'].loc[index]])
                 fil_temp_time = pd.Series([0, 2, 30, 50, 120]) * ureg('minute').to('second').magnitude
                 fil_temp_val = pd.Series([parameter_sheet['Fil. temp °C before dep.'].loc[index],
@@ -255,11 +258,11 @@ class ParserMovpe1IKZ(MatchingParser):
                                           parameter_sheet['Fil. Temp °C after 50min'].loc[index],
                                           parameter_sheet['Fil. Temp °C after 120min'].loc[index],
                                           ])
+                # TODO check the setvals equals the one in growth run archive from the rcp file
                 shaft_temp_setval = pd.Series([parameter_sheet['Shaft temp °C'].loc[index]])
                 
 
-                # TODO implement checks on the setvals found in the xlsx file 
-                # that are already present in the growth run archive from the rcp file
+                
 
                 
 
