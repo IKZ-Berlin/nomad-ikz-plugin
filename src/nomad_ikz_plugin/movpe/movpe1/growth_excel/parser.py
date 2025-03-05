@@ -87,8 +87,7 @@ class ParserMovpe1IKZ(MatchingParser):
 
         for index, sample_id in enumerate(parameter_sheet['Sample ID']):
             # find a growth run archive parsed by the rcp parser.
-            # The recognition is based on the folder name where the rcp file was contained
-
+            # The recognition is based on the folder name where the rcp file was contained in
             search_growth = search(
                 owner='all',
                 query={
@@ -99,7 +98,6 @@ class ParserMovpe1IKZ(MatchingParser):
                 pagination=MetadataPagination(page_size=10000),
                 user_id=archive.metadata.main_author.user_id,
             )
-
             if search_growth.pagination.total > 1:
                 logger.warn(
                     f'{search_growth.pagination.total} growth runs with lab_id {sample_id} found. Please check the upload with upload id {archive.m_context.upload_id}.'
@@ -207,14 +205,9 @@ class ParserMovpe1IKZ(MatchingParser):
                 )
 
                 # parsing arrays from excel file
-
-                # TODO check the setvals equals the one in growth run archive from the rcp file
-                uniform_setval = pd.Series(
-                    [
-                        parameter_sheet['Ar uniform/sccm'].loc[index]
-                        * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude
-                    ]
-                )
+                precursor = str(parameter_sheet['Ar uniform/sccm'].loc[index])
+                date = str(parameter_sheet['Datum'].loc[index])
+                deposition_step_no = int(parameter_sheet['number'].loc[index])
                 # TODO check the setvals equals the one in growth run archive from the rcp file
                 fil_temp_setval = pd.Series(
                     [parameter_sheet['Software Temp °C'].loc[index]]
@@ -236,26 +229,142 @@ class ParserMovpe1IKZ(MatchingParser):
                 shaft_temp_setval = pd.Series(
                     [parameter_sheet['Shaft temp °C'].loc[index]]
                 )
+                ti_molar_conc = parameter_sheet['Ti conc (molar)'].loc[index]
+                ti_mass = parameter_sheet['Ti m in g'].loc[index]
+                ca_molar_conc = parameter_sheet['Ca conc (molar)'].loc[index]
+                ca_ba_mass_ratio = parameter_sheet['Ca/Ba m in g'].loc[index]
+                sr_mass = parameter_sheet['Sr m in mg'].loc[index]
+                ca_weigth_percent = parameter_sheet['wt.% Ca'].loc[index]
+                la_mass = parameter_sheet['La m in mg'].loc[index]
+                la_weigth_percent = parameter_sheet['wt.% La'].loc[index]
+                flow_line_1_ti = parameter_sheet['flow line 1 (Ti)'].loc[index]
+                flow_line_2_ca = parameter_sheet['flow line 2 (Ca)'].loc[index]
+                conc_ratio_a_ti = parameter_sheet['c(A-cation)/c(Ti)'].loc[index]
+                vol_toluol = parameter_sheet['Volume Toluol in ml'].loc[index]
+                # TODO check the setvals equals the one in growth run archive from the rcp file
+                uniform_setval = pd.Series(
+                    [
+                        parameter_sheet['Ar uniform/sccm'].loc[index]
+                        * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude
+                    ]
+                )
+                ox_flow_setval = pd.Series(
+                    [
+                        parameter_sheet['O2/sccm'].loc[index]
+                        * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude
+                    ]
+                )
+                ox_flow_time = (
+                    pd.Series([0, 2, 60, 90, 140])
+                    * ureg('minute').to('second').magnitude
+                )
+                ox_flow_val = pd.Series(
+                    [
+                        parameter_sheet['O2 temp °C befor dep.'].loc[index],
+                        parameter_sheet['O2 temp °C after 2min'].loc[index],
+                        parameter_sheet['O2 temp °C after 60min'].loc[index],
+                        parameter_sheet['O2 temp °C after 90min'].loc[index],
+                        parameter_sheet['O2 temp °C after 140min'].loc[index],
+                    ]
+                ) 
+                ar_push_flow = parameter_sheet['Ar push/sccm '].loc[index]
+                ar_purge_flow = parameter_sheet['Ar purge/sccm'].loc[index]
+                deposition_timer = parameter_sheet['dep time in min'].loc[index]
+                fe1_back_press_time = (
+                    pd.Series([0, 2, 60, 90, 140])
+                    * ureg('minute').to('second').magnitude
+                )
+                fe1_back_press_val = pd.Series(
+                    [
+                        parameter_sheet['BP FE1 in mbar befor dep.'].loc[index],
+                        parameter_sheet['BP FE1 in mbar after 2min'].loc[index],
+                        parameter_sheet['BP FE1 in mbar after 60min'].loc[index],
+                        parameter_sheet['BP FE1 in mbar after 90min'].loc[index],
+                        parameter_sheet['BP FE1 in mbar after 140min'].loc[index],
+                    ]
+                )
+                fe1_temp = parameter_sheet['FE1 temp °C'].loc[index]
+                fe2_back_press_time = (
+                    pd.Series([0, 2, 60, 90, 140])
+                    * ureg('minute').to('second').magnitude
+                )
+                fe2_back_press_val = pd.Series(
+                    [
+                        parameter_sheet['BP FE2 in mbar befor dep.'].loc[index],
+                        parameter_sheet['BP FE2 in mbar after 2min'].loc[index],
+                        parameter_sheet['BP FE2 in mbar after 60min'].loc[index],
+                        parameter_sheet['BP FE2 in mbar after 90min'].loc[index],
+                        parameter_sheet['BP FE2 in mbar after 140min'].loc[index],
+                    ]
+                )
+                fe2_temp = parameter_sheet['FE2 temp °C'].loc[index]
+                throttle_time = (
+                    pd.Series([0, 2, 60, 90, 140])
+                    * ureg('minute').to('second').magnitude
+                )
+                throttle_val = pd.Series(
+                    [
+                        parameter_sheet['throttle valve in mbar before dep.'].loc[index],
+                        parameter_sheet['throttle valve in mbar after 2min.'].loc[index],
+                        parameter_sheet['throttle valve in mbar after 60min'].loc[index],
+                        parameter_sheet['throttle valve in mbar after 90min'].loc[index],
+                        parameter_sheet['throttle valve in mbar after 140min'].loc[index],
+                    ]
+                )
+                reactor_pressure_setval = pd.Series(
+                    [parameter_sheet['reactor in mbar'].loc[index]]
+                )
+                reactor_pressure_time = (
+                    pd.Series([0, 2, 60, 90, 140])
+                    * ureg('minute').to('second').magnitude
+                )
+                reactor_pressure_val = pd.Series(
+                    [
+                        parameter_sheet['reactor in mbar before dep.'].loc[index],
+                        parameter_sheet['reactor in mbar after 2min'].loc[index],
+                        parameter_sheet['reactor in mbar after 60min'].loc[index],
+                        parameter_sheet['reactor in mbar after 90min'].loc[index],
+                        parameter_sheet['reactor in mbar after 140min'].loc[index],
+                    ]
+                )
+                rotation_setval = (
+                    pd.Series([parameter_sheet['rotation pro min'].loc[index]])
+                )
+                rotation_time = (
+                    pd.Series([0, 2, 60, 90, 140])
+                    * ureg('minute').to('second').magnitude
+                )
+                rotation_val = pd.Series(
+                    [
+                        parameter_sheet['rotation pro min before dep.'].loc[index],
+                        parameter_sheet['rotation pro min after 2min'].loc[index],
+                        parameter_sheet['rotation pro min after 60min'].loc[index],
+                        parameter_sheet['rotation pro min after 90min'].loc[index],
+                        parameter_sheet['rotation pro min after 140min'].loc[index],
+                    ]
+                )
+                substrate = parameter_sheet['substrates'].loc[index]
+
 
                 # WARNING! deposition is taken as the 10th step in the growth run recipe file containing 16 steps in total
                 # if the recipe file is changed, the deposition step might be at a different index
-                growth_from_rcp.steps[9].sample_parameters[
+                growth_from_rcp.steps[deposition_step_no -1].sample_parameters[
                     0
                 ].filament_temperature.value = fil_temp_val
-                growth_from_rcp.steps[9].sample_parameters[
+                growth_from_rcp.steps[deposition_step_no -1].sample_parameters[
                     0
                 ].filament_temperature.time = fil_temp_time
 
-                # if dict_from_rcp = yaml.safe_load(file) is used:
+                # in the case where dict_from_rcp = yaml.safe_load(file) is used:
                 # growth_from_rcp["data"]["steps"][9]["sample_parameters"][0]["filament_temperature"]["time"] = fil_temp_time
                 # growth_from_rcp["data"]["steps"][9]["sample_parameters"][0]["filament_temperature"]["value"] = fil_temp_val
 
+                # dump the updated growth dictionary in the growth archive
                 growth_archive = EntryArchive(
                     data=growth_from_rcp,
                     m_context=archive.m_context,
                     metadata=EntryMetadata(upload_id=archive.m_context.upload_id),
                 )
-
                 create_archive(
                     growth_archive.m_to_dict(),
                     archive.m_context,
