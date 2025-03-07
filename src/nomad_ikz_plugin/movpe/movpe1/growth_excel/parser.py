@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+import time
 import pandas as pd
 import yaml
 from nomad.datamodel.data import (
@@ -35,6 +35,22 @@ from nomad.utils import hash
 from nomad_material_processing.general import (
     SubstrateReference,
     ThinFilmReference,
+)
+
+from nomad_material_processing.vapor_deposition.general import (
+    EvaporationSource,
+    GasFlow,
+    MolarFlowRate,
+    Pressure,
+    SampleParameters,
+    Temperature,
+    VaporDeposition,
+    VaporDepositionSource,
+    VaporDepositionStep,
+    VolumetricFlowRate,
+)
+from nomad_material_processing.vapor_deposition.cvd.general import (
+    FlashSource,
 )
 
 from nomad_ikz_plugin.movpe.schema import (
@@ -88,6 +104,7 @@ class ParserMovpe1IKZ(MatchingParser):
         for index, sample_id in enumerate(parameter_sheet['Sample ID']):
             # find a growth run archive parsed by the rcp parser.
             # The recognition is based on the folder name where the rcp file was contained in
+            time.sleep(0.6) # allow the just created rcp entry to be indexing before searching for it
             search_growth = search(
                 owner='all',
                 query={
@@ -237,10 +254,11 @@ class ParserMovpe1IKZ(MatchingParser):
                 ca_weigth_percent = parameter_sheet['wt.% Ca'].loc[index]
                 la_mass = parameter_sheet['La m in mg'].loc[index]
                 la_weigth_percent = parameter_sheet['wt.% La'].loc[index]
-                flow_line_1_ti = parameter_sheet['flow line 1 (Ti)'].loc[index]
-                flow_line_2_ca = parameter_sheet['flow line 2 (Ca)'].loc[index]
                 conc_ratio_a_ti = parameter_sheet['c(A-cation)/c(Ti)'].loc[index]
                 vol_toluol = parameter_sheet['Volume Toluol in ml'].loc[index]
+
+                flow_line_1_ti = pd.Series([parameter_sheet['flow line 1 (Ti)'].loc[index]])
+                flow_line_2_ca = pd.Series([parameter_sheet['flow line 2 (Ca)'].loc[index]])
                 # TODO check the setvals equals the one in growth run archive from the rcp file
                 uniform_setval = pd.Series(
                     [
@@ -248,6 +266,7 @@ class ParserMovpe1IKZ(MatchingParser):
                         * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude
                     ]
                 )
+                # TODO check the setvals equals the one in growth run archive from the rcp file
                 ox_flow_setval = pd.Series(
                     [
                         parameter_sheet['O2/sccm'].loc[index]
@@ -267,9 +286,12 @@ class ParserMovpe1IKZ(MatchingParser):
                         parameter_sheet['O2 temp °C after 140min'].loc[index],
                     ]
                 ) 
+                # TODO WARNING! It is not clear whether this push and purge belong to the FE1 or FE2
                 ar_push_flow = parameter_sheet['Ar push/sccm '].loc[index]
                 ar_purge_flow = parameter_sheet['Ar purge/sccm'].loc[index]
-                deposition_timer = parameter_sheet['dep time in min'].loc[index]
+                # TODO check if it matches the timing from rcp file
+                deposition_time = parameter_sheet['dep time in min'].loc[index]
+
                 fe1_back_press_time = (
                     pd.Series([0, 2, 60, 90, 140])
                     * ureg('minute').to('second').magnitude
@@ -283,7 +305,9 @@ class ParserMovpe1IKZ(MatchingParser):
                         parameter_sheet['BP FE1 in mbar after 140min'].loc[index],
                     ]
                 )
-                fe1_temp = parameter_sheet['FE1 temp °C'].loc[index]
+                # TODO check the setvals equals the one in growth run archive from the rcp file
+                fe1_temp_setval = parameter_sheet['FE1 temp °C'].loc[index]
+
                 fe2_back_press_time = (
                     pd.Series([0, 2, 60, 90, 140])
                     * ureg('minute').to('second').magnitude
@@ -297,7 +321,9 @@ class ParserMovpe1IKZ(MatchingParser):
                         parameter_sheet['BP FE2 in mbar after 140min'].loc[index],
                     ]
                 )
-                fe2_temp = parameter_sheet['FE2 temp °C'].loc[index]
+                # TODO check the setvals equals the one in growth run archive from the rcp file
+                fe2_temp_setval = parameter_sheet['FE2 temp °C'].loc[index]
+
                 throttle_time = (
                     pd.Series([0, 2, 60, 90, 140])
                     * ureg('minute').to('second').magnitude
@@ -305,12 +331,13 @@ class ParserMovpe1IKZ(MatchingParser):
                 throttle_val = pd.Series(
                     [
                         parameter_sheet['throttle valve in mbar before dep.'].loc[index],
-                        parameter_sheet['throttle valve in mbar after 2min.'].loc[index],
+                        parameter_sheet['throttle valve in mbar after 2min'].loc[index],
                         parameter_sheet['throttle valve in mbar after 60min'].loc[index],
                         parameter_sheet['throttle valve in mbar after 90min'].loc[index],
                         parameter_sheet['throttle valve in mbar after 140min'].loc[index],
                     ]
                 )
+                # TODO check the setvals equals the one in growth run archive from the rcp file
                 reactor_pressure_setval = pd.Series(
                     [parameter_sheet['reactor in mbar'].loc[index]]
                 )
@@ -327,6 +354,7 @@ class ParserMovpe1IKZ(MatchingParser):
                         parameter_sheet['reactor in mbar after 140min'].loc[index],
                     ]
                 )
+                # TODO check the setvals equals the one in growth run archive from the rcp file
                 rotation_setval = (
                     pd.Series([parameter_sheet['rotation pro min'].loc[index]])
                 )
@@ -343,17 +371,43 @@ class ParserMovpe1IKZ(MatchingParser):
                         parameter_sheet['rotation pro min after 140min'].loc[index],
                     ]
                 )
-                substrate = parameter_sheet['substrates'].loc[index]
-
 
                 # WARNING! deposition is taken as the 10th step in the growth run recipe file containing 16 steps in total
                 # if the recipe file is changed, the deposition step might be at a different index
+                growth_from_rcp.steps[deposition_step_no -1].name = "deposition"
+                growth_from_rcp.steps[deposition_step_no -1].step_index = "10 - deposition"
                 growth_from_rcp.steps[deposition_step_no -1].sample_parameters[
                     0
                 ].filament_temperature.value = fil_temp_val
                 growth_from_rcp.steps[deposition_step_no -1].sample_parameters[
                     0
                 ].filament_temperature.time = fil_temp_time
+                growth_from_rcp.steps[deposition_step_no -1].sources[1].peristaltic_pump_flux = VolumetricFlowRate(
+                    set_value = flow_line_1_ti * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude
+                )
+                growth_from_rcp.steps[deposition_step_no -1].sources[2].peristaltic_pump_flux = VolumetricFlowRate(
+                    set_value = flow_line_2_ca * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude
+                )
+                growth_from_rcp.steps[deposition_step_no -1].sources[0].vapor_source.total_flow_rate.time = ox_flow_time
+                growth_from_rcp.steps[deposition_step_no -1].sources[0].vapor_source.total_flow_rate.value = ox_flow_val
+                growth_from_rcp.steps[deposition_step_no -1].sources[1].vapor_source = Pressure(
+                    time=fe1_back_press_time,
+                    value=fe1_back_press_val,
+                )
+                growth_from_rcp.steps[deposition_step_no -1].sources[2].vapor_source = Pressure(
+                    time=fe2_back_press_time,
+                    value=fe2_back_press_val,
+                )
+                growth_from_rcp.steps[deposition_step_no -1].environment.throttle_valve = Pressure(
+                    time=throttle_time,
+                    value=throttle_val,
+                )
+                growth_from_rcp.steps[deposition_step_no -1].environment.pressure.value = reactor_pressure_val
+                growth_from_rcp.steps[deposition_step_no -1].environment.pressure.time = reactor_pressure_time
+                growth_from_rcp.steps[deposition_step_no -1].environment.rotation.value = rotation_val
+                growth_from_rcp.steps[deposition_step_no -1].environment.rotation.time = rotation_time
+
+
 
                 # in the case where dict_from_rcp = yaml.safe_load(file) is used:
                 # growth_from_rcp["data"]["steps"][9]["sample_parameters"][0]["filament_temperature"]["time"] = fil_temp_time
