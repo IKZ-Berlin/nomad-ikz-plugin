@@ -256,8 +256,8 @@ class IKZUVVisNirTransmissionResult(UVVisNirTransmissionResult):
 
     def calculate_extinction_coefficient(self, archive, logger):
         """
-        Calculate the extinction coefficient from the transmittance and sample
-        thickness. The formula used is: -log( T[%] / 100 ) / L.
+        Calculate the extinction coefficient from the transmittance and geometric path
+        length of the sample. The formula used is: -log( T[%] / 100 ) / L.
 
         Args:
             archive (EntryArchive): The archive containing the section.
@@ -269,24 +269,16 @@ class IKZUVVisNirTransmissionResult(UVVisNirTransmissionResult):
                 'Cannot calculate extinction coefficient as sample not found.'
             )
             return
-        if not archive.data.samples[0].thickness:
+        if not archive.data.samples[0].geometric_path_length:
             logger.warning(
-                'Cannot calculate extinction coefficient as sample thickness not found '
-                'or the value is 0.'
+                'Cannot calculate extinction coefficient as the geometric path length '
+                'of the sample is not found or the value is 0.'
             )
             return
 
-        path_length = archive.data.samples[0].thickness
+        path_length = archive.data.samples[0].geometric_path_length
         if self.transmittance is not None:
             extinction_coeff = -np.log(self.transmittance) / path_length
-            # TODO: The if-block is a temperary fix to avoid processing of nans in
-            # the archive. The issue will be fixed in the future.
-            if np.any(np.isnan(extinction_coeff)):
-                logger.warning(
-                    'Failed to save extinction coefficient. '
-                    'Encountered NaN values in the calculation.'
-                )
-                return
             self.extinction_coefficient = extinction_coeff
 
     def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
