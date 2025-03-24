@@ -279,14 +279,6 @@ class IKZUVVisNirTransmissionResult(UVVisNirTransmissionResult):
         path_length = archive.data.samples[0].geometric_path_length
         if self.transmittance is not None:
             extinction_coeff = -np.log(self.transmittance) / path_length
-            # TODO: The if-block is a temperary fix to avoid processing of nans in
-            # the archive. The issue will be fixed in the future.
-            if np.any(np.isnan(extinction_coeff)):
-                logger.warning(
-                    'Failed to save extinction coefficient. '
-                    'Encountered NaN values in the calculation.'
-                )
-                return
             self.extinction_coefficient = extinction_coeff
 
     def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
