@@ -983,7 +983,8 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
                 match['datetime'],
                 r'%d%m%Y_%H%M',
             ).astimezone()
-            self.name = match['name']
+            if not self.name:
+                self.name = match['name']
             if self.process_identifiers is None:
                 self.process_identifiers = ReadableIdentifiers(
                     institute='IKZ',
