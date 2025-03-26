@@ -1,5 +1,7 @@
 import numpy as np
 import plotly.express as px
+import plotly.graph_objects as go
+import math
 
 # from lakeshore_nomad_plugin.hall.schema import HallMeasurement
 from laytec_epitt_plugin.schema import LayTecEpiTTMeasurement
@@ -1059,6 +1061,13 @@ def fill_values(
         and hasattr(getattr(subsection, time_series_quantity), 'set_time')
         and hasattr(getattr(getattr(subsection, time_series_quantity), 'set_time'), 'm')
     ):
+        if time_series_key not in dictionary:
+            dictionary[time_series_key] = {
+                'set_value': np.array([]),
+                'set_time': np.array([]),
+                'value': np.array([]),
+                'time': np.array([]),
+            }
         dictionary[time_series_key]['set_value'] = np.append(
             dictionary[time_series_key]['set_value'],
             getattr(
@@ -1078,6 +1087,13 @@ def fill_values(
         and hasattr(getattr(subsection, time_series_quantity), 'time')
         and hasattr(getattr(getattr(subsection, time_series_quantity), 'time'), 'm')
     ):
+        if time_series_key not in dictionary:
+            dictionary[time_series_key] = {
+                'set_value': np.array([]),
+                'set_time': np.array([]),
+                'value': np.array([]),
+                'time': np.array([]),
+            }
         dictionary[time_series_key]['value'] = np.append(
             dictionary[time_series_key]['value'],
             getattr(getattr(getattr(subsection, time_series_quantity), 'value'), 'm'),
@@ -1197,168 +1213,79 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
             archive.workflow2.inputs.extend(set(inputs))
 
         # arrays for plotly figures
-        fil_t = {
-            'Filament T': {
-                'value': np.array([]),
-                'time': np.array([]),
-                'set_value': np.array([]),
-                'set_time': np.array([]),
-            }
-        }
-        shaft_t = {
-            'Shaft T': {
-                'value': np.array([]),
-                'time': np.array([]),
-                'set_value': np.array([]),
-                'set_time': np.array([]),
-            }
-        }
-        chamber_p = {
-            'Chamber P': {
-                'value': np.array([]),
-                'time': np.array([]),
-                'set_value': np.array([]),
-                'set_time': np.array([]),
-            }
-        }
-        throttle_valve = {
-            'Throttle Valve': {
-                'value': np.array([]),
-                'time': np.array([]),
-                'set_value': np.array([]),
-                'set_time': np.array([]),
-            }
-        }
-        rotation = {
-            'Rotation': {
-                'value': np.array([]),
-                'time': np.array([]),
-                'set_value': np.array([]),
-                'set_time': np.array([]),
-            }
-        }
-        sources_p = {}
-        sources_t = {}
+        parameters = {}
         if self.steps is not None:
             for step in self.steps:
                 if step.sample_parameters is not None:
                     for sample_param in step.sample_parameters:
                         fill_values(
-                            sample_param, 'filament_temperature', 'Filament T', fil_t
+                            sample_param, 'filament_temperature', 'Filament T', parameters
                         )
                         fill_values(
-                            sample_param, 'shaft_temperature', 'Shaft T', shaft_t
+                            sample_param, 'shaft_temperature', 'Shaft T', parameters
                         )
                 if step.environment is not None:
-                    fill_values(step.environment, 'pressure', 'Chamber P', chamber_p)
-                    fill_values(step.environment, 'rotation', 'Rotation', rotation)
+                    fill_values(step.environment, 'pressure', 'Chamber P', parameters)
+                    fill_values(step.environment, 'rotation', 'Rotation', parameters)
                     fill_values(
                         step.environment,
                         'throttle_valve',
                         'Throttle Valve',
-                        throttle_valve,
+                        parameters,
                     )
                 if step.sources is not None:
                     for source in step.sources:
-                        if source.name not in sources_p:
-                            sources_p[source.name] = {
-                                'value': np.array([]),
-                                'time': np.array([]),
-                                'set_value': np.array([]),
-                                'set_time': np.array([]),
-                            }
-                            fill_values(source, 'pressure', source.name, sources_p)
-                        if source.name not in sources_t:
-                            sources_t[source.name] = {
-                                'value': np.array([]),
-                                'time': np.array([]),
-                                'set_value': np.array([]),
-                                'set_time': np.array([]),
-                            }
-                            fill_values(source, 'temperature', source.name, sources_t)
+                        fill_values(source.vapor_source, 'pressure', f"{source.name} P", parameters)
+                        fill_values(source.vapor_source, 'temperature', f"{source.name} T", parameters)
 
         # plotly figures
-        max_rows = 4
         max_cols = 2
+        max_rows = math.ceil(len(parameters) / max_cols)
         figure1 = make_subplots(
             rows=max_rows,
             cols=max_cols,
-            subplot_titles=[
-                'Shaft T',
-                'Filament T',
-                'Chamber Pressure',
-                'Oxygen T',
-                'Rotation',
-                'Throttle Valve',
-                'FE1 Back Pressure',
-                'FE2 Back Pressure',
-            ],
+            subplot_titles=list(sorted(parameters.keys())),
         )  # , shared_yaxes=True)
-        arrays = [
-            shaft_t['Shaft T'],
-            fil_t['Filament T'],
-            chamber_p['Chamber P'],
-            throttle_valve['Throttle Valve'],
-            rotation['Rotation'],
-        ]
-        for source in sources_p.values():
-            arrays.append(source)
-        for source in sources_t.values():
-            arrays.append(source)
         row = 1
         col = 0
-        # for logged_par in sorted(arrays):
-        #     # for logged_par_instance in arrays[logged_par]['obj']:
-        #     if (
-        #         arrays[logged_par]["obj"].value.m.any()
-        #         and arrays[logged_par]["obj"].time.m.any()
-        #     ):
-        #         arrays[logged_par]["x"].append(arrays[logged_par]["obj"].time.m)
-        #         arrays[logged_par]["y"].append(arrays[logged_par]["obj"].value.m)
-        #     # else:
-        #     #     logger.warning(f"{str(logged_par_instance)} was empty, check the cells or the column headers in your excel file.")
-        #     if arrays[logged_par]["x"] and arrays[logged_par]["y"]:
-        #         scatter = px.scatter(
-        #             x=arrays[logged_par]["x"], y=arrays[logged_par]["y"]
-        #         )
-        #         if col == max_cols:
-        #             row += 1
-        #             col = 0
-        #         if col < max_cols:
-        #             col += 1
-        #         figure1.add_trace(scatter.data[0], row=row, col=col)
-        for parameter in arrays:
+        for par in sorted(parameters.keys()):
+            parameter = parameters[par]
             if parameter is not None:
-                #     arrays[logged_par]["x"].append(arrays[logged_par]["obj"].time.m)
-                #     arrays[logged_par]["y"].append(arrays[logged_par]["obj"].value.m)
-                # else:
-                #     print("empty")
-                # if arrays[logged_par]["x"] and arrays[logged_par]["y"]:
-                #     for x, y in zip(arrays[logged_par]["x"], arrays[logged_par]["y"]):
-                #         figure1.add_trace(
-                #             px.scatter(x=x, y=y).data[0], row=row, col=(col % max_cols) + 1
-                #         )
-                #     col += 1
-                #     if col % max_cols == 0:
-                #         row += 1
-                x = parameter['set_time']
-
-                y = parameter['set_value']
+                x_set = parameter['set_time'] / 60
+                y_set = parameter['set_value']
+                x = parameter['time'] / 60
+                y = parameter['value']
                 col += 1
                 if col > max_cols:
                     col = 1
                     row += 1
                 if np.any(np.isfinite(x)) and np.any(np.isfinite(y)):
-                    scatter = px.scatter(
-                        x=x,
-                        y=y,
+                    figure1.add_trace(
+                        go.Scatter(
+                            x=x,
+                            y=y,
+                            mode='markers',
+                            marker=dict(color='blue') 
+                        ),
+                        row=row,
+                        col=col
                     )
-                    figure1.add_trace(scatter.data[0], row=row, col=col)
+                if np.any(np.isfinite(x_set)) and np.any(np.isfinite(y_set)):
+                    figure1.add_trace(
+                        go.Scatter(
+                            x=x_set,
+                            y=y_set,
+                            mode='markers',
+                            marker=dict(color='red') 
+                        ),
+                        row=row,
+                        col=col
+                    )
                 figure1.update_layout(
                     template='plotly_white',
-                    height=800,
+                    height=1000,
                     # width=300,
-                    # title_text='Creating Subplots in Plotly',
+                    title_text='Blue: measured, Red: set',
                 )
             else:
                 logger.warning(

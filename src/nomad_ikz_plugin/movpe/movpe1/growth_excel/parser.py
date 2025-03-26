@@ -40,6 +40,7 @@ from nomad_material_processing.general import (
 from nomad_material_processing.vapor_deposition.general import (
     Pressure,
     VolumetricFlowRate,
+    Temperature,
 )
 
 from nomad_ikz_plugin.movpe.schema import (
@@ -47,6 +48,7 @@ from nomad_ikz_plugin.movpe.schema import (
     GrowthMovpeIKZ,
     ThinFilmMovpeIKZ,
     ThinFilmStackMovpe,
+    FlashEvaporatorIKZ,
 )
 from nomad_ikz_plugin.utils import (
     create_archive,
@@ -268,11 +270,11 @@ class ParserMovpe1IKZ(MatchingParser):
                         * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude
                     ]
                 )
-                ox_flow_time = (
+                ox_temp_time = (
                     pd.Series([0, 2, 60, 90, 140])
                     * ureg('minute').to('second').magnitude
                 )
-                ox_flow_val = pd.Series(
+                ox_temp_val = pd.Series(
                     [
                         parameter_sheet['O2 temp °C befor dep.'].loc[index],
                         parameter_sheet['O2 temp °C after 2min'].loc[index],
@@ -375,18 +377,27 @@ class ParserMovpe1IKZ(MatchingParser):
                     ]
                 )
 
-                # WARNING! deposition is taken as the 10th step in the growth run recipe file containing 16 steps in total
+                # WARNING! 
+                # deposition is taken as the "deposition_step_no" step read from the recipe file
                 # if the recipe file is changed, the deposition step might be at a different index
+
+                # calculation of the time of the deposition step
+                # the time of the deposition step is the sum of the times of all the previous steps
+                dep_time = 0
+                for i in range(deposition_step_no):
+                    dep_time += growth_from_rcp.steps[i].duration.m
+
+                # let's update the growth run archive with the deposition control parameters
                 growth_from_rcp.steps[deposition_step_no - 1].name = 'deposition'
                 growth_from_rcp.steps[
                     deposition_step_no - 1
                 ].step_index = '10 - deposition'
                 growth_from_rcp.steps[deposition_step_no - 1].sample_parameters[
                     0
-                ].filament_temperature.value = fil_temp_val
+                ].filament_temperature.value = fil_temp_val * ureg('celsius').to('kelvin').magnitude
                 growth_from_rcp.steps[deposition_step_no - 1].sample_parameters[
                     0
-                ].filament_temperature.time = fil_temp_time
+                ].filament_temperature.time = dep_time + fil_temp_time
                 growth_from_rcp.steps[deposition_step_no - 1].sources[
                     1
                 ].peristaltic_pump_flux = VolumetricFlowRate(
@@ -401,26 +412,26 @@ class ParserMovpe1IKZ(MatchingParser):
                 )
                 growth_from_rcp.steps[deposition_step_no - 1].sources[
                     0
-                ].vapor_source.total_flow_rate.time = ox_flow_time
-                growth_from_rcp.steps[deposition_step_no - 1].sources[
-                    0
-                ].vapor_source.total_flow_rate.value = ox_flow_val
+                ].vapor_source.temperature = Temperature(
+                    time = dep_time + ox_temp_time,
+                    value = ox_temp_val * ureg('celsius').to('kelvin').magnitude,
+                )
                 growth_from_rcp.steps[deposition_step_no - 1].sources[
                     1
-                ].vapor_source = Pressure(
-                    time=fe1_back_press_time,
+                ].vapor_source.pressure=Pressure(
+                    time=dep_time + fe1_back_press_time,
                     value=fe1_back_press_val,
                 )
                 growth_from_rcp.steps[deposition_step_no - 1].sources[
                     2
-                ].vapor_source = Pressure(
-                    time=fe2_back_press_time,
+                ].vapor_source.pressure=Pressure(
+                    time=dep_time + fe2_back_press_time,
                     value=fe2_back_press_val,
                 )
                 growth_from_rcp.steps[
                     deposition_step_no - 1
                 ].environment.throttle_valve = Pressure(
-                    time=throttle_time,
+                    time=dep_time + throttle_time,
                     value=throttle_val,
                 )
                 growth_from_rcp.steps[
@@ -428,13 +439,13 @@ class ParserMovpe1IKZ(MatchingParser):
                 ].environment.pressure.value = reactor_pressure_val
                 growth_from_rcp.steps[
                     deposition_step_no - 1
-                ].environment.pressure.time = reactor_pressure_time
+                ].environment.pressure.time = dep_time + reactor_pressure_time
                 growth_from_rcp.steps[
                     deposition_step_no - 1
                 ].environment.rotation.value = rotation_val
                 growth_from_rcp.steps[
                     deposition_step_no - 1
-                ].environment.rotation.time = rotation_time
+                ].environment.rotation.time = dep_time + rotation_time
 
                 # in the case where dict_from_rcp = yaml.safe_load(file) is used:
                 # growth_from_rcp["data"]["steps"][9]["sample_parameters"][0]["filament_temperature"]["time"] = fil_temp_time

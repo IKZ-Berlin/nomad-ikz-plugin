@@ -110,7 +110,7 @@ class ParserMovpe1RcpIKZ(MatchingParser):
                             ),
                         ),
                         FlashSource(
-                            name='Flash Evaporator 1',
+                            name='Flash Evap. 1',
                             vapor_source=FlashEvaporatorIKZ(
                                 carrier_gas=PureSubstanceSection(
                                     name='Argon',
@@ -120,7 +120,7 @@ class ParserMovpe1RcpIKZ(MatchingParser):
                             ),
                         ),
                         FlashSource(
-                            name='Flash Evaporator 2',
+                            name='Flash Evap. 2',
                             vapor_source=FlashEvaporatorIKZ(
                                 carrier_gas=PureSubstanceSection(
                                     name='Argon',
