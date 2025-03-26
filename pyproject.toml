@@ -163,5 +163,6 @@ czochralski_multilog_parser = "nomad_ikz_plugin.czochralski:parser"
 movpe_substrate_app = "nomad_ikz_plugin.movpe.movpe_app:movpesubstrateapp"
 movpe_growth_run_app = "nomad_ikz_plugin.movpe.movpe_app:movpegrowthrunapp"
 movpe_layers_app = "nomad_ikz_plugin.movpe.movpe_app:movpelayersapp"
+pld_app = "nomad_ikz_plugin.pld.pld_app:pld_layers_app"
 
 [tool.setuptools_scm]

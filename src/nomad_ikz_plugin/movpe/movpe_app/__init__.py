@@ -1,4 +1,3 @@
-import yaml
 from nomad.config.models.plugins import AppEntryPoint
 from nomad.config.models.ui import (
     App,
