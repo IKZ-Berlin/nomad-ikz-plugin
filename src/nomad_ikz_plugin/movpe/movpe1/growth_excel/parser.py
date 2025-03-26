@@ -384,7 +384,7 @@ class ParserMovpe1IKZ(MatchingParser):
                 # calculation of the time of the deposition step
                 # the time of the deposition step is the sum of the times of all the previous steps
                 dep_time = 0
-                for i in range(deposition_step_no):
+                for i in range(deposition_step_no - 1):
                     dep_time += growth_from_rcp.steps[i].duration.m
 
                 # let's update the growth run archive with the deposition control parameters
@@ -394,7 +394,10 @@ class ParserMovpe1IKZ(MatchingParser):
                 ].step_index = '10 - deposition'
                 growth_from_rcp.steps[deposition_step_no - 1].sample_parameters[
                     0
-                ].filament_temperature.value = fil_temp_val * ureg('celsius').to('kelvin').magnitude
+                ].filament_temperature.value = ureg.Quantity(
+                                    list(fil_temp_val),
+                                    ureg('celsius'),
+                                )
                 growth_from_rcp.steps[deposition_step_no - 1].sample_parameters[
                     0
                 ].filament_temperature.time = dep_time + fil_temp_time
@@ -414,19 +417,19 @@ class ParserMovpe1IKZ(MatchingParser):
                     0
                 ].vapor_source.temperature = Temperature(
                     time = dep_time + ox_temp_time,
-                    value = ox_temp_val * ureg('celsius').to('kelvin').magnitude,
+                    value = ox_temp_val * ureg('celsius'),
                 )
                 growth_from_rcp.steps[deposition_step_no - 1].sources[
                     1
                 ].vapor_source.pressure=Pressure(
                     time=dep_time + fe1_back_press_time,
-                    value=fe1_back_press_val,
+                    value=fe1_back_press_val * ureg('mbar'),
                 )
                 growth_from_rcp.steps[deposition_step_no - 1].sources[
                     2
                 ].vapor_source.pressure=Pressure(
                     time=dep_time + fe2_back_press_time,
-                    value=fe2_back_press_val,
+                    value=fe2_back_press_val * ureg('mbar'),
                 )
                 growth_from_rcp.steps[
                     deposition_step_no - 1
@@ -436,7 +439,10 @@ class ParserMovpe1IKZ(MatchingParser):
                 )
                 growth_from_rcp.steps[
                     deposition_step_no - 1
-                ].environment.pressure.value = reactor_pressure_val
+                ].environment.pressure.value = ureg.Quantity(
+                                    list(reactor_pressure_val),
+                                    ureg('mbar'),
+                                )
                 growth_from_rcp.steps[
                     deposition_step_no - 1
                 ].environment.pressure.time = dep_time + reactor_pressure_time
