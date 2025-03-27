@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 import time
-
+import os
 import pandas as pd
 import yaml
 from nomad.datamodel.data import (
@@ -33,6 +33,8 @@ from nomad.metainfo import (
 from nomad.parsing import MatchingParser
 from nomad.units import ureg
 from nomad.utils import hash
+
+from nomad.datamodel.metainfo.basesections.v1 import CompositeSystemReference
 from nomad_material_processing.general import (
     SubstrateReference,
     ThinFilmReference,
@@ -49,6 +51,10 @@ from nomad_ikz_plugin.movpe.schema import (
     ThinFilmMovpeIKZ,
     ThinFilmStackMovpe,
     FlashEvaporatorIKZ,
+)
+from nomad_ikz_plugin.characterization.schema import (
+AFMmeasurement,
+AFMresults,
 )
 from nomad_ikz_plugin.utils import (
     create_archive,
@@ -387,6 +393,12 @@ class ParserMovpe1IKZ(MatchingParser):
                 for i in range(deposition_step_no - 1):
                     dep_time += growth_from_rcp.steps[i].duration.m
 
+                # let's add samples to the growth run archive
+                growth_from_rcp.m_add_sub_section(
+            GrowthMovpeIKZ.samples, CompositeSystemReference(
+                                reference=f'../uploads/{archive.m_context.upload_id}/archive/{hash(archive.m_context.upload_id, grown_sample_filename)}#data'
+                            )
+        )  
                 # let's update the growth run archive with the deposition control parameters
                 growth_from_rcp.steps[deposition_step_no - 1].name = 'deposition'
                 growth_from_rcp.steps[
@@ -471,6 +483,39 @@ class ParserMovpe1IKZ(MatchingParser):
                     logger,
                     overwrite=True,
                 )
+            # AFM parsing !!!
+
+            # check the correctness of the file location in the uploaded zip folder
+            afm_folder = f"{os.path.dirname(mainfile)}/{sample_id}/AFM"
+            if not os.path.isdir(afm_folder):
+                logger.warn(f"AFM folder in {sample_id} not found.")
+            else:
+                for file in [f for f in os.listdir(afm_folder) if f.endswith(".png")]:
+                    afm_filename = f"{sample_id}_AFM.archive.{filetype}"
+                    afm_data = AFMmeasurement()
+                    afm_data.m_add_sub_section(
+                        AFMmeasurement.samples, CompositeSystemReference(
+                                            reference=f'../uploads/{archive.m_context.upload_id}/archive/{hash(archive.m_context.upload_id, grown_sample_filename)}#data'
+                                        )
+                    )  
+                    afm_data.m_add_sub_section(
+                        AFMmeasurement.results, AFMresults(
+                                name=sample_id,
+                                image=f"{mainfile.split('/')[-2]}/{sample_id}/AFM/{file}",
+                            )
+                    )  
+                    afm_archive = EntryArchive(
+                        data=afm_data,
+                        m_context=archive.m_context,
+                        metadata=EntryMetadata(upload_id=archive.m_context.upload_id),
+                    )
+                    create_archive(
+                        afm_archive.m_to_dict(),
+                        archive.m_context,
+                        afm_filename,
+                        filetype,
+                        logger,
+                    )
 
         # populate the raw file archive
         archive.data = RawFileMovpeDepositionControl(
