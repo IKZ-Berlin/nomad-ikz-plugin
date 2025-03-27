@@ -17,7 +17,6 @@
 #
 
 from time import sleep
-from typing import list
 
 import pandas as pd
 from nomad.datamodel.data import (
