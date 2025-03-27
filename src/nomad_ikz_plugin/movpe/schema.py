@@ -1,7 +1,7 @@
-import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
 import math
+
+import numpy as np
+import plotly.graph_objects as go
 
 # from lakeshore_nomad_plugin.hall.schema import HallMeasurement
 from laytec_epitt_plugin.schema import LayTecEpiTTMeasurement
@@ -422,7 +422,7 @@ class ThinFilmStackMovpeReference(ThinFilmStackReference):
         """
         The normalizer for the `ThinFilmStackMovpeReference` class.
         """
-        super(ThinFilmStackMovpeReference, self).normalize(archive, logger)
+        super().normalize(archive, logger)
 
 
 class SystemComponentIKZ(SystemComponent):
@@ -922,7 +922,7 @@ class GrowthStepMovpeIKZ(VaporDepositionStep, PlotSection):
     )
 
     # def normalize(self, archive, logger):
-    #     super(GrowthStepMovpe1IKZ, self).normalize(archive, logger)
+    #     super().normalize(archive, logger)
 
     #     max_rows = 4
     #     max_cols = 2
@@ -1169,7 +1169,7 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
         #     substrate.normalize(archive, logger)
 
         archive.workflow2 = None
-        super(GrowthMovpeIKZ, self).normalize(archive, logger)
+        super().normalize(archive, logger)
         if self.steps is not None:
             inputs = []
             outputs = []
@@ -1219,7 +1219,10 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
                 if step.sample_parameters is not None:
                     for sample_param in step.sample_parameters:
                         fill_values(
-                            sample_param, 'filament_temperature', 'Filament T', parameters
+                            sample_param,
+                            'filament_temperature',
+                            'Filament T',
+                            parameters,
                         )
                         fill_values(
                             sample_param, 'shaft_temperature', 'Shaft T', parameters
@@ -1235,8 +1238,18 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
                     )
                 if step.sources is not None:
                     for source in step.sources:
-                        fill_values(source.vapor_source, 'pressure', f"{source.name} P", parameters)
-                        fill_values(source.vapor_source, 'temperature', f"{source.name} T", parameters)
+                        fill_values(
+                            source.vapor_source,
+                            'pressure',
+                            f'{source.name} P',
+                            parameters,
+                        )
+                        fill_values(
+                            source.vapor_source,
+                            'temperature',
+                            f'{source.name} T',
+                            parameters,
+                        )
 
         # plotly figures
         max_cols = 2
@@ -1261,25 +1274,17 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
                     row += 1
                 if np.any(np.isfinite(x)) and np.any(np.isfinite(y)):
                     figure1.add_trace(
-                        go.Scatter(
-                            x=x,
-                            y=y,
-                            mode='markers',
-                            marker=dict(color='blue') 
-                        ),
+                        go.Scatter(x=x, y=y, mode='markers', marker=dict(color='blue')),
                         row=row,
-                        col=col
+                        col=col,
                     )
                 if np.any(np.isfinite(x_set)) and np.any(np.isfinite(y_set)):
                     figure1.add_trace(
                         go.Scatter(
-                            x=x_set,
-                            y=y_set,
-                            mode='markers',
-                            marker=dict(color='red') 
+                            x=x_set, y=y_set, mode='markers', marker=dict(color='red')
                         ),
                         row=row,
-                        col=col
+                        col=col,
                     )
                 figure1.update_layout(
                     template='plotly_white',
@@ -1429,7 +1434,7 @@ class ExperimentMovpeIKZ(Experiment, EntryData):
         self.steps = [step for step in step_list if step is not None]
 
         archive.workflow2 = None
-        super(ExperimentMovpeIKZ, self).normalize(archive, logger)
+        super().normalize(archive, logger)
 
 
 m_package.__init_metainfo__()

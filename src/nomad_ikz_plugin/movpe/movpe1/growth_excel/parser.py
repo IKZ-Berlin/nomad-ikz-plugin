@@ -15,8 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import time
 import os
+import time
+
 import pandas as pd
 import yaml
 from nomad.datamodel.data import (
@@ -26,6 +27,7 @@ from nomad.datamodel.datamodel import EntryArchive, EntryMetadata
 from nomad.datamodel.metainfo.annotations import (
     ELNAnnotation,
 )
+from nomad.datamodel.metainfo.basesections.v1 import CompositeSystemReference
 from nomad.metainfo import (
     Quantity,
     Section,
@@ -33,28 +35,25 @@ from nomad.metainfo import (
 from nomad.parsing import MatchingParser
 from nomad.units import ureg
 from nomad.utils import hash
-
-from nomad.datamodel.metainfo.basesections.v1 import CompositeSystemReference
 from nomad_material_processing.general import (
     SubstrateReference,
     ThinFilmReference,
 )
 from nomad_material_processing.vapor_deposition.general import (
     Pressure,
-    VolumetricFlowRate,
     Temperature,
+    VolumetricFlowRate,
 )
 
+from nomad_ikz_plugin.characterization.schema import (
+    AFMmeasurement,
+    AFMresults,
+)
 from nomad_ikz_plugin.movpe.schema import (
     ExperimentMovpeIKZ,
     GrowthMovpeIKZ,
     ThinFilmMovpeIKZ,
     ThinFilmStackMovpe,
-    FlashEvaporatorIKZ,
-)
-from nomad_ikz_plugin.characterization.schema import (
-AFMmeasurement,
-AFMresults,
 )
 from nomad_ikz_plugin.utils import (
     create_archive,
@@ -383,7 +382,7 @@ class ParserMovpe1IKZ(MatchingParser):
                     ]
                 )
 
-                # WARNING! 
+                # WARNING!
                 # deposition is taken as the "deposition_step_no" step read from the recipe file
                 # if the recipe file is changed, the deposition step might be at a different index
 
@@ -395,10 +394,11 @@ class ParserMovpe1IKZ(MatchingParser):
 
                 # let's add samples to the growth run archive
                 growth_from_rcp.m_add_sub_section(
-            GrowthMovpeIKZ.samples, CompositeSystemReference(
-                                reference=f'../uploads/{archive.m_context.upload_id}/archive/{hash(archive.m_context.upload_id, grown_sample_filename)}#data'
-                            )
-        )  
+                    GrowthMovpeIKZ.samples,
+                    CompositeSystemReference(
+                        reference=f'../uploads/{archive.m_context.upload_id}/archive/{hash(archive.m_context.upload_id, grown_sample_filename)}#data'
+                    ),
+                )
                 # let's update the growth run archive with the deposition control parameters
                 growth_from_rcp.steps[deposition_step_no - 1].name = 'deposition'
                 growth_from_rcp.steps[
@@ -407,9 +407,9 @@ class ParserMovpe1IKZ(MatchingParser):
                 growth_from_rcp.steps[deposition_step_no - 1].sample_parameters[
                     0
                 ].filament_temperature.value = ureg.Quantity(
-                                    list(fil_temp_val),
-                                    ureg('celsius'),
-                                )
+                    list(fil_temp_val),
+                    ureg('celsius'),
+                )
                 growth_from_rcp.steps[deposition_step_no - 1].sample_parameters[
                     0
                 ].filament_temperature.time = dep_time + fil_temp_time
@@ -428,18 +428,18 @@ class ParserMovpe1IKZ(MatchingParser):
                 growth_from_rcp.steps[deposition_step_no - 1].sources[
                     0
                 ].vapor_source.temperature = Temperature(
-                    time = dep_time + ox_temp_time,
-                    value = ox_temp_val * ureg('celsius'),
+                    time=dep_time + ox_temp_time,
+                    value=ox_temp_val * ureg('celsius'),
                 )
                 growth_from_rcp.steps[deposition_step_no - 1].sources[
                     1
-                ].vapor_source.pressure=Pressure(
+                ].vapor_source.pressure = Pressure(
                     time=dep_time + fe1_back_press_time,
                     value=fe1_back_press_val * ureg('mbar'),
                 )
                 growth_from_rcp.steps[deposition_step_no - 1].sources[
                     2
-                ].vapor_source.pressure=Pressure(
+                ].vapor_source.pressure = Pressure(
                     time=dep_time + fe2_back_press_time,
                     value=fe2_back_press_val * ureg('mbar'),
                 )
@@ -452,9 +452,9 @@ class ParserMovpe1IKZ(MatchingParser):
                 growth_from_rcp.steps[
                     deposition_step_no - 1
                 ].environment.pressure.value = ureg.Quantity(
-                                    list(reactor_pressure_val),
-                                    ureg('mbar'),
-                                )
+                    list(reactor_pressure_val),
+                    ureg('mbar'),
+                )
                 growth_from_rcp.steps[
                     deposition_step_no - 1
                 ].environment.pressure.time = dep_time + reactor_pressure_time
@@ -486,24 +486,26 @@ class ParserMovpe1IKZ(MatchingParser):
             # AFM parsing !!!
 
             # check the correctness of the file location in the uploaded zip folder
-            afm_folder = f"{os.path.dirname(mainfile)}/{sample_id}/AFM"
+            afm_folder = f'{os.path.dirname(mainfile)}/{sample_id}/AFM'
             if not os.path.isdir(afm_folder):
-                logger.warn(f"AFM folder in {sample_id} not found.")
+                logger.warn(f'AFM folder in {sample_id} not found.')
             else:
-                for file in [f for f in os.listdir(afm_folder) if f.endswith(".png")]:
-                    afm_filename = f"{sample_id}_AFM.archive.{filetype}"
+                for file in [f for f in os.listdir(afm_folder) if f.endswith('.png')]:
+                    afm_filename = f'{sample_id}_AFM.archive.{filetype}'
                     afm_data = AFMmeasurement()
                     afm_data.m_add_sub_section(
-                        AFMmeasurement.samples, CompositeSystemReference(
-                                            reference=f'../uploads/{archive.m_context.upload_id}/archive/{hash(archive.m_context.upload_id, grown_sample_filename)}#data'
-                                        )
-                    )  
+                        AFMmeasurement.samples,
+                        CompositeSystemReference(
+                            reference=f'../uploads/{archive.m_context.upload_id}/archive/{hash(archive.m_context.upload_id, grown_sample_filename)}#data'
+                        ),
+                    )
                     afm_data.m_add_sub_section(
-                        AFMmeasurement.results, AFMresults(
-                                name=sample_id,
-                                image=f"{mainfile.split('/')[-2]}/{sample_id}/AFM/{file}",
-                            )
-                    )  
+                        AFMmeasurement.results,
+                        AFMresults(
+                            name=sample_id,
+                            image=f'{mainfile.split("/")[-2]}/{sample_id}/AFM/{file}',
+                        ),
+                    )
                     afm_archive = EntryArchive(
                         data=afm_data,
                         m_context=archive.m_context,
