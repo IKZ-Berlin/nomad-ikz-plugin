@@ -200,7 +200,7 @@ def fetch_substrate(archive, sample_id, substrate_id, logger):
         )
 
         if upload_files.raw_path_is_file(substrate_context.raw_path()):
-            substrate_reference_str = f"../uploads/{search_result.data[0]['upload_id']}/archive/{search_result.data[0]['entry_id']}#data"
+            substrate_reference_str = f'../uploads/{search_result.data[0]["upload_id"]}/archive/{search_result.data[0]["entry_id"]}#data'
             return substrate_reference_str
         else:
             logger.warn(
@@ -228,22 +228,22 @@ def populate_sources(line_number, growth_run_file: pd.DataFrame):
     i = 0
     while True:
         if all(
-            f"{key}{'' if i == 0 else '.' + str(i)}" in growth_run_file.columns
+            f'{key}{"" if i == 0 else "." + str(i)}' in growth_run_file.columns
             for key in bubbler_quantities
         ):
             sources.append(
                 BubblerSource(
                     name=growth_run_file.get(
-                        f"Bubbler Material{'' if i == 0 else '.' + str(i)}", ''
+                        f'Bubbler Material{"" if i == 0 else "." + str(i)}', ''
                     )[line_number],
                     material=[
                         PureSubstanceComponent(
                             substance_name=growth_run_file.get(
-                                f"Bubbler Material{'' if i == 0 else '.' + str(i)}", ''
+                                f'Bubbler Material{"" if i == 0 else "." + str(i)}', ''
                             )[line_number],
                             pure_substance=PureSubstanceSection(
                                 name=growth_run_file.get(
-                                    f"Bubbler Material{'' if i == 0 else '.' + str(i)}",
+                                    f'Bubbler Material{"" if i == 0 else "." + str(i)}',
                                     '',
                                 )[line_number]
                             ),
@@ -254,7 +254,7 @@ def populate_sources(line_number, growth_run_file: pd.DataFrame):
                             set_value=pd.Series(
                                 [
                                     growth_run_file.get(
-                                        f"Bubbler Temp{'' if i == 0 else '.' + str(i)}",
+                                        f'Bubbler Temp{"" if i == 0 else "." + str(i)}',
                                         0,
                                     )[line_number]
                                 ]
@@ -265,7 +265,7 @@ def populate_sources(line_number, growth_run_file: pd.DataFrame):
                             set_value=pd.Series(
                                 [
                                     growth_run_file.get(
-                                        f"Bubbler Pressure{'' if i == 0 else '.' + str(i)}",
+                                        f'Bubbler Pressure{"" if i == 0 else "." + str(i)}',
                                         0,
                                     )[line_number]
                                 ]
@@ -276,7 +276,7 @@ def populate_sources(line_number, growth_run_file: pd.DataFrame):
                             set_value=pd.Series(
                                 [
                                     growth_run_file.get(
-                                        f"Bubbler Partial Pressure{'' if i == 0 else '.' + str(i)}",
+                                        f'Bubbler Partial Pressure{"" if i == 0 else "." + str(i)}',
                                         0,
                                     )[line_number]
                                 ]
@@ -286,7 +286,7 @@ def populate_sources(line_number, growth_run_file: pd.DataFrame):
                             set_value=pd.Series(
                                 [
                                     growth_run_file.get(
-                                        f"Bubbler MFC{'' if i == 0 else '.' + str(i)}",
+                                        f'Bubbler MFC{"" if i == 0 else "." + str(i)}',
                                         0,
                                     )[line_number]
                                 ]
@@ -296,20 +296,20 @@ def populate_sources(line_number, growth_run_file: pd.DataFrame):
                             .magnitude,
                         ),
                         dilution=growth_run_file.get(
-                            f"Bubbler Dilution{'' if i == 0 else '.' + str(i)}", 0
+                            f'Bubbler Dilution{"" if i == 0 else "." + str(i)}', 0
                         )[line_number],
                         source=growth_run_file.get(
-                            f"Source{'' if i == 0 else '.' + str(i)}", 0
+                            f'Source{"" if i == 0 else "." + str(i)}', 0
                         )[line_number],
                         inject=growth_run_file.get(
-                            f"Inject{'' if i == 0 else '.' + str(i)}", 0
+                            f'Inject{"" if i == 0 else "." + str(i)}', 0
                         )[line_number],
                     ),
                     vapor_molar_flow_rate=MolarFlowRate(
                         set_value=pd.Series(
                             [
                                 growth_run_file.get(
-                                    f"Bubbler Molar Flux{'' if i == 0 else '.' + str(i)}",
+                                    f'Bubbler Molar Flux{"" if i == 0 else "." + str(i)}',
                                     0,
                                 )[line_number]
                             ]
@@ -338,22 +338,22 @@ def populate_gas_source(line_number, growth_run_file: pd.DataFrame):
     i = 0
     while True:
         if all(
-            f"{key}{'' if i == 0 else '.' + str(i)}" in growth_run_file.columns
+            f'{key}{"" if i == 0 else "." + str(i)}' in growth_run_file.columns
             for key in gas_source_quantities
         ):
             gas_sources.append(
                 GasLineSource(
                     name=growth_run_file.get(
-                        f"Gas Material{'' if i == 0 else '.' + str(i)}", ''
+                        f'Gas Material{"" if i == 0 else "." + str(i)}', ''
                     )[line_number],
                     material=[
                         PureSubstanceComponent(
                             substance_name=growth_run_file.get(
-                                f"Gas Material{'' if i == 0 else '.' + str(i)}", ''
+                                f'Gas Material{"" if i == 0 else "." + str(i)}', ''
                             )[line_number],
                             pure_substance=PureSubstanceSection(
                                 name=growth_run_file.get(
-                                    f"Gas Material{'' if i == 0 else '.' + str(i)}", ''
+                                    f'Gas Material{"" if i == 0 else "." + str(i)}', ''
                                 )[line_number]
                             ),
                         ),
@@ -363,7 +363,7 @@ def populate_gas_source(line_number, growth_run_file: pd.DataFrame):
                             set_value=pd.Series(
                                 [
                                     growth_run_file.get(
-                                        f"Gas MFC{'' if i == 0 else '.' + str(i)}", 0
+                                        f'Gas MFC{"" if i == 0 else "." + str(i)}', 0
                                     )[line_number]
                                 ]
                             ),
@@ -373,7 +373,7 @@ def populate_gas_source(line_number, growth_run_file: pd.DataFrame):
                         set_value=pd.Series(
                             [
                                 growth_run_file.get(
-                                    f"Gas Molar Flux{'' if i == 0 else '.' + str(i)}",
+                                    f'Gas Molar Flux{"" if i == 0 else "." + str(i)}',
                                     0,
                                 )[line_number]
                             ]

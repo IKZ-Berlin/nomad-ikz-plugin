@@ -173,7 +173,7 @@ class DSManualProtocolParserIKZ(MatchingParser):
             dig_prot_data.heaters[heater].f2.frequency = HeaterFrequency()
 
             dig_prot_data.heaters[heater].f1.phase.value = ureg.Quantity(
-                xlsx_sheet[f'phi{heater +1}_F1'].to_numpy(),
+                xlsx_sheet[f'phi{heater + 1}_F1'].to_numpy(),
                 ureg('deg'),
             )
             dig_prot_data.heaters[heater].f1.phase.time = ureg.Quantity(
@@ -181,7 +181,7 @@ class DSManualProtocolParserIKZ(MatchingParser):
                 ureg('s'),
             )
             dig_prot_data.heaters[heater].f2.phase.value = ureg.Quantity(
-                xlsx_sheet[f'phi{heater +1}_F2'].to_numpy(),
+                xlsx_sheet[f'phi{heater + 1}_F2'].to_numpy(),
                 ureg('deg'),
             )
             dig_prot_data.heaters[heater].f2.phase.time = ureg.Quantity(
@@ -189,7 +189,7 @@ class DSManualProtocolParserIKZ(MatchingParser):
                 ureg('s'),
             )
             dig_prot_data.heaters[heater].f1.frequency.value = ureg.Quantity(
-                xlsx_sheet[f'f{heater +1}_F1'].to_numpy(),
+                xlsx_sheet[f'f{heater + 1}_F1'].to_numpy(),
                 ureg('Hz'),
             )
             dig_prot_data.heaters[heater].f1.frequency.time = ureg.Quantity(
@@ -197,7 +197,7 @@ class DSManualProtocolParserIKZ(MatchingParser):
                 ureg('s'),
             )
             dig_prot_data.heaters[heater].f2.frequency.value = ureg.Quantity(
-                xlsx_sheet[f'f{heater +1}_F2'].to_numpy(),
+                xlsx_sheet[f'f{heater + 1}_F2'].to_numpy(),
                 ureg('Hz'),
             )
             dig_prot_data.heaters[heater].f2.frequency.time = ureg.Quantity(
@@ -205,7 +205,7 @@ class DSManualProtocolParserIKZ(MatchingParser):
                 ureg('s'),
             )
             dig_prot_data.heaters[heater].f1.ac_current.value = ureg.Quantity(
-                xlsx_sheet[f'Iac{heater +1}_F1'].to_numpy(),
+                xlsx_sheet[f'Iac{heater + 1}_F1'].to_numpy(),
                 ureg('A'),
             )
             dig_prot_data.heaters[heater].f1.ac_current.time = ureg.Quantity(
@@ -213,7 +213,7 @@ class DSManualProtocolParserIKZ(MatchingParser):
                 ureg('s'),
             )
             dig_prot_data.heaters[heater].f2.ac_current.value = ureg.Quantity(
-                xlsx_sheet[f'Iac{heater +1}_F2'].to_numpy(),
+                xlsx_sheet[f'Iac{heater + 1}_F2'].to_numpy(),
                 ureg('A'),
             )
             dig_prot_data.heaters[heater].f2.ac_current.time = ureg.Quantity(
@@ -221,7 +221,7 @@ class DSManualProtocolParserIKZ(MatchingParser):
                 ureg('s'),
             )
             dig_prot_data.heaters[heater].dc_current.value = ureg.Quantity(
-                xlsx_sheet[f'Iges{heater +1}'].to_numpy(),
+                xlsx_sheet[f'Iges{heater + 1}'].to_numpy(),
                 ureg('A'),
             )
             dig_prot_data.heaters[heater].dc_current.time = ureg.Quantity(
@@ -229,7 +229,7 @@ class DSManualProtocolParserIKZ(MatchingParser):
                 ureg('s'),
             )
             dig_prot_data.heaters[heater].temperature.value = ureg.Quantity(
-                xlsx_sheet[f'Iges{heater +1}'].to_numpy(),
+                xlsx_sheet[f'Iges{heater + 1}'].to_numpy(),
                 ureg('K'),
             )
             dig_prot_data.heaters[heater].temperature.time = ureg.Quantity(
@@ -237,7 +237,7 @@ class DSManualProtocolParserIKZ(MatchingParser):
                 ureg('s'),
             )
             dig_prot_data.heaters[heater].power.value = ureg.Quantity(
-                xlsx_sheet[f'P{heater +1}'].to_numpy(),
+                xlsx_sheet[f'P{heater + 1}'].to_numpy(),
                 ureg('W'),
             )
             dig_prot_data.heaters[heater].power.time = ureg.Quantity(

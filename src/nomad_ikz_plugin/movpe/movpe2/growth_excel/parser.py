@@ -17,7 +17,6 @@
 #
 
 from time import sleep
-from typing import Dict, List
 
 import pandas as pd
 from nomad.datamodel.data import (
@@ -55,7 +54,7 @@ from nomad_ikz_plugin.movpe.schema import (
     FilamentTemperature,
     GrowthMovpeIKZ,
     GrowthMovpeIKZReference,
-    GrowthStepMovpe2IKZ,
+    GrowthStepMovpeIKZ,
     LayTecTemperature,
     SampleParametersMovpe,
     ShaftTemperature,
@@ -97,7 +96,6 @@ class ParserMovpe2IKZ(MatchingParser):
 
         filetype = 'yaml'
         data_file = mainfile.split('/')[-1]
-        data_file_with_path = mainfile.split('raw/')[-1]
         growth_run_file = pd.read_excel(mainfile, comment='#')
         recipe_ids = list(
             set(
@@ -108,11 +106,11 @@ class ParserMovpe2IKZ(MatchingParser):
         )
 
         # initializing experiments dict
-        growth_processes: Dict[str, GrowthMovpeIKZ] = {}
+        growth_processes: dict[str, GrowthMovpeIKZ] = {}
         # initializing steps dict
-        process_steps_lists: Dict[str, Dict[str, GrowthStepMovpe2IKZ]] = {}
+        process_steps_lists: dict[str, dict[str, GrowthStepMovpeIKZ]] = {}
         # initializing samples dict
-        samples_lists: Dict[str, Dict[str, List]] = {}
+        samples_lists: dict[str, dict[str, list]] = {}
 
         for index, sample_id in enumerate(growth_run_file['Sample Name']):
             recipe_id = (
@@ -214,17 +212,23 @@ class ParserMovpe2IKZ(MatchingParser):
                                 )
                             ]
                         ),
+                        set_time=[0],
                     ),
                     filament_temperature=FilamentTemperature(
-                        set_value=pd.Series(
-                            [
-                                (
-                                    growth_run_file['T Filament'][index]
-                                    if 'T Filament' in growth_run_file.columns
-                                    else None
-                                )
-                            ]
-                        ),
+                        set_value=[
+                            ureg.Quantity(
+                                growth_run_file['T Filament'][index]
+                                if 'T Filament' in growth_run_file.columns
+                                else None,
+                                ureg('celsius'),
+                            )
+                        ],
+                        set_time=[
+                            ureg.Quantity(
+                                0,
+                                ureg.second,
+                            )
+                        ],
                     ),
                     laytec_temperature=LayTecTemperature(
                         set_value=pd.Series(
@@ -236,6 +240,7 @@ class ParserMovpe2IKZ(MatchingParser):
                                 )
                             ]
                         ),
+                        set_time=[0],
                     ),
                 )
             )
@@ -245,7 +250,7 @@ class ParserMovpe2IKZ(MatchingParser):
                 process_steps_lists[recipe_id] = {}
             if step_id not in process_steps_lists[recipe_id]:
                 process_steps_lists[recipe_id][step_id] = []
-            process_steps_lists[recipe_id][step_id] = GrowthStepMovpe2IKZ(
+            process_steps_lists[recipe_id][step_id] = GrowthStepMovpeIKZ(
                 name=str(
                     growth_run_file['Step name'][index]
                     if 'Step name' in growth_run_file.columns
@@ -278,6 +283,7 @@ class ParserMovpe2IKZ(MatchingParser):
                             ]
                         )
                         * ureg('mbar').to('pascal').magnitude,
+                        set_time=[0],
                     ),
                     rotation=Rotation(
                         set_value=pd.Series(
@@ -290,6 +296,7 @@ class ParserMovpe2IKZ(MatchingParser):
                             ]
                         )
                         * ureg('rpm').to('rpm').magnitude,
+                        set_time=[0],
                     ),
                     gas_flow=[
                         PushPurgeGasFlow(
@@ -314,6 +321,7 @@ class ParserMovpe2IKZ(MatchingParser):
                                 * ureg('cm ** 3 / minute')
                                 .to('meter ** 3 / second')
                                 .magnitude,
+                                set_time=[0],
                             ),
                         ),
                     ],
@@ -328,6 +336,7 @@ class ParserMovpe2IKZ(MatchingParser):
                             ]
                         )
                         * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude,
+                        set_time=[0],
                     ),
                 ),
             )

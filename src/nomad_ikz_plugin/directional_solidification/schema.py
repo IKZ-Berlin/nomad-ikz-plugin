@@ -1377,7 +1377,7 @@ class DirectionalSolidificationExperiment(Experiment, EntryData):
     #     """
     #     The normalizer for the `MovpeExperimentIKZ` class.
     #     """
-    #     super(DirectionalSolidificationExperiment, self).normalize(archive, logger)
+    #     super().normalize(archive, logger)
 
     #     if self.digital_protocol_file:
     #         filetype = 'yaml'

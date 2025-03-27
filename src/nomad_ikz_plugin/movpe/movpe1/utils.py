@@ -37,16 +37,16 @@ def create_timeseries_objects(
     i = 0
     while True:
         if all(
-            f"{key}{'' if i == 0 else '.' + str(i)}" in dataframe.columns
+            f'{key}{"" if i == 0 else "." + str(i)}' in dataframe.columns
             for key in quantities
         ):
             objects.append(
                 MetainfoClass(
                     time=dataframe.get(
-                        f"{quantities[0]}{'' if i == 0 else '.' + str(i)}", ''
+                        f'{quantities[0]}{"" if i == 0 else "." + str(i)}', ''
                     )[index],
                     value=dataframe.get(
-                        f"{quantities[1]}{'' if i == 0 else '.' + str(i)}", 0
+                        f'{quantities[1]}{"" if i == 0 else "." + str(i)}', 0
                     )[index],
                 )
             )

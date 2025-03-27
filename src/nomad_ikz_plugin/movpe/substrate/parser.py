@@ -31,13 +31,13 @@ from nomad.metainfo import (
 from nomad.parsing import MatchingParser
 from nomad.utils import hash
 from nomad_material_processing.general import (
-    Parallelepiped,
-    SubstrateCrystalProperties,
+    CartesianMiscut,
     CrystallographicDirection,
     MillerIndices,
     Miscut,
-    CartesianMiscut,
+    Parallelepiped,
     ProjectedMiscutOrientation,
+    SubstrateCrystalProperties,
 )
 
 from nomad_ikz_plugin.movpe.schema import (
@@ -126,7 +126,7 @@ class MovpeSubstrateParser(MatchingParser):
                 re_etching=(typed_df_value(substrates_file, 'Re-Etching', bool, index)),
                 epi_ready=(typed_df_value(substrates_file, 'Epi Ready', bool, index)),
                 quality=(typed_df_value(substrates_file, 'Quality', bool, index)),
-                description=f"{typed_df_value(substrates_file, 'Substrate Box', bool, index)} {typed_df_value(substrates_file, 'Substrate Index', bool, index)}",
+                description=f'{typed_df_value(substrates_file, "Substrate Box", bool, index)} {typed_df_value(substrates_file, "Substrate Index", bool, index)}',
                 geometry=Parallelepiped(
                     width=(typed_df_value(substrates_file, 'Size X', float, index)),
                     length=(typed_df_value(substrates_file, 'Size Y', float, index)),

@@ -15,8 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
+import time
 
 import pandas as pd
+import yaml
 from nomad.datamodel.data import (
     EntryData,
 )
@@ -24,11 +27,7 @@ from nomad.datamodel.datamodel import EntryArchive, EntryMetadata
 from nomad.datamodel.metainfo.annotations import (
     ELNAnnotation,
 )
-from nomad.datamodel.metainfo.basesections import (
-    PubChemPureSubstanceSection,
-    PureSubstanceComponent,
-    PureSubstanceSection,
-)
+from nomad.datamodel.metainfo.basesections.v1 import CompositeSystemReference
 from nomad.metainfo import (
     Quantity,
     Section,
@@ -40,44 +39,24 @@ from nomad_material_processing.general import (
     SubstrateReference,
     ThinFilmReference,
 )
-from nomad_material_processing.vapor_deposition.cvd.general import (
-    FlashEvaporator,
-    FlashSource,
-    GasLineEvaporator,
-    GasLineSource,
-    Rotation,
-)
 from nomad_material_processing.vapor_deposition.general import (
     Pressure,
     Temperature,
     VolumetricFlowRate,
 )
 
-from nomad_ikz_plugin.general.schema import (
-    LiquidComponent,
-    Solution,
+from nomad_ikz_plugin.characterization.schema import (
+    AFMmeasurement,
+    AFMresults,
 )
 from nomad_ikz_plugin.movpe.schema import (
-    ChamberEnvironmentMovpe,
     ExperimentMovpeIKZ,
-    FilamentTemperature,
     GrowthMovpeIKZ,
-    GrowthMovpeIKZReference,
-    GrowthStepMovpe1IKZ,
-    PrecursorsPreparationIKZ,
-    PrecursorsPreparationIKZReference,
-    SampleParametersMovpe,
-    ShaftTemperature,
-    SystemComponentIKZ,
     ThinFilmMovpeIKZ,
     ThinFilmStackMovpe,
-    ThinFilmStackMovpeReference,
 )
 from nomad_ikz_plugin.utils import (
-    clean_dataframe_headers,
     create_archive,
-    get_hash_ref,
-    row_timeseries,
 )
 
 
@@ -110,39 +89,61 @@ class ParserMovpe1IKZ(MatchingParser):
         data_file = mainfile.split('/')[-1]
         data_file_with_path = mainfile.split('raw/')[-1]
         # Read the file without headers
-        dep_control = pd.read_excel(
-            xlsx, 'Deposition Control', comment='#', header=None
+        parameter_sheet = pd.read_excel(
+            xlsx,
+            'Ti Sr Parameter',
+            comment='#',  # , header=None
         )
-        precursors = pd.read_excel(xlsx, 'Precursors', comment='#', header=None)
-
-        dep_control = clean_dataframe_headers(dep_control)
-
-        precursors = clean_dataframe_headers(precursors)
 
         deposition_control_list = []
 
-        if not len(dep_control['Sample ID']) == len(precursors['Sample ID']):
-            logger.error(
-                f"Excel sheets mismatch: "
-                f"'Deposition Control' has {len(dep_control['Sample ID'])} rows "
-                f"and 'Precursors' has {len(precursors['Sample ID'])} rows. "
-                f"Please check the file and try again."
+        for index, sample_id in enumerate(parameter_sheet['Sample ID']):
+            # find a growth run archive parsed by the rcp parser.
+            # The recognition is based on the folder name where the rcp file was contained in
+            time.sleep(
+                0.6
+            )  # allow the just created rcp entry to be indexing before searching for it
+            search_growth = search(
+                owner='all',
+                query={
+                    'results.eln.sections:any': ['GrowthMovpeIKZ'],
+                    'upload_id:any': [archive.m_context.upload_id],
+                    'results.eln.lab_ids:any': [sample_id],
+                },
+                pagination=MetadataPagination(page_size=10000),
+                user_id=archive.metadata.main_author.user_id,
             )
-
-        for index, dep_control_run in enumerate(dep_control['Sample ID']):
-            assert dep_control_run == precursors['Sample ID'].loc[index], (
-                f"Not matching Sample ID at line {index} in "
-                f"'deposition control' [{dep_control_run}] "
-                f"and 'precursors' [{precursors['Sample ID'].loc[index]}] sheets."
-                f"Please check the files and try again."
-            )
+            if search_growth.pagination.total > 1:
+                logger.warn(
+                    f'{search_growth.pagination.total} growth runs with lab_id {sample_id} found. Please check the upload with upload id {archive.m_context.upload_id}.'
+                )
+                continue
+            if search_growth.pagination.total == 0:
+                logger.warn(
+                    f'{search_growth.pagination.total} growth runs with lab_id {sample_id} found. Please upload a recipe file for this sample.'
+                )
+                continue
+            if search_growth.pagination.total == 1:
+                with archive.m_context.raw_file(
+                    search_growth.data[0]['mainfile'], 'r'
+                ) as file:
+                    dict_from_rcp = yaml.safe_load(file)
+                    if 'data' in dict_from_rcp:
+                        growth_from_rcp = GrowthMovpeIKZ.m_from_dict(
+                            dict_from_rcp['data']
+                        )
+                    else:
+                        logger.warn(
+                            f'No data found in the growth run archive with lab_id {sample_id}. Please check the upload with upload id {archive.m_context.upload_id}.'
+                        )
+                        continue
 
             # check if experiment archive exists already
             search_experiments = search(
                 owner='user',
                 query={
                     'results.eln.sections:any': ['ExperimentMovpeIKZ'],
-                    'results.eln.methods:any': ['MOVPE 1 experiment'],
+                    #'results.eln.methods:any': ['MOVPE 1 experiment'],
                     'upload_id:any': [archive.m_context.upload_id],
                 },
                 pagination=MetadataPagination(page_size=10000),
@@ -157,34 +158,29 @@ class ParserMovpe1IKZ(MatchingParser):
             }
             if search_experiments.pagination.total >= 1:
                 for match in search_experiments.data:
-                    if (
-                        f'{dep_control_run} experiment'
-                        in match['results']['eln']['lab_ids']
-                    ):
+                    if f'{sample_id} experiment' in match['results']['eln']['lab_ids']:
                         matches['lab_id'].extend(match['results']['eln']['lab_ids'])
                         matches['entry_id'].append(match['entry_id'])
                         matches['entry_name'].append(match['entry_name'])
                         matches['upload_id'].append(match['upload_id'])
                 if len(matches['entry_id']) == 1:
                     logger.warning(
-                        f"One entry with lab_id {set(matches['lab_id'])} and entry_id {set(matches['entry_id'])} already exists. "
-                        f"Please check the upload with upload id {set(matches['upload_id'])}."
+                        f'One entry with lab_id {set(matches["lab_id"])} and entry_id {set(matches["entry_id"])} already exists. '
+                        f'Please check the upload with upload id {set(matches["upload_id"])}.'
                     )
                     continue
                 elif len(matches['entry_id']) > 1:
                     logger.warning(
-                        f"Some entries with lab_id {set(matches['lab_id'])} and entry_id {set(matches['entry_id'])} are duplicated. Please check them."
+                        f'Some entries with lab_id {set(matches["lab_id"])} and entry_id {set(matches["entry_id"])} are duplicated. Please check them.'
                     )
                     continue
             elif search_experiments.pagination.total == 0:
                 # creating ThinFiln and ThinFilmStack archives
-                layer_filename = (
-                    f'{dep_control_run}_{index}.ThinFilm.archive.{filetype}'
-                )
+                layer_filename = f'{sample_id}_{index}.ThinFilm.archive.{filetype}'
                 layer_archive = EntryArchive(
                     data=ThinFilmMovpeIKZ(
-                        name=dep_control_run + 'layer',
-                        lab_id=dep_control_run + 'layer',
+                        name=sample_id + 'layer',
+                        lab_id=sample_id + 'layer',
                     ),
                     m_context=archive.m_context,
                     metadata=EntryMetadata(upload_id=archive.m_context.upload_id),
@@ -197,14 +193,14 @@ class ParserMovpe1IKZ(MatchingParser):
                     logger,
                 )
                 grown_sample_filename = (
-                    f'{dep_control_run}.ThinFilmStackMovpe.archive.{filetype}'
+                    f'{sample_id}.ThinFilmStackMovpe.archive.{filetype}'
                 )
                 grown_sample_archive = EntryArchive(
                     data=ThinFilmStackMovpe(
-                        name=dep_control_run + 'stack',
-                        lab_id=dep_control_run,
+                        name=sample_id + 'stack',
+                        lab_id=sample_id,
                         substrate=SubstrateReference(
-                            lab_id=dep_control['Substrate ID'].loc[index],
+                            name=parameter_sheet['substrates'].loc[index],
                         ),
                         layers=[
                             ThinFilmReference(
@@ -224,533 +220,304 @@ class ParserMovpe1IKZ(MatchingParser):
                 )
 
                 # parsing arrays from excel file
+                precursor = str(parameter_sheet['Ar uniform/sccm'].loc[index])
+                date = str(parameter_sheet['Datum'].loc[index])
+                deposition_step_no = int(parameter_sheet['number'].loc[index])
+                # TODO check the setvals equals the one in growth run archive from the rcp file
+                fil_temp_setval = pd.Series(
+                    [parameter_sheet['Software Temp °C'].loc[index]]
+                )
+                fil_temp_time = (
+                    pd.Series([0, 2, 30, 50, 120])
+                    * ureg('minute').to('second').magnitude
+                )
+                fil_temp_val = pd.Series(
+                    [
+                        parameter_sheet['Fil. temp °C before dep.'].loc[index],
+                        parameter_sheet['Fil. Temp °C after 2min'].loc[index],
+                        parameter_sheet['Fil. Temp °C after 30min'].loc[index],
+                        parameter_sheet['Fil. Temp °C after 50min'].loc[index],
+                        parameter_sheet['Fil. Temp °C after 120min'].loc[index],
+                    ]
+                )
+                # TODO check the setvals equals the one in growth run archive from the rcp file
+                shaft_temp_setval = pd.Series(
+                    [parameter_sheet['Shaft temp °C'].loc[index]]
+                )
+                ti_molar_conc = parameter_sheet['Ti conc (molar)'].loc[index]
+                ti_mass = parameter_sheet['Ti m in g'].loc[index]
+                ca_molar_conc = parameter_sheet['Ca conc (molar)'].loc[index]
+                ca_ba_mass_ratio = parameter_sheet['Ca/Ba m in g'].loc[index]
+                sr_mass = parameter_sheet['Sr m in mg'].loc[index]
+                ca_weigth_percent = parameter_sheet['wt.% Ca'].loc[index]
+                la_mass = parameter_sheet['La m in mg'].loc[index]
+                la_weigth_percent = parameter_sheet['wt.% La'].loc[index]
+                conc_ratio_a_ti = parameter_sheet['c(A-cation)/c(Ti)'].loc[index]
+                vol_toluol = parameter_sheet['Volume Toluol in ml'].loc[index]
+
+                flow_line_1_ti = pd.Series(
+                    [parameter_sheet['flow line 1 (Ti)'].loc[index]]
+                )
+                flow_line_2_ca = pd.Series(
+                    [parameter_sheet['flow line 2 (Ca)'].loc[index]]
+                )
+                # TODO check the setvals equals the one in growth run archive from the rcp file
                 uniform_setval = pd.Series(
                     [
-                        dep_control['Set of argon uniform gas'].loc[index]
+                        parameter_sheet['Ar uniform/sccm'].loc[index]
                         * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude
                     ]
                 )
-
-                fil_temp_setval = pd.Series([dep_control['Set Fil T'].loc[index]])
-                fil_temp_time, fil_temp_val = row_timeseries(
-                    dep_control, 'Fil time', 'Read Fil T', index
-                )
-                fil_temp_time = fil_temp_time * ureg('minute').to('second').magnitude
-
-                shaft_temp_setval = pd.Series([dep_control['Set Shaft T'].loc[index]])
-                shaft_temp_time, shaft_temp_val = row_timeseries(
-                    dep_control, 'Shaft time', 'Read Shaft T', index
-                )
-                shaft_temp_time = (
-                    shaft_temp_time * ureg('minute').to('second').magnitude
-                )
-
-                pressure_setval = pd.Series(
+                # TODO check the setvals equals the one in growth run archive from the rcp file
+                ox_flow_setval = pd.Series(
                     [
-                        (
-                            dep_control['Set Chamber P'].loc[index]
-                            if 'Set Chamber P' in dep_control.columns
-                            else None
-                        )
+                        parameter_sheet['O2/sccm'].loc[index]
+                        * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude
                     ]
                 )
-                pressure_time, pressure_val = row_timeseries(
-                    dep_control, 'Chamber pressure time', 'Read Chamber Pressure', index
+                ox_temp_time = (
+                    pd.Series([0, 2, 60, 90, 140])
+                    * ureg('minute').to('second').magnitude
                 )
-                pressure_time = pressure_time * ureg('minute').to('second').magnitude
-
-                throttle_time, throttle_val = row_timeseries(
-                    dep_control, 'TV time', 'Read throttle valve', index
-                )
-
-                rot_setval = pd.Series(
+                ox_temp_val = pd.Series(
                     [
-                        (
-                            dep_control['Set Rotation S'].loc[index]
-                            if 'Set Rotation S' in dep_control.columns
-                            else None
-                        )
+                        parameter_sheet['O2 temp °C befor dep.'].loc[index],
+                        parameter_sheet['O2 temp °C after 2min'].loc[index],
+                        parameter_sheet['O2 temp °C after 60min'].loc[index],
+                        parameter_sheet['O2 temp °C after 90min'].loc[index],
+                        parameter_sheet['O2 temp °C after 140min'].loc[index],
                     ]
                 )
-                rot_time, rot_val = row_timeseries(
-                    dep_control, 'rot time', 'Read rotation', index
-                )
-                rot_time = rot_time * ureg('minute').to('second').magnitude
+                # TODO WARNING! It is not clear whether this push and purge belong to the FE1 or FE2
+                ar_push_flow = parameter_sheet['Ar push/sccm '].loc[index]
+                ar_purge_flow = parameter_sheet['Ar purge/sccm'].loc[index]
+                # TODO check if it matches the timing from rcp file
+                deposition_time = parameter_sheet['dep time in min'].loc[index]
 
-                fe1_pressure_time, fe1_pressure_val = row_timeseries(
-                    dep_control, 'BP FE1 time', 'BP FE1', index
+                fe1_back_press_time = (
+                    pd.Series([0, 2, 60, 90, 140])
+                    * ureg('minute').to('second').magnitude
                 )
-                fe1_pressure_time = (
-                    fe1_pressure_time * ureg('minute').to('second').magnitude
-                )
-
-                fe1_temp_setval = pd.Series(
+                fe1_back_press_val = pd.Series(
                     [
-                        (
-                            dep_control['Set FE1 Temp'].loc[index]
-                            if 'Set FE1 Temp' in dep_control.columns
-                            else None
-                        )
+                        parameter_sheet['BP FE1 in mbar befor dep.'].loc[index],
+                        parameter_sheet['BP FE1 in mbar after 2min'].loc[index],
+                        parameter_sheet['BP FE1 in mbar after 60min'].loc[index],
+                        parameter_sheet['BP FE1 in mbar after 90min'].loc[index],
+                        parameter_sheet['BP FE1 in mbar after 140min'].loc[index],
                     ]
                 )
+                # TODO check the setvals equals the one in growth run archive from the rcp file
+                fe1_temp_setval = parameter_sheet['FE1 temp °C'].loc[index]
 
-                fe1_ar_push_setval = pd.Series(
+                fe2_back_press_time = (
+                    pd.Series([0, 2, 60, 90, 140])
+                    * ureg('minute').to('second').magnitude
+                )
+                fe2_back_press_val = pd.Series(
                     [
-                        (
-                            dep_control['Set Ar Push 1'].loc[index]
-                            if 'Set Ar Push 1' in dep_control.columns
-                            else None
-                        )
+                        parameter_sheet['BP FE2 in mbar befor dep.'].loc[index],
+                        parameter_sheet['BP FE2 in mbar after 2min'].loc[index],
+                        parameter_sheet['BP FE2 in mbar after 60min'].loc[index],
+                        parameter_sheet['BP FE2 in mbar after 90min'].loc[index],
+                        parameter_sheet['BP FE2 in mbar after 140min'].loc[index],
                     ]
                 )
+                # TODO check the setvals equals the one in growth run archive from the rcp file
+                fe2_temp_setval = parameter_sheet['FE2 temp °C'].loc[index]
 
-                fe1_ar_purge_setval = pd.Series(
+                throttle_time = (
+                    pd.Series([0, 2, 60, 90, 140])
+                    * ureg('minute').to('second').magnitude
+                )
+                throttle_val = pd.Series(
                     [
-                        (
-                            dep_control['Set Ar Purge 1'].loc[index]
-                            if 'Set Ar Purge 1' in dep_control.columns
-                            else None
-                        )
+                        parameter_sheet['throttle valve in mbar before dep.'].loc[
+                            index
+                        ],
+                        parameter_sheet['throttle valve in mbar after 2min'].loc[index],
+                        parameter_sheet['throttle valve in mbar after 60min'].loc[
+                            index
+                        ],
+                        parameter_sheet['throttle valve in mbar after 90min'].loc[
+                            index
+                        ],
+                        parameter_sheet['throttle valve in mbar after 140min'].loc[
+                            index
+                        ],
                     ]
                 )
-
-                fe2_pressure_time, fe2_pressure_val = row_timeseries(
-                    dep_control, 'BP FE2 time', 'BP FE2', index
+                # TODO check the setvals equals the one in growth run archive from the rcp file
+                reactor_pressure_setval = pd.Series(
+                    [parameter_sheet['reactor in mbar'].loc[index]]
                 )
-                fe2_pressure_time = (
-                    fe2_pressure_time * ureg('minute').to('second').magnitude
+                reactor_pressure_time = (
+                    pd.Series([0, 2, 60, 90, 140])
+                    * ureg('minute').to('second').magnitude
                 )
-
-                fe2_temp_setval = pd.Series(
+                reactor_pressure_val = pd.Series(
                     [
-                        (
-                            dep_control['Set FE2 Temp'].loc[index]
-                            if 'Set FE2 Temp' in dep_control.columns
-                            else None
-                        )
+                        parameter_sheet['reactor in mbar before dep.'].loc[index],
+                        parameter_sheet['reactor in mbar after 2min'].loc[index],
+                        parameter_sheet['reactor in mbar after 60min'].loc[index],
+                        parameter_sheet['reactor in mbar after 90min'].loc[index],
+                        parameter_sheet['reactor in mbar after 140min'].loc[index],
                     ]
                 )
-
-                fe2_ar_push_setval = pd.Series(
-                    [
-                        (
-                            dep_control['Set Ar Push 2'].loc[index]
-                            if 'Set Ar Push 2' in dep_control.columns
-                            else None
-                        )
-                    ]
+                # TODO check the setvals equals the one in growth run archive from the rcp file
+                rotation_setval = pd.Series(
+                    [parameter_sheet['rotation pro min'].loc[index]]
                 )
-
-                fe2_ar_purge_setval = pd.Series(
+                rotation_time = (
+                    pd.Series([0, 2, 60, 90, 140])
+                    * ureg('minute').to('second').magnitude
+                )
+                rotation_val = pd.Series(
                     [
-                        (
-                            dep_control['Set Ar Purge 2'].loc[index]
-                            if 'Set Ar Purge 2' in dep_control.columns
-                            else None
-                        )
+                        parameter_sheet['rotation pro min before dep.'].loc[index],
+                        parameter_sheet['rotation pro min after 2min'].loc[index],
+                        parameter_sheet['rotation pro min after 60min'].loc[index],
+                        parameter_sheet['rotation pro min after 90min'].loc[index],
+                        parameter_sheet['rotation pro min after 140min'].loc[index],
                     ]
                 )
 
-                gas_temp_time, gas_temp_val = row_timeseries(
-                    dep_control, 'Oxygen time', 'Read Oxygen T', index
-                )
-                gas_temp_time = gas_temp_time * ureg('minute').to('second').magnitude
+                # WARNING!
+                # deposition is taken as the "deposition_step_no" step read from the recipe file
+                # if the recipe file is changed, the deposition step might be at a different index
 
-                gas_mfc_setval = pd.Series(
-                    [
-                        (
-                            dep_control['Set of Oxygen uniform gas'].loc[index]
-                            if 'Set of Oxygen uniform gas' in dep_control.columns
-                            else None
-                        )
-                    ]
-                )
-                growth_description = (
-                    str(
-                        dep_control['Weekday'].loc[index]
-                        if 'Weekday' in dep_control.columns
-                        else None
-                    )
-                    + '. Sequential number: '
-                    + str(dep_control['number'].loc[index])
-                    + '. '
-                    + str(dep_control['Comment'].loc[index])
-                )
+                # calculation of the time of the deposition step
+                # the time of the deposition step is the sum of the times of all the previous steps
+                dep_time = 0
+                for i in range(deposition_step_no - 1):
+                    dep_time += growth_from_rcp.steps[i].duration.m
 
-                # creating GrowthMovpeIKZ archive
-                growth_data = GrowthMovpeIKZ(
-                    data_file=data_file_with_path,
-                    name=f'{dep_control_run} Growth',
-                    lab_id=dep_control_run,
-                    description=growth_description,
-                    datetime=(
-                        dep_control['Date'].loc[index]
-                        if 'Date' in dep_control.columns
-                        else None
+                # let's add samples to the growth run archive
+                growth_from_rcp.m_add_sub_section(
+                    GrowthMovpeIKZ.samples,
+                    CompositeSystemReference(
+                        reference=f'../uploads/{archive.m_context.upload_id}/archive/{hash(archive.m_context.upload_id, grown_sample_filename)}#data'
                     ),
-                    steps=[
-                        GrowthStepMovpe1IKZ(
-                            name='Deposition',
-                            duration=(
-                                float(dep_control['Duration'].loc[index])
-                                if 'Duration' in dep_control.columns
-                                else None
-                            ),
-                            environment=ChamberEnvironmentMovpe(
-                                pressure=Pressure(
-                                    set_time=pd.Series([0]),
-                                    set_value=pressure_setval,
-                                    value=pressure_val,
-                                    time=pressure_time,
-                                ),
-                                throttle_valve=Pressure(
-                                    value=throttle_val,
-                                    time=throttle_time,
-                                ),
-                                rotation=Rotation(
-                                    set_time=pd.Series([0]),
-                                    set_value=rot_setval,
-                                    value=rot_val,
-                                    time=rot_time,
-                                ),
-                                uniform_gas_flow_rate=VolumetricFlowRate(
-                                    set_time=pd.Series([0]),
-                                    set_value=uniform_setval,
-                                ),
-                            ),
-                            sample_parameters=[
-                                SampleParametersMovpe(
-                                    layer=ThinFilmReference(
-                                        reference=f'{get_hash_ref(archive.m_context.upload_id, layer_filename)}',
-                                    ),
-                                    substrate=ThinFilmStackMovpeReference(
-                                        reference=f'{get_hash_ref(archive.m_context.upload_id, grown_sample_filename)}',
-                                    ),
-                                    shaft_temperature=ShaftTemperature(
-                                        set_time=pd.Series([0]),
-                                        set_value=shaft_temp_setval,
-                                        value=shaft_temp_val,
-                                        time=shaft_temp_time,
-                                    ),
-                                    filament_temperature=FilamentTemperature(
-                                        set_time=pd.Series([0]),
-                                        set_value=fil_temp_setval,
-                                        value=fil_temp_val,
-                                        time=fil_temp_time,
-                                    ),
-                                )
-                            ],
-                            sources=[
-                                FlashSource(
-                                    name='Flash Evaporator 1',
-                                    vapor_source=FlashEvaporator(
-                                        pressure=Pressure(
-                                            value=fe1_pressure_val,
-                                            time=fe1_pressure_time,
-                                        ),
-                                        temperature=Temperature(
-                                            set_time=pd.Series([0]),
-                                            set_value=fe1_temp_setval,
-                                        ),
-                                        carrier_gas=PubChemPureSubstanceSection(
-                                            name='Argon',
-                                        ),
-                                        carrier_push_flow_rate=VolumetricFlowRate(
-                                            set_time=pd.Series([0]),
-                                            set_value=fe1_ar_push_setval,
-                                        ),
-                                        carrier_purge_flow_rate=VolumetricFlowRate(
-                                            set_time=pd.Series([0]),
-                                            set_value=fe1_ar_purge_setval,
-                                        ),
-                                    ),
-                                ),
-                                FlashSource(
-                                    name='Flash Evaporator 2',
-                                    vapor_source=FlashEvaporator(
-                                        pressure=Pressure(
-                                            value=fe2_pressure_val,
-                                            time=fe2_pressure_time,
-                                        ),
-                                        temperature=Temperature(
-                                            set_time=pd.Series([0]),
-                                            set_value=fe2_temp_setval,
-                                        ),
-                                        carrier_gas=PubChemPureSubstanceSection(
-                                            name='Argon',
-                                        ),
-                                        carrier_push_flow_rate=VolumetricFlowRate(
-                                            set_time=pd.Series([0]),
-                                            set_value=fe2_ar_push_setval,
-                                        ),
-                                        carrier_purge_flow_rate=VolumetricFlowRate(
-                                            set_time=pd.Series([0]),
-                                            set_value=fe2_ar_purge_setval,
-                                        ),
-                                    ),
-                                ),
-                                GasLineSource(
-                                    name='Oxygen uniform gas ',
-                                    vapor_source=GasLineEvaporator(
-                                        temperature=Temperature(
-                                            value=gas_temp_val,
-                                            time=gas_temp_time,
-                                        ),
-                                        total_flow_rate=VolumetricFlowRate(
-                                            set_time=pd.Series([0]),
-                                            set_value=gas_mfc_setval,
-                                        ),
-                                    ),
-                                ),
-                            ],
-                        )
-                    ],
                 )
-                growth_filename = f'{dep_control_run}.GrowthMovpeIKZ.archive.{filetype}'
+                # let's update the growth run archive with the deposition control parameters
+                growth_from_rcp.steps[deposition_step_no - 1].name = 'deposition'
+                growth_from_rcp.steps[
+                    deposition_step_no - 1
+                ].step_index = '10 - deposition'
+                growth_from_rcp.steps[deposition_step_no - 1].sample_parameters[
+                    0
+                ].filament_temperature.value = ureg.Quantity(
+                    list(fil_temp_val),
+                    ureg('celsius'),
+                )
+                growth_from_rcp.steps[deposition_step_no - 1].sample_parameters[
+                    0
+                ].filament_temperature.time = dep_time + fil_temp_time
+                growth_from_rcp.steps[deposition_step_no - 1].sources[
+                    1
+                ].peristaltic_pump_flux = VolumetricFlowRate(
+                    set_value=flow_line_1_ti
+                    * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude
+                )
+                growth_from_rcp.steps[deposition_step_no - 1].sources[
+                    2
+                ].peristaltic_pump_flux = VolumetricFlowRate(
+                    set_value=flow_line_2_ca
+                    * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude
+                )
+                growth_from_rcp.steps[deposition_step_no - 1].sources[
+                    0
+                ].vapor_source.temperature = Temperature(
+                    time=dep_time + ox_temp_time,
+                    value=ox_temp_val * ureg('celsius'),
+                )
+                growth_from_rcp.steps[deposition_step_no - 1].sources[
+                    1
+                ].vapor_source.pressure = Pressure(
+                    time=dep_time + fe1_back_press_time,
+                    value=fe1_back_press_val * ureg('mbar'),
+                )
+                growth_from_rcp.steps[deposition_step_no - 1].sources[
+                    2
+                ].vapor_source.pressure = Pressure(
+                    time=dep_time + fe2_back_press_time,
+                    value=fe2_back_press_val * ureg('mbar'),
+                )
+                growth_from_rcp.steps[
+                    deposition_step_no - 1
+                ].environment.throttle_valve = Pressure(
+                    time=dep_time + throttle_time,
+                    value=throttle_val,
+                )
+                growth_from_rcp.steps[
+                    deposition_step_no - 1
+                ].environment.pressure.value = ureg.Quantity(
+                    list(reactor_pressure_val),
+                    ureg('mbar'),
+                )
+                growth_from_rcp.steps[
+                    deposition_step_no - 1
+                ].environment.pressure.time = dep_time + reactor_pressure_time
+                growth_from_rcp.steps[
+                    deposition_step_no - 1
+                ].environment.rotation.value = rotation_val
+                growth_from_rcp.steps[
+                    deposition_step_no - 1
+                ].environment.rotation.time = dep_time + rotation_time
+
+                # in the case where dict_from_rcp = yaml.safe_load(file) is used:
+                # growth_from_rcp["data"]["steps"][9]["sample_parameters"][0]["filament_temperature"]["time"] = fil_temp_time
+                # growth_from_rcp["data"]["steps"][9]["sample_parameters"][0]["filament_temperature"]["value"] = fil_temp_val
+
+                # dump the updated growth dictionary in the growth archive
                 growth_archive = EntryArchive(
-                    data=growth_data,
-                    # m_context=archive.m_context,
+                    data=growth_from_rcp,
+                    m_context=archive.m_context,
                     metadata=EntryMetadata(upload_id=archive.m_context.upload_id),
                 )
                 create_archive(
                     growth_archive.m_to_dict(),
                     archive.m_context,
-                    growth_filename,
+                    search_growth.data[0]['mainfile'],
                     filetype,
                     logger,
+                    overwrite=True,
                 )
+            # AFM parsing !!!
 
-                # creating precursor objects
-                component_objects = []
-                precursor_quantities = [
-                    'MO Precursor',
-                    'Weight',
-                    'Solvent',
-                    'Volume',
-                    'Molar conc',
-                    'CAS',
-                ]
-                i = 0
-                while True:
-                    if all(
-                        f"{key}{'' if i == 0 else '.' + str(i)}" in precursors.columns
-                        for key in precursor_quantities
-                    ):
-                        solute_name = precursors.get(
-                            f"MO Precursor{'' if i == 0 else '.' + str(i)}", ''
-                        ).loc[index]
-                        solvent_name = (
-                            precursors.get(
-                                f"Solvent{'' if i == 0 else '.' + str(i)}",
-                                0,
-                            ).loc[index]
-                            if not None
-                            else 'unknown'
-                        )
-                        solute_mass = precursors.get(
-                            f"Weight{'' if i == 0 else '.' + str(i)}",
-                            0,
-                        ).loc[index]
-                        solvent_volume = precursors.get(
-                            f"Volume{'' if i == 0 else '.' + str(i)}",
-                            0,
-                        ).loc[index]
-                        solution_filename = f'{solute_name}-mass{solute_mass}_{solvent_name}-vol{solvent_volume}.Solution.archive.{filetype}'
-                        solution_data = Solution(
-                            name=f'{solute_name} in {solvent_name}',
-                            solute=[
-                                PureSubstanceComponent(
-                                    mass=solute_mass,
-                                    name=solute_name,
-                                    pure_substance=PureSubstanceSection(
-                                        cas_number=precursors.get(
-                                            f"CAS{'' if i == 0 else '.' + str(i)}",
-                                            0,
-                                        ).loc[index],
-                                    ),
-                                ),
-                            ],
-                            solvent=[
-                                LiquidComponent(
-                                    name=solvent_name,
-                                    volume=float(solvent_volume),
-                                    pure_substance=PureSubstanceSection(
-                                        cas_number=precursors.get(
-                                            f"Solvent CAS{'' if i == 0 else '.' + str(i)}",
-                                            0,
-                                        ).loc[index],
-                                    ),
-                                ),
-                            ],
-                        )
-                        solution_archive = EntryArchive(
-                            data=solution_data,
-                            m_context=archive.m_context,
-                            metadata=EntryMetadata(
-                                upload_id=archive.m_context.upload_id
-                            ),
-                        )
-                        create_archive(
-                            solution_archive.m_to_dict(),
-                            archive.m_context,
-                            solution_filename,
-                            filetype,
-                            logger,
-                        )
-                        component_objects.append(
-                            SystemComponentIKZ(
-                                name=str(solute_name) + ' in ' + str(solvent_name),
-                                system=get_hash_ref(
-                                    archive.m_context.upload_id, solution_filename
-                                ),
-                                molar_concentration=precursors.get(
-                                    f"Molar conc{'' if i == 0 else '.' + str(i)}", 0
-                                ).loc[index],
-                            ),
-                        )
-                        i += 1
-                    else:
-                        break
-
-                # create precursors preparation archive
-                precursors_data = PrecursorsPreparationIKZ(
-                    data_file=data_file_with_path,
-                    lab_id=f"{precursors['Sample ID'].loc[index]} precursor preparation",
-                    name='Precursors',
-                    description=f"{precursors['Weekday'].loc[index]}. Sequential number: {precursors['number'].loc[index]}.",
-                    flow_titanium=precursors['Set flow Ti'].loc[index],
-                    flow_calcium=precursors['Set flow Ca'].loc[index],
-                    components=component_objects,
-                )
-
-                precursors_filename = f"{precursors['Sample ID'].loc[index]}.PrecursorsPreparationIKZ.archive.{filetype}"
-                precursors_archive = EntryArchive(
-                    data=precursors_data,
-                    m_context=archive.m_context,
-                    metadata=EntryMetadata(upload_id=archive.m_context.upload_id),
-                )
-                create_archive(
-                    precursors_archive.m_to_dict(),
-                    archive.m_context,
-                    precursors_filename,
-                    filetype,
-                    logger,
-                )
-                # create experiment archive
-                experiment_filename = (
-                    f'{dep_control_run}.ExperimentMovpeIKZ.archive.{filetype}'
-                )
-                experiment_archive = EntryArchive(
-                    data=ExperimentMovpeIKZ(
-                        name=f'{dep_control_run} experiment',
-                        method='MOVPE 1 experiment',
-                        lab_id=f'{dep_control_run} experiment',
-                        datetime=dep_control['Date'].loc[index],
-                        precursors_preparation=PrecursorsPreparationIKZReference(
-                            reference=get_hash_ref(
-                                archive.m_context.upload_id, precursors_filename
-                            ),
+            # check the correctness of the file location in the uploaded zip folder
+            afm_folder = f'{os.path.dirname(mainfile)}/{sample_id}/AFM'
+            if not os.path.isdir(afm_folder):
+                logger.warn(f'AFM folder in {sample_id} not found.')
+            else:
+                for file in [f for f in os.listdir(afm_folder) if f.endswith('.png')]:
+                    afm_filename = f'{sample_id}_AFM.archive.{filetype}'
+                    afm_data = AFMmeasurement()
+                    afm_data.m_add_sub_section(
+                        AFMmeasurement.samples,
+                        CompositeSystemReference(
+                            reference=f'../uploads/{archive.m_context.upload_id}/archive/{hash(archive.m_context.upload_id, grown_sample_filename)}#data'
                         ),
-                        # growth_run_constant_parameters=GrowthMovpe1IKZConstantParametersReference(
-                        #     lab_id=dep_control["Constant Parameters ID"].loc[index],
-                        # ),
-                        growth_run=GrowthMovpeIKZReference(
-                            reference=get_hash_ref(
-                                archive.m_context.upload_id, growth_filename
-                            ),
+                    )
+                    afm_data.m_add_sub_section(
+                        AFMmeasurement.results,
+                        AFMresults(
+                            name=sample_id,
+                            image=f'{mainfile.split("/")[-2]}/{sample_id}/AFM/{file}',
                         ),
-                    ),
-                    m_context=archive.m_context,
-                    metadata=EntryMetadata(upload_id=archive.m_context.upload_id),
-                )
-                create_archive(
-                    experiment_archive.m_to_dict(),
-                    archive.m_context,
-                    experiment_filename,
-                    filetype,
-                    logger,
-                )
-
-                # !!! the following code checks if the experiment archive already exists and overwrites it
-
-                # if len(matches["lab_id"]) == 0:
-                #     experiment_archive = EntryArchive(
-                #         data=ExperimentMovpeIKZ(
-                #             lab_id=f"{dep_control_run} experiment",
-                #             datetime=dep_control["Date"].loc[index],
-                #             precursors_preparation=PrecursorsPreparationIKZReference(
-                #                 reference=f"../uploads/{archive.m_context.upload_id}/archive/{hash(archive.m_context.upload_id, precursors_filename)}#data",
-                #             ),
-                #             growth_run_constant_parameters=GrowthMovpe1IKZConstantParametersReference(
-                #                 lab_id=dep_control["Constant Parameters ID"][index],
-                #             ),
-                #             growth_run_deposition_control=growth_data,
-                #             grown_sample=ThinFilmStackMovpeReference(
-                #                 reference=f"../uploads/{archive.m_context.upload_id}/archive/{hash(archive.m_context.upload_id, sample_filename)}#data",
-                #             ),
-                #         ),
-                #         m_context=archive.m_context,
-                #         metadata=EntryMetadata(
-                #             upload_id=archive.m_context.upload_id
-                #         ),
-                #     )
-                #     create_archive(
-                #         experiment_archive.m_to_dict(),
-                #         archive.m_context,
-                #         experiment_filename,
-                #         filetype,
-                #         logger,
-                #     )
-                # elif (
-                #     len(matches["lab_id"]) > 0
-                #     and matches["entry_name"][0] == experiment_filename
-                # ):  # the experiment will be retrieved, extended, and overwritten
-                #     from nomad.app.v1.routers.uploads import get_upload_with_read_access
-
-                #     logger.warning(
-                #         f"Overwritten existing experiment archive {matches['entry_name'][0]}."
-                #     )
-
-                #     experiment_context = ServerContext(
-                #         get_upload_with_read_access(
-                #             matches["upload_id"][0],
-                #             User(
-                #                 is_admin=True,
-                #                 user_id=archive.metadata.main_author.user_id,
-                #             ),
-                #             include_others=True,
-                #         )
-                #     )  # Upload(upload_id=matches["upload_id"][0]))
-
-                #     #     filename =
-                #     with experiment_context.raw_file(
-                #         experiment_filename, "r"
-                #     ) as experiment_file:
-                #         updated_experiment = yaml.safe_load(experiment_file)
-                #         updated_experiment["data"][
-                #             "precursors_preparation"
-                #         ] = PrecursorsPreparationIKZReference(
-                #             reference=f"../uploads/{archive.m_context.upload_id}/archive/{hash(archive.m_context.upload_id, precursors_filename)}#data",
-                #         ).m_to_dict()
-                #         updated_experiment["data"][
-                #             "growth_run_deposition_control"
-                #         ] = growth_data.m_to_dict()
-                #         updated_experiment["data"]["grown_sample"] = ThinFilmStackMovpeReference(
-                #             reference=f"../uploads/{archive.m_context.upload_id}/archive/{hash(archive.m_context.upload_id, sample_filename)}#data",
-                #         ).m_to_dict()
-
-                #     create_archive(
-                #         updated_experiment,
-                #         experiment_context,
-                #         experiment_filename,
-                #         filetype,
-                #         logger,
-                #         bypass_check=True,
-                #     )
-
-                deposition_control_list.append(
-                    get_hash_ref(archive.m_context.upload_id, experiment_filename)
-                )
+                    )
+                    afm_archive = EntryArchive(
+                        data=afm_data,
+                        m_context=archive.m_context,
+                        metadata=EntryMetadata(upload_id=archive.m_context.upload_id),
+                    )
+                    create_archive(
+                        afm_archive.m_to_dict(),
+                        archive.m_context,
+                        afm_filename,
+                        filetype,
+                        logger,
+                    )
 
         # populate the raw file archive
         archive.data = RawFileMovpeDepositionControl(

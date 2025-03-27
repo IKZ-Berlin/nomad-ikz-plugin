@@ -15,6 +15,20 @@
 # limitations under the License.
 #
 
-from nomad_ikz_plugin.movpe.schema import *
+from nomad.config.models.plugins import ParserEntryPoint
+from pydantic import Field
 
-from .parser import *
+
+class Movpe1RcpParserEntryPoint(ParserEntryPoint):
+    def load(self):
+        from nomad_ikz_plugin.movpe.movpe1.rcp.parser import ParserMovpe1RcpIKZ
+
+        return ParserMovpe1RcpIKZ(**self.dict())
+
+
+parser = Movpe1RcpParserEntryPoint(
+    name='Movpe1Parser',
+    description='Parse rcp plain text files containing logs from the MOVPE 1 machine in IKZ.',
+    mainfile_name_re=r'.+\.rcp',
+    mainfile_mime_re=r'text/plain',
+)

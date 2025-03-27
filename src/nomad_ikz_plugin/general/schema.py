@@ -233,7 +233,7 @@ class Solution(CompositeSystem, EntryData):
     # storage = SubSection(section_def=SolutionStorage, repeats=True)
 
     def normalize(self, archive, logger) -> None:
-        super(Solution, self).normalize(archive, logger)
+        super().normalize(archive, logger)
 
         self.components = []
         if self.solute:
@@ -546,7 +546,7 @@ class SampleCutIKZ(Process, EntryData):
     )
 
     def normalize(self, archive, logger):
-        super(SampleCutIKZ, self).normalize(archive, logger)
+        super().normalize(archive, logger)
         filetype = 'yaml'
         if not self.number_of_samples:
             logger.error(

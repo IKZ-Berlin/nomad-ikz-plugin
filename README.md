@@ -106,7 +106,6 @@ cd my-nomad-schema
 ### Install the dependencies
 
 You should create a virtual environment. You will need the `nomad-lab` package (and `pytest`).
-You need at least Python 3.9.
 
 ```sh
 python3 -m venv .pyenv

@@ -219,7 +219,7 @@ class Sensors(TableData, Instrument, EntryData):
     sensors_list = SubSection(section_def=Sensor)  # , repeats=True)
 
     def normalize(self, archive, logger):
-        super(Sensors, self).normalize(archive, logger)
+        super().normalize(archive, logger)
 
         if archive.data.data_file:
             with archive.m_context.raw_file(self.data_file, 'r') as file:
