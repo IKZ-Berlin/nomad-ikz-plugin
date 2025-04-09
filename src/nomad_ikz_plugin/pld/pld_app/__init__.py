@@ -168,6 +168,7 @@ pld_layers_app = AppEntryPoint(
             autorange: false
             nbins: 30
             scale: linear
+            unit: mbar
             quantity: data.process_conditions.pressure#nomad_ikz_plugin.pld.schema.IKZPLDLayer
             layout:
               xxl:
@@ -210,6 +211,7 @@ pld_layers_app = AppEntryPoint(
             autorange: false
             nbins: 30
             scale: linear
+            unit: mJ
             quantity: data.process_conditions.laser_energy#nomad_ikz_plugin.pld.schema.IKZPLDLayer
             layout:
               xxl:
@@ -252,6 +254,7 @@ pld_layers_app = AppEntryPoint(
             autorange: false
             nbins: 30
             scale: linear
+            unit: celsius
             quantity: data.process_conditions.growth_temperature#nomad_ikz_plugin.pld.schema.IKZPLDLayer
             layout:
               xxl:
@@ -336,6 +339,7 @@ pld_layers_app = AppEntryPoint(
             autorange: false
             nbins: 30
             scale: linear
+            unit: mm
             quantity: data.process_conditions.sample_to_target_distance#nomad_ikz_plugin.pld.schema.IKZPLDLayer
             layout:
               xxl:
@@ -376,8 +380,14 @@ pld_layers_app = AppEntryPoint(
           - type: scatterplot
             autorange: true
             size: 1000
-            color: data.process_conditions.sample_to_target_distance#nomad_ikz_plugin.pld.schema.IKZPLDLayer
-            y: data.geometry.height#nomad_ikz_plugin.pld.schema.IKZPLDLayer
+            markers:
+                color:
+                  search_quantity: data.process_conditions.sample_to_target_distance#nomad_ikz_plugin.pld.schema.IKZPLDLayer
+                  scale: linear
+                  unit: mm
+            y: 
+                search_quantity: data.geometry.height#nomad_ikz_plugin.pld.schema.IKZPLDLayer
+                unit: nm
             x: data.process_conditions.number_of_pulses#nomad_ikz_plugin.pld.schema.IKZPLDLayer
             layout:
               xxl:
@@ -419,8 +429,12 @@ pld_layers_app = AppEntryPoint(
             autorange: true
             size: 1000
             color: data.process_conditions.number_of_pulses#nomad_ikz_plugin.pld.schema.IKZPLDLayer
-            y: data.geometry.height#nomad_ikz_plugin.pld.schema.IKZPLDLayer
-            x: data.process_conditions.sample_to_target_distance#nomad_ikz_plugin.pld.schema.IKZPLDLayer
+            y: 
+                search_quantity: data.geometry.height#nomad_ikz_plugin.pld.schema.IKZPLDLayer
+                unit: nm
+            x: 
+                search_qunantity: data.process_conditions.sample_to_target_distance#nomad_ikz_plugin.pld.schema.IKZPLDLayer
+                unit: mm
             layout:
               xxl:
                 minH: 3
