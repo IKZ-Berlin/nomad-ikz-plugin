@@ -1,0 +1,4 @@
+plugins:
+  entry_points:
+    exclude:
+      - "nomad_measurements.transmission:parser"
