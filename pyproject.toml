@@ -33,7 +33,7 @@ dependencies = [
     'nomad-material-processing',
     'nomad-measurements',
     'nomad-analysis', # develop branch
-    'lakeshore-nomad-plugin', 
+    'lakeshore-nomad-plugin',
     'laytec_epitt_plugin',
     ]
 
