@@ -56,18 +56,23 @@ class AFMresults(MeasurementResult):
         unit='picometer',
     )
     surface_features = Quantity(
-        type=MEnum(['Step Flow', 'Step Bunching', '2D Island']),
+        type=MEnum(['Step Flow', 'Step Bunching', '2D Island', 'Grains', 'Holes', 'Stripes', 'Other']),
         a_eln={'component': 'EnumEditQuantity'},
+    )
+    additional_surface_features = Quantity(
+        type=str,
+        description='specified surface features e.g. shape/size of holes or islands',
+        a_eln={'component': 'StringEditQuantity'},
     )
     scale = Quantity(
         type=np.float64,
-        description='scale of the image, to be multiplied by 5 to know the image size',
+        description='scale bar of the image, to be multiplied by 5 to know the image size',
         a_eln={'component': 'NumberEditQuantity', 'defaultDisplayUnit': 'nanometer'},
         unit='nanometer',
     )
     image = Quantity(
         type=str,
-        description='image showing the thickness measurement points',
+        description='image showing the height measurement points',
         a_browser={'adaptor': 'RawFileAdaptor'},
         a_eln={'component': 'FileEditQuantity'},
     )
@@ -115,7 +120,7 @@ class LiMiresults(MeasurementResult):
 
     image = Quantity(
         type=str,
-        description='image showing the thickness measurement points',
+        description='image showing the measurement',
         a_browser={'adaptor': 'RawFileAdaptor'},
         a_eln={'component': 'FileEditQuantity'},
     )
