@@ -962,8 +962,9 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
     def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
         """
         The normalizer for the `IKZPulsedLaserDeposition` class. Will generate and fill
-        steps from the `.elog` and `.dlog` files.
-
+        steps from the `.elog` and `.dlog` files. If '.elog' is not provided the steps are
+        artificially created.
+        
         Args:
             archive (EntryArchive): The archive containing the section that is being
             normalized.
@@ -971,7 +972,7 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
         """
         self.figures = []
         layers = {}
-        if self.data_log and self.recipe_log:
+        if self.data_log:
             import numpy as np
             import pandas as pd
             from nomad.units import ureg
@@ -986,6 +987,7 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
             ).astimezone()
             if not self.name:
                 self.name = match['name']
+                
             if self.process_identifiers is None:
                 self.process_identifiers = ReadableIdentifiers(
                     institute='IKZ',
@@ -994,27 +996,7 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
                 )
                 self.process_identifiers.normalize(archive, logger)
                 self.lab_id = self.process_identifiers.lab_id
-
-            with archive.m_context.raw_file(self.recipe_log, 'r') as e_log:
-                df_recipe = pd.read_csv(
-                    e_log,
-                    sep='\t',
-                    names=['time_h', 'process'],
-                    header=None,
-                )
-            df_recipe = df_recipe[
-                ~df_recipe['process'].str.contains('Abort Button pressed')
-            ]
-            df_recipe['time_s'] = df_recipe['time_h'].apply(time_convert)
-            df_recipe['duration_s'] = df_recipe['time_s'].diff(-1) * -1
-            df_steps = df_recipe.iloc[1:-1:3, :].copy()
-            df_steps['pulses'] = (
-                df_recipe.iloc[2:-1:3, 1].str.split().str[0].values.astype(int)
-            )
-            df_steps['recipe'] = df_steps['process'].str.split(':').str[1]
-            self.end_time = self.datetime + datetime.timedelta(
-                seconds=float(df_recipe.iloc[-1, 2]),
-            )
+                
             columns = [
                 'time_s',
                 'temperature_degc',
@@ -1026,12 +1008,60 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
                 'pressure1_mbar',
                 'zeros',
             ]
+            
             with archive.m_context.raw_file(self.data_log, 'r') as d_log:
                 df_data = pd.read_csv(
                     d_log,
                     sep='\t',
                     names=columns,
                 )
+            if self.recipe_log:
+                with archive.m_context.raw_file(self.recipe_log, 'r') as e_log:
+                    df_recipe = pd.read_csv(
+                        e_log,
+                        sep='\t',
+                        names=['time_h', 'process'],
+                        header=None,
+                    )
+                df_recipe = df_recipe[
+                    ~df_recipe['process'].str.contains('Abort Button pressed')
+                ]
+                df_recipe['time_s'] = df_recipe['time_h'].apply(time_convert)
+                df_recipe['duration_s'] = df_recipe['time_s'].diff(-1) * -1
+                df_steps = df_recipe.iloc[1:-1:3, :].copy()
+                df_steps['pulses'] = (
+                    df_recipe.iloc[2:-1:3, 1].str.split().str[0].values.astype(int)
+                )
+                df_steps['recipe'] = df_steps['process'].str.split(':').str[1]
+                self.end_time = self.datetime + datetime.timedelta(
+                    seconds=float(df_recipe.iloc[-1, 2]),
+                )
+            else:
+                step_rows = []
+                df_laser_on = df_data[df_data['laser_energy_mj'] > 0.0]
+                index_diff = df_laser_on.index.to_series().diff()
+                jumps = index_diff[index_diff != 1].index.to_list()
+                depo_start = df_laser_on['time_s'].loc[jumps[0]]
+                step_rows.append([0, depo_start, 0, 'pre'])
+                target_recipe_names = [target.recipe_name for target in self.targets]
+                n_targets = len(target_recipe_names)
+                for i, target_name in enumerate(target_recipe_names, start=-n_targets):
+                    is_last = (i == -1)
+                    start_idx = jumps[2*i + 1]
+                    end_idx = df_laser_on.index[-1] if is_last else jumps[2*i + 2]
+                    depo_start = df_laser_on['time_s'].loc[start_idx]
+                    depo_end = df_laser_on['time_s'].loc[end_idx]
+                    depo_duration = depo_end - depo_start
+                    freq = df_laser_on['frequency_hz'].loc[start_idx:end_idx].mean() 
+                    step_rows.append([depo_start, depo_duration, depo_duration * freq, f'depo{target_name}'])                
+                    if not is_last:
+                        next_start = df_laser_on['time_s'].loc[jumps[2*(i + 1) + 1]]
+                        intermediate_duration = next_start - depo_end
+                        step_rows.append([depo_end, intermediate_duration, 0, 'intermediate'])                
+                pld_end = df_data['time_s'].iloc[-1]
+                step_rows.append([depo_end, pld_end - depo_end, 0, 'after'])
+                df_steps = pd.DataFrame(step_rows, columns=['time_s', 'duration_s', 'pulses', 'recipe'])
+                self.end_time = self.datetime + datetime.timedelta(seconds=float(pld_end))
             substrate_ref = None
             sample_id = None
             if isinstance(self.substrate, MProxy):
