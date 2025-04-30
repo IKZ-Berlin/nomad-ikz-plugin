@@ -1042,9 +1042,11 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
                 index_diff = df_laser_on.index.to_series().diff()
                 jumps = index_diff[index_diff != 1].index.to_list()
                 depo_start = df_laser_on['time_s'].loc[jumps[0]]
-                step_rows.append([0, depo_start, 0, 'pre'])
                 target_recipe_names = [target.recipe_name for target in self.targets]
                 n_targets = len(target_recipe_names)
+                first_depo_idx = jumps[2*(-n_targets) + 1]
+                time_to_first_depo = df_laser_on['time_s'].loc[first_depo_idx]
+                step_rows.append([0, time_to_first_depo, 0, 'pre'])
                 for i, target_name in enumerate(target_recipe_names, start=-n_targets):
                     is_last = (i == -1)
                     start_idx = jumps[2*i + 1]
