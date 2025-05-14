@@ -22,7 +22,6 @@ import re
 from typing import (
     TYPE_CHECKING,
     Any,
-    Union,
 )
 
 import numpy as np
@@ -665,7 +664,7 @@ class IKZPLDStep(PLDStep):
                 ]
 
 
-def time_convert(x: Union[str, int]) -> int:
+def time_convert(x: str | int) -> int:
     """
     Help function for converting time stamps in log file to seconds.
 
@@ -1040,7 +1039,11 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
                 step_rows = []
                 df_laser_on = df_data[df_data['laser_energy_mj'] > 0.0]
                 index_diff = df_laser_on.index.to_series().diff()
-                jumps = index_diff[index_diff != 1].index.to_list()
+                jumps = [index_diff.index[0]]
+                for i in range(len(index_diff) - 1):
+                    if index_diff.iloc[i+1] != 1:
+                        jumps.append(index_diff.index[i])
+                        jumps.append(index_diff.index[i+1])
                 depo_start = df_laser_on['time_s'].loc[jumps[0]]
                 target_recipe_names = [target.recipe_name for target in self.targets]
                 n_targets = len(target_recipe_names)
@@ -1061,7 +1064,7 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
                         intermediate_duration = next_start - depo_end
                         step_rows.append([depo_end, intermediate_duration, 0, 'intermediate'])                
                 pld_end = df_data['time_s'].iloc[-1]
-                step_rows.append([depo_end, pld_end - depo_end, 0, 'after'])
+                step_rows.append([depo_end, pld_end - depo_end, 0, 'post'])
                 df_steps = pd.DataFrame(step_rows, columns=['time_s', 'duration_s', 'pulses', 'recipe'])
                 self.end_time = self.datetime + datetime.timedelta(seconds=float(pld_end))
             substrate_ref = None
