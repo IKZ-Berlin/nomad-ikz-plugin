@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import plotly.express as px
 from nomad.config import config
-from nomad.datamodel.data import EntryData
+from nomad.datamodel.data import ArchiveSection, EntryData
 from nomad.datamodel.metainfo.annotations import (
     ELNAnnotation,
     Filter,
@@ -15,6 +15,7 @@ from nomad.datamodel.metainfo.basesections import (
 )
 from nomad.datamodel.metainfo.plot import (
     PlotlyFigure,
+    PlotSection,
 )
 from nomad.metainfo import Datetime, MEnum, Quantity, SchemaPackage, Section, SubSection
 from nomad_measurements.transmission.schema import (
@@ -56,7 +57,17 @@ class AFMresults(MeasurementResult):
         unit='picometer',
     )
     surface_features = Quantity(
-        type=MEnum(['Step Flow', 'Step Bunching', '2D Island', 'Grains', 'Holes', 'Stripes', 'Other']),
+        type=MEnum(
+            [
+                'Step Flow',
+                'Step Bunching',
+                '2D Island',
+                'Grains',
+                'Holes',
+                'Stripes',
+                'Other',
+            ]
+        ),
         a_eln={'component': 'EnumEditQuantity'},
     )
     additional_surface_features = Quantity(
@@ -330,6 +341,30 @@ class IKZELNUVVisNirTransmission(ELNUVVisNirTransmission):
             transmission.transmission_settings.ordinate_type = data_dict.get(
                 'ordinate_type'
             )
+
+
+class IRTransmissionSettings(ArchiveSection):
+    """
+    A section defining the schema for IR transmission measurement settings.
+    """
+
+
+class IRTransmissionResult(MeasurementResult):
+    """
+    A section defining the schema for IR transmission measurement results.
+    """
+
+
+class IRTransmission(Measurement):
+    """
+    A section defining the schema for IR transmission measurements.
+    """
+
+
+class ELNIRTransmission(IRTransmission, EntryData, PlotSection):
+    """
+    An EntryData section for IRTransmission that allows user input and plotting.
+    """
 
 
 m_package.__init_metainfo__()
