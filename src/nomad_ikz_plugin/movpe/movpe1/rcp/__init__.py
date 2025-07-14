@@ -30,5 +30,6 @@ parser = Movpe1RcpParserEntryPoint(
     name='Movpe1Parser',
     description='Parse rcp plain text files containing logs from the MOVPE 1 machine in IKZ.',
     mainfile_name_re=r'.+\.rcp',
+    level=1,
     mainfile_mime_re=r'text/plain',
 )
