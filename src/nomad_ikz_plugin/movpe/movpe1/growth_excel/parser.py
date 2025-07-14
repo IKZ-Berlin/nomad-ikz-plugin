@@ -59,6 +59,79 @@ from nomad_ikz_plugin.utils import (
     create_archive,
 )
 
+PARAMETER_SHEET_COLUMNS = {
+    # A set of expected columns in the parameter sheet
+    'Precursor',
+    'Datum',
+    'Sample ID',
+    'number',
+    'Software temp °C',
+    'Fil. temp °C before dep.',
+    'Fil. temp °C after 2min',
+    'Fil. temp °C after 30min',
+    'Fil. temp °C after 50min',
+    'Fil. temp °C after 120min',
+    'Shaft temp °C',
+    'Ti conc (molar)',
+    'Ti m in g',
+    'Ca conc (molar)',
+    'Ca/Ba m in g',
+    'Sr m in mg',
+    'wt.% Ca',
+    'La m in mg',
+    'wt.% La',
+    'flow line 1 (Ti)',
+    'flow line 2 (Ca)',
+    'c(A-cation)/c(Ti)',
+    'Volume Toluol in ml',
+    'Ar uniform/sccm',
+    'O2/sccm',
+    'O2 temp °C before dep.',
+    'O2 temp °C after 2min',
+    'O2 temp °C after 60min',
+    'O2 temp °C after 90min',
+    'O2 temp °C after 140min',
+    'Ar push/sccm ',
+    'Ar purge/sccm',
+    'dep time in min',
+    'BP FE1 in mbar before dep.',
+    'BP FE1 in mbar after 2min',
+    'BP FE1 in mbar after 60min',
+    'BP FE1 in mbar after 90min',
+    'BP FE1 in mbar after 140min',
+    'FE1 temp °C',
+    'BP FE2 in mbar before dep.',
+    'BP FE2 in mbar after 2min',
+    'BP FE2 in mbar after 60min',
+    'BP FE2 in mbar after 90min',
+    'BP FE2 in mbar after 140min',
+    'FE2 temp °C',
+    'throttle valve in mbar before dep.',
+    'throttle valve in mbar after 2min',
+    'throttle valve in mbar after 60min',
+    'throttle valve in mbar after 90min',
+    'throttle valve in mbar after 140min',
+    'reactor in mbar',
+    'reactor in mbar before dep.',
+    'reactor in mbar after 2min',
+    'reactor in mbar after 60min',
+    'reactor in mbar after 90min',
+    'reactor in mbar after 140min',
+    'rotation pro min',
+    'rotation pro min before dep.',
+    'rotation pro min after 2min',
+    'rotation pro min after 60min',
+    'rotation pro min after 90min',
+    'rotation pro min after 140min',
+    'substrates',
+    'Charge-Nr.',
+    'comments on deposition',
+    'AFM',
+    'XRD',
+    'LiMi',
+    'Deposition summary',
+}
+
 
 class RawFileMovpeDepositionControl(EntryData):
     m_def = Section(
@@ -93,7 +166,16 @@ class ParserMovpe1IKZ(MatchingParser):
             xlsx,
             'Ti Sr Parameter',
             comment='#',  # , header=None
+            nrows=10000,
         )
+        missing_columns = set(PARAMETER_SHEET_COLUMNS) - set(parameter_sheet.columns)
+        if missing_columns:
+            logger.error(
+                'Missing columns in the parameter sheet: '
+                f'[{", ".join(missing_columns)}]. '
+                f'Please check the file "{data_file_with_path}" for spelling mistakes.'
+            )
+            return
 
         deposition_control_list = []
 
@@ -225,7 +307,7 @@ class ParserMovpe1IKZ(MatchingParser):
                 deposition_step_no = int(parameter_sheet['number'].loc[index])
                 # TODO check the setvals equals the one in growth run archive from the rcp file
                 fil_temp_setval = pd.Series(
-                    [parameter_sheet['Software Temp °C'].loc[index]]
+                    [parameter_sheet['Software temp °C'].loc[index]]
                 )
                 fil_temp_time = (
                     pd.Series([0, 2, 30, 50, 120])
@@ -234,10 +316,10 @@ class ParserMovpe1IKZ(MatchingParser):
                 fil_temp_val = pd.Series(
                     [
                         parameter_sheet['Fil. temp °C before dep.'].loc[index],
-                        parameter_sheet['Fil. Temp °C after 2min'].loc[index],
-                        parameter_sheet['Fil. Temp °C after 30min'].loc[index],
-                        parameter_sheet['Fil. Temp °C after 50min'].loc[index],
-                        parameter_sheet['Fil. Temp °C after 120min'].loc[index],
+                        parameter_sheet['Fil. temp °C after 2min'].loc[index],
+                        parameter_sheet['Fil. temp °C after 30min'].loc[index],
+                        parameter_sheet['Fil. temp °C after 50min'].loc[index],
+                        parameter_sheet['Fil. temp °C after 120min'].loc[index],
                     ]
                 )
                 # TODO check the setvals equals the one in growth run archive from the rcp file
@@ -281,7 +363,7 @@ class ParserMovpe1IKZ(MatchingParser):
                 )
                 ox_temp_val = pd.Series(
                     [
-                        parameter_sheet['O2 temp °C befor dep.'].loc[index],
+                        parameter_sheet['O2 temp °C before dep.'].loc[index],
                         parameter_sheet['O2 temp °C after 2min'].loc[index],
                         parameter_sheet['O2 temp °C after 60min'].loc[index],
                         parameter_sheet['O2 temp °C after 90min'].loc[index],
@@ -300,7 +382,7 @@ class ParserMovpe1IKZ(MatchingParser):
                 )
                 fe1_back_press_val = pd.Series(
                     [
-                        parameter_sheet['BP FE1 in mbar befor dep.'].loc[index],
+                        parameter_sheet['BP FE1 in mbar before dep.'].loc[index],
                         parameter_sheet['BP FE1 in mbar after 2min'].loc[index],
                         parameter_sheet['BP FE1 in mbar after 60min'].loc[index],
                         parameter_sheet['BP FE1 in mbar after 90min'].loc[index],
@@ -316,7 +398,7 @@ class ParserMovpe1IKZ(MatchingParser):
                 )
                 fe2_back_press_val = pd.Series(
                     [
-                        parameter_sheet['BP FE2 in mbar befor dep.'].loc[index],
+                        parameter_sheet['BP FE2 in mbar before dep.'].loc[index],
                         parameter_sheet['BP FE2 in mbar after 2min'].loc[index],
                         parameter_sheet['BP FE2 in mbar after 60min'].loc[index],
                         parameter_sheet['BP FE2 in mbar after 90min'].loc[index],
