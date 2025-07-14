@@ -185,6 +185,8 @@ class ParserMovpe1IKZ(MatchingParser):
             time.sleep(
                 0.6
             )  # allow the just created rcp entry to be indexing before searching for it
+            if pd.isna(sample_id):
+                continue
             search_growth = search(
                 owner='all',
                 query={
