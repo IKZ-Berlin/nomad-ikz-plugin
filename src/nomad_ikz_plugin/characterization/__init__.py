@@ -33,7 +33,7 @@ class TransmissionParserEntryPoint(ParserEntryPoint):
     def load(self):
         from nomad_ikz_plugin.characterization.parser import TransmissionParser
 
-        return TransmissionParser(**self.dict())
+        return TransmissionParser(**self.model_dump())
 
 
 schema = CharacterizationEntryPoint(
@@ -43,7 +43,8 @@ schema = CharacterizationEntryPoint(
 
 transmission_parser = TransmissionParserEntryPoint(
     name='Transmission Parser',
-    description='Parser for data from Transmission Spectrophotometry.',
-    mainfile_mime_re='text/.*|application/zip',
-    mainfile_name_re=r'^.*\.asc$',
+    description='Parser for data from Transmission Spectrophotometry. Currently '
+    'supports `.asc` files from Perkin Elmers and `.0` files from Bruker.',
+    mainfile_mime_re='application/zip|text/.*|application/octet-stream',
+    mainfile_name_re=r'^.*\.(asc|0)$',
 )

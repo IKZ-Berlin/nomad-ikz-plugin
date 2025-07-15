@@ -1,4 +1,22 @@
-from typing import TYPE_CHECKING
+#
+# Copyright The NOMAD Authors.
+#
+# This file is part of NOMAD. See https://nomad-lab.eu for further info.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import plotly.express as px
@@ -12,6 +30,7 @@ from nomad.datamodel.metainfo.annotations import (
 from nomad.datamodel.metainfo.basesections import (
     Measurement,
     MeasurementResult,
+    ReadableIdentifiers,
 )
 from nomad.datamodel.metainfo.plot import (
     PlotlyFigure,
@@ -23,7 +42,9 @@ from nomad_measurements.transmission.schema import (
     UVVisNirTransmissionResult,
     UVVisNirTransmissionSettings,
 )
+from nomad_measurements.utils import merge_sections
 
+from nomad_ikz_plugin.characterization.readers import reader_ir_brucker
 from nomad_ikz_plugin.general.schema import (
     IKZCategory,
     SubstratePreparationStep,
@@ -365,6 +386,82 @@ class ELNIRTransmission(IRTransmission, EntryData, PlotSection):
     """
     An EntryData section for IRTransmission that allows user input and plotting.
     """
+
+    m_def = Section(
+        label='UV-Vis-NIR Transmission',
+        a_template={
+            'measurement_identifiers': {},
+        },
+    )
+
+    measurement_identifiers = SubSection(
+        section_def=ReadableIdentifiers,
+    )
+    data_file = Quantity(
+        type=str,
+        description='The data file containing the IR transmission measurement data.',
+        a_browser={'adaptor': 'RawFileAdaptor'},
+        a_eln={'component': 'FileEditQuantity'},
+    )
+
+    def get_read_write_functions(self) -> tuple[Callable, Callable]:
+        """
+        Method for getting the correct read and write functions for the current data
+        file.
+
+        Returns:
+            tuple[Callable, Callable]: The read, write functions.
+        """
+        if self.data_file.endswith('.0'):
+            return reader_ir_brucker, self.write_transmission_data
+        return None, None
+
+    def write_transmission_data(  # noqa: PLR0912, PLR0915
+        self,
+        transmission: IRTransmission,
+        data_dict: dict[str, Any],
+        archive: 'EntryArchive',
+        logger: 'BoundLogger',
+    ) -> None:
+        """
+        Writes the IR transmission data to the archive.
+
+        Args:
+            archive (EntryArchive): The archive to write the data to.
+            logger (BoundLogger): A structlog logger.
+        """
+        if not self.data_file:
+            logger.error('No data file provided for IR transmission measurement.')
+            return
+
+        with archive.m_context.raw_file(self.data_file) as file:
+            data_dict = reader_ir_brucker(file.name, logger)
+
+        print(f'Parsed data: {data_dict}')
+
+    def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
+        """
+        Normalizes the IR transmission data in the archive.
+
+        Args:
+            archive (EntryArchive): The archive containing the section that is being
+            normalized.
+            logger (BoundLogger): A structlog logger.
+        """
+        if self.data_file is not None:
+            read_function, write_function = self.get_read_write_functions()
+            if read_function is None or write_function is None:
+                logger.warning(
+                    f'No compatible reader found for the file: "{self.data_file}".'
+                )
+            else:
+                with archive.m_context.raw_file(self.data_file) as file:
+                    data_dict = read_function(file.name, logger)
+                # self.connect_instrument(data_dict, archive, logger)
+                transmission = self.m_def.section_cls()
+                write_function(transmission, data_dict, archive, logger)
+                merge_sections(self, transmission, logger)
+        super().normalize(archive, logger)
 
 
 m_package.__init_metainfo__()
