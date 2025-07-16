@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any
 import numpy as np
 import plotly.express as px
 from nomad.config import config
+from nomad.datamodel.context import ServerContext
 from nomad.datamodel.data import ArchiveSection, EntryData
 from nomad.datamodel.metainfo.annotations import (
     ELNAnnotation,
@@ -745,7 +746,8 @@ class ELNIRTransmission(IRTransmission, EntryData, PlotSection):
                     if not self.samples:
                         self.m_setdefault('samples/0')
                     self.samples[0].lab_id = data_dict['sample_id']
-                    self.samples[0].normalize(archive, logger)
+                    if archive.m_context is ServerContext:
+                        self.samples[0].normalize(archive, logger)
         if not self.results:
             return
         self.figures = self.results[0].generate_plots()
