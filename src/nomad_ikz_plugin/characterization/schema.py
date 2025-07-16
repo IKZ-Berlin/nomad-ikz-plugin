@@ -1,28 +1,62 @@
-from typing import TYPE_CHECKING
+#
+# Copyright The NOMAD Authors.
+#
+# This file is part of NOMAD. See https://nomad-lab.eu for further info.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import plotly.express as px
 from nomad.config import config
-from nomad.datamodel.data import EntryData
+from nomad.datamodel.context import ServerContext
+from nomad.datamodel.data import ArchiveSection, EntryData
 from nomad.datamodel.metainfo.annotations import (
     ELNAnnotation,
     Filter,
     SectionProperties,
 )
 from nomad.datamodel.metainfo.basesections import (
+    InstrumentReference,
     Measurement,
     MeasurementResult,
+    ReadableIdentifiers,
 )
 from nomad.datamodel.metainfo.plot import (
     PlotlyFigure,
+    PlotSection,
 )
-from nomad.metainfo import Datetime, MEnum, Quantity, SchemaPackage, Section, SubSection
+from nomad.metainfo import (
+    Datetime,
+    MEnum,
+    MProxy,
+    Quantity,
+    SchemaPackage,
+    Section,
+    SubSection,
+)
 from nomad_measurements.transmission.schema import (
+    CrystallographicTransmissionSampleReference,
     ELNUVVisNirTransmission,
+    Spectrophotometer,
     UVVisNirTransmissionResult,
     UVVisNirTransmissionSettings,
 )
+from nomad_measurements.utils import create_archive, merge_sections
 
+from nomad_ikz_plugin.characterization.readers import reader_ir_brucker
 from nomad_ikz_plugin.general.schema import (
     IKZCategory,
     SubstratePreparationStep,
@@ -56,7 +90,17 @@ class AFMresults(MeasurementResult):
         unit='picometer',
     )
     surface_features = Quantity(
-        type=MEnum(['Step Flow', 'Step Bunching', '2D Island', 'Grains', 'Holes', 'Stripes', 'Other']),
+        type=MEnum(
+            [
+                'Step Flow',
+                'Step Bunching',
+                '2D Island',
+                'Grains',
+                'Holes',
+                'Stripes',
+                'Other',
+            ]
+        ),
         a_eln={'component': 'EnumEditQuantity'},
     )
     additional_surface_features = Quantity(
@@ -330,6 +374,385 @@ class IKZELNUVVisNirTransmission(ELNUVVisNirTransmission):
             transmission.transmission_settings.ordinate_type = data_dict.get(
                 'ordinate_type'
             )
+
+
+class IRTransmissionSettings(ArchiveSection):
+    """
+    A section defining the schema for IR transmission measurement settings.
+    """
+
+    aperture_setting = Quantity(
+        type=float,
+        unit='m',
+        description='Description needed.',
+        a_eln={'component': 'NumberEditQuantity', 'defaultDisplayUnit': 'micrometer'},
+    )
+    beamsplitter_setting = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    measurement_channel = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    detector_setting = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    high_pass_filter = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    low_pass_filter = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    variable_low_pass_filter = Quantity(
+        type=float,
+        unit='m^-1',
+        description='Description needed.',
+        a_eln={'component': 'NumberEditQuantity', 'defaultDisplayUnit': 'cm^-1'},
+    )
+    optical_filter_setting = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    preamplifier_gain = Quantity(
+        type=float,
+        unit='dimensionless',
+        description='Description needed.',
+        a_eln={'component': 'NumberEditQuantity'},
+    )
+    source_setting = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    scanner_velocity = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    acquisition_mode = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    wanted_high_frequency_limit = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    wanted_low_frequency_limit = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    sample_scans = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    result_spectrum = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    resolution = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+
+
+class IRTransmissionResult(UVVisNirTransmissionResult):
+    """
+    A section defining the schema for IR transmission measurement results.
+    """
+
+    m_def = Section(
+        a_eln=ELNAnnotation(
+            properties=SectionProperties(
+                order=[
+                    'absorbance',
+                    'wavelength',
+                    'transmittance',
+                ],
+                visible=Filter(
+                    exclude=[
+                        'array_index',
+                    ],
+                ),
+            )
+        )
+    )
+
+
+class IRTransmission(Measurement):
+    """
+    A section defining the schema for IR transmission measurements.
+    """
+
+    m_def = Section()
+
+    user = Quantity(
+        type=str,
+        description='Name of user or analyst.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+
+    method = Quantity(
+        type=str,
+        default='IR Transmission Spectrophotometry',
+    )
+
+    samples = SubSection(
+        section_def=CrystallographicTransmissionSampleReference,
+        description='A list of all the samples measured during the measurement.',
+        repeats=True,
+    )
+    results = SubSection(
+        section_def=IRTransmissionResult,
+        description='The result of the IR spectroscopy measurement.',
+        repeats=True,
+    )
+
+    transmission_settings = SubSection(
+        section_def=IRTransmissionSettings,
+    )
+
+
+class ELNIRTransmission(IRTransmission, EntryData, PlotSection):
+    """
+    An EntryData section for IRTransmission that allows user input and plotting.
+    """
+
+    m_def = Section(
+        label='IR Transmission',
+        a_template={
+            'measurement_identifiers': {},
+        },
+    )
+
+    measurement_identifiers = SubSection(
+        section_def=ReadableIdentifiers,
+    )
+    data_file = Quantity(
+        type=str,
+        description='The data file containing the IR transmission measurement data.',
+        a_browser={'adaptor': 'RawFileAdaptor'},
+        a_eln={'component': 'FileEditQuantity'},
+    )
+
+    def get_read_write_functions(self) -> tuple[Callable, Callable]:
+        """
+        Method for getting the correct read and write functions for the current data
+        file.
+
+        Returns:
+            tuple[Callable, Callable]: The read, write functions.
+        """
+        if self.data_file.endswith('.0'):
+            return reader_ir_brucker, self.write_transmission_data
+        return None, None
+
+    def write_transmission_data(  # noqa: PLR0912, PLR0915
+        self,
+        transmission: IRTransmission,
+        data_dict: dict[str, Any],
+        archive: 'EntryArchive',
+        logger: 'BoundLogger',
+    ) -> None:
+        """
+        Writes the IR transmission data to the archive.
+
+        Args:
+            archive (EntryArchive): The archive to write the data to.
+            logger (BoundLogger): A structlog logger.
+        """
+        transmission.user = data_dict['analyst_name']
+        transmission.datetime = data_dict['start_datetime']
+
+        # populate results
+        transmission.m_setdefault('results/0')
+        if data_dict['ordinate_type'] == 'Absorbance':
+            transmission.results[0].absorbance = data_dict['measured_ordinate']
+        elif data_dict['ordinate_type'] == 'Transmittance':
+            transmission.results[0].transmittance = data_dict['measured_ordinate']
+        transmission.results[0].wavelength = data_dict['measured_wavelength']
+        transmission.results[0].normalize(archive, logger)
+
+        # populate settings
+        transmission.m_setdefault('transmission_settings')
+        for key, value in data_dict.items():
+            if hasattr(transmission.transmission_settings, key):
+                setattr(transmission.transmission_settings, key, value)
+
+    def create_instrument_entry(
+        self, data_dict: dict[str, Any], archive: 'EntryArchive', logger: 'BoundLogger'
+    ) -> InstrumentReference:
+        """
+        Method for creating the instrument entry. Returns a reference to the created
+        instrument.
+
+        Args:
+            data_dict (dict[str, Any]): The dictionary containing the instrument data.
+            archive (EntryArchive): The archive containing the section.
+            logger (BoundLogger): A structlog logger.
+
+        Returns:
+            InstrumentReference: The instrument reference.
+        """
+        instrument = Spectrophotometer()
+
+        instrument.name = data_dict['instrument_name'].lower()
+        instrument.serial_number = data_dict['instrument_serial_number']
+        instrument.software_version = data_dict['instrument_firmware_version']
+        if data_dict['start_datetime'] is not None:
+            instrument.datetime = data_dict['start_datetime']
+
+        instrument.normalize(archive, logger)
+
+        file_name = f'{instrument.name}_{instrument.serial_number}.archive.json'
+        file_name = file_name.replace(' ', '_')
+        m_proxy_value = create_archive(instrument, archive, file_name)
+        logger.info('Created instrument entry.')
+
+        return InstrumentReference(reference=m_proxy_value)
+
+    def get_instrument_reference(
+        self, data_dict: dict[str, Any], archive: 'EntryArchive', logger: 'BoundLogger'
+    ) -> InstrumentReference | None:
+        """
+        Method for getting the instrument reference.
+        Looks for an existing instrument with the given serial number.
+        If found, it returns a reference to this instrument.
+        If no instrument is found, logs a warning, creates a new entry for the
+        instrument and returns a reference to this entry.
+        If multiple instruments are found, it logs a warning and returns None.
+
+        Args:
+            data_dict (dict[str, Any]): The dictionary containing the instrument data.
+            archive (EntryArchive): The archive containing the section.
+            logger (BoundLogger): A structlog logger.
+
+        Returns:
+            Union[InstrumentReference, None]: The instrument reference or None.
+        """
+        from nomad.datamodel.context import ClientContext
+
+        if isinstance(archive.m_context, ClientContext):
+            return None
+
+        from nomad.app.v1.models.models import Or
+        from nomad.search import search
+
+        serial_number = data_dict['instrument_serial_number']
+        if serial_number is None:
+            logger.warning(
+                'Unable to connect to an existing instrument entry as serial number is '
+                'missing in the data file. Creating a new instrument entry.'
+            )
+            return self.create_instrument_entry(data_dict, archive, logger)
+
+        search_result = search(
+            owner='visible',
+            query=Or(
+                **{
+                    'or': [
+                        {
+                            'search_quantities': {
+                                'id': (
+                                    'data.serial_number#nomad_measurements.transmission'
+                                    '.schema.Spectrophotometer'
+                                ),
+                                'str_value': f'{serial_number}',
+                            }
+                        },
+                    ]
+                }
+            ),
+            user_id=archive.metadata.main_author.user_id,
+        ).data
+
+        if not search_result:
+            logger.warning(
+                'No "Spectrophotometer" instrument found with the serial number '
+                f'"{serial_number}". Creating an entry for the instrument.'
+            )
+            return self.create_instrument_entry(data_dict, archive, logger)
+
+        if len(search_result) > 1:
+            logger.warning(
+                f'Multiple instruments found with the '
+                f'serial number "{serial_number}". Please select it manually.'
+            )
+            return None
+
+        upload_id = search_result[0]['upload_id']
+        entry_id = search_result[0]['entry_id']
+        m_proxy_value = f'../uploads/{upload_id}/archive/{entry_id}#/data'
+
+        return InstrumentReference(reference=m_proxy_value)
+
+    def connect_instrument(
+        self, data_dict, archive: 'EntryArchive', logger: 'BoundLogger'
+    ):
+        """
+        Method for automatically connecting the instrument based on
+        the extracted raw data. Only works if no instrument is already connected.
+        """
+        if self.instruments:
+            return
+        # add instrument
+        instrument_reference = self.get_instrument_reference(data_dict, archive, logger)
+        if instrument_reference is None:
+            return
+        # resolve the reference
+        if isinstance(instrument_reference.reference, MProxy):
+            instrument_reference.reference.m_proxy_context = archive.m_context
+        self.instruments = [instrument_reference]
+        self.instruments[0].normalize(archive, logger)
+
+    def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
+        """
+        Normalizes the IR transmission data in the archive.
+
+        Args:
+            archive (EntryArchive): The archive containing the section that is being
+            normalized.
+            logger (BoundLogger): A structlog logger.
+        """
+        if self.data_file is not None:
+            read_function, write_function = self.get_read_write_functions()
+            if read_function is None or write_function is None:
+                logger.warning(
+                    f'No compatible reader found for the file: "{self.data_file}".'
+                )
+            else:
+                with archive.m_context.raw_file(self.data_file) as file:
+                    data_dict = read_function(file.name, logger)
+                if data_dict:
+                    self.connect_instrument(data_dict, archive, logger)
+                    transmission = self.m_def.section_cls()
+                    write_function(transmission, data_dict, archive, logger)
+                    merge_sections(self, transmission, logger)
+                    if not self.samples:
+                        self.m_setdefault('samples/0')
+                    self.samples[0].lab_id = data_dict['sample_id']
+                    if archive.m_context is ServerContext:
+                        self.samples[0].normalize(archive, logger)
+        if not self.results:
+            return
+        self.figures = self.results[0].generate_plots()
+
+        super().normalize(archive, logger)
 
 
 m_package.__init_metainfo__()

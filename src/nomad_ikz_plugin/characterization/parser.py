@@ -21,7 +21,10 @@ from nomad.parsing import MatchingParser
 from nomad_measurements.transmission.schema import RawFileTransmissionData
 from nomad_measurements.utils import create_archive
 
-from nomad_ikz_plugin.characterization.schema import IKZELNUVVisNirTransmission
+from nomad_ikz_plugin.characterization.schema import (
+    ELNIRTransmission,
+    IKZELNUVVisNirTransmission,
+)
 
 if TYPE_CHECKING:
     from nomad.datamodel.datamodel import (
@@ -39,9 +42,15 @@ class TransmissionParser(MatchingParser):
         self, mainfile: str, archive: 'EntryArchive', logger=None, child_archives=None
     ) -> None:
         data_file = mainfile.split('/')[-1]
-        entry = IKZELNUVVisNirTransmission.m_from_dict(
-            IKZELNUVVisNirTransmission.m_def.a_template
-        )
+        if data_file.endswith('.asc'):
+            entry = IKZELNUVVisNirTransmission.m_from_dict(
+                IKZELNUVVisNirTransmission.m_def.a_template
+            )
+        elif data_file.endswith('.0'):
+            entry = ELNIRTransmission.m_from_dict(ELNIRTransmission.m_def.a_template)
+        else:
+            logger.error(f'Unsupported file format: {data_file}')
+            return
         entry.data_file = data_file
         file_name = f'{".".join(data_file.split(".")[:-1])}.archive.json'
         archive.data = RawFileTransmissionData(

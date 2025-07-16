@@ -22,20 +22,22 @@ import os
 import pytest
 from nomad.client import normalize_all
 
-test_files = glob.glob(
-    os.path.join(
-        os.path.dirname(__file__), 'data/characterization/transmission', '*.asc'
-    )
-)
 log_levels = ['error', 'critical']
 
 
 @pytest.mark.parametrize(
     'parsed_measurement_archive, caplog',
-    [(file, log_level) for file in test_files for log_level in log_levels],
+    [
+        (file, log_levels)
+        for file in glob.glob(
+            os.path.join(
+                os.path.dirname(__file__), 'data/characterization/transmission', '*.asc'
+            )
+        )
+    ],
     indirect=True,
 )
-def test_normalize_all(parsed_measurement_archive, caplog):
+def test_uv_vis_transmission(parsed_measurement_archive, caplog):
     """
     Tests the normalization of the parsed archive.
 
@@ -47,3 +49,29 @@ def test_normalize_all(parsed_measurement_archive, caplog):
     assert (
         parsed_measurement_archive.metadata.entry_type == 'IKZELNUVVisNirTransmission'
     )
+
+
+@pytest.mark.parametrize(
+    'parsed_measurement_archive, caplog',
+    [
+        (file, log_levels)
+        for file in glob.glob(
+            os.path.join(
+                os.path.dirname(__file__), 'data/characterization/transmission', '*.0'
+            )
+        )
+    ],
+    indirect=True,
+)
+def test_ir_transmission(parsed_measurement_archive, caplog):
+    """
+    Tests the normalization of the parsed archive.
+
+    Args:
+        parsed_archive (pytest.fixture): Fixture to handle the parsing of archive.
+        caplog (pytest.fixture): Fixture to capture errors from the logger.
+    """
+    normalize_all(parsed_measurement_archive)
+    assert parsed_measurement_archive.metadata.entry_type == 'ELNIRTransmission'
+    assert parsed_measurement_archive.data.results[0].wavelength is not None
+    assert len(parsed_measurement_archive.data.figures) > 0
