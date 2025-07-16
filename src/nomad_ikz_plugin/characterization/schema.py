@@ -742,12 +742,15 @@ class ELNIRTransmission(IRTransmission, EntryData, PlotSection):
                     transmission = self.m_def.section_cls()
                     write_function(transmission, data_dict, archive, logger)
                     merge_sections(self, transmission, logger)
-        super().normalize(archive, logger)
-
+                    if not self.samples:
+                        self.m_setdefault('samples/0')
+                    self.samples[0].lab_id = data_dict['sample_id']
+                    self.samples[0].normalize(archive, logger)
         if not self.results:
             return
-
         self.figures = self.results[0].generate_plots()
+
+        super().normalize(archive, logger)
 
 
 m_package.__init_metainfo__()
