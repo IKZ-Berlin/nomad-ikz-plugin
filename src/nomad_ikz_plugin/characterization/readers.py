@@ -15,9 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from collections import defaultdict
 from typing import TYPE_CHECKING, Any
 
 from brukeropus import read_opus
+from nomad.units import ureg
 
 if TYPE_CHECKING:
     from structlog.stdlib import (
@@ -25,16 +27,19 @@ if TYPE_CHECKING:
     )
 
 
-def reader_ir_brucker(file_path: str, logger: 'BoundLogger' = None) -> dict[str, Any]:
+def reader_ir_brucker(
+    file_path: str, logger: 'BoundLogger' = None
+) -> dict[str, Any] | None:
     """
-    Function for reading the IR transmission data from Bruker *.0.
+    Function for reading the IR transmission data from Bruker `*.0` OPUS files.
 
     Args:
         file_path (str): The path to the transmission data file.
         logger (BoundLogger, optional): A structlog logger. Defaults to None.
 
     Returns:
-        Dict[str, Any]: The transmission data and metadata in a Python dictionary.
+        dict[str, Any] | None: The transmission data and metadata in a Python
+            dictionary.
     """
     if not file_path.endswith('.0'):
         if logger:
@@ -45,12 +50,61 @@ def reader_ir_brucker(file_path: str, logger: 'BoundLogger' = None) -> dict[str,
 
     opus_file = read_opus(file_path)
 
-    output = {}
+    output = defaultdict(lambda: None)
 
-    output['measured_wavelength'] = opus_file.a.x
-    output['measured_ordinate'] = opus_file.a.y
+    try:
+        # measurment data
+        for data in opus_file.iter_data():
+            # picks Absorbance (first priority) or Transmittance data
+            if data.label not in ['Absorbance', 'Transmittance']:
+                continue
+            output['ordinate_type'] = data.label
+            output['measured_ordinate'] = data.y * ureg('dimensionless')
+            if data.dxu == 'WN':
+                output['measured_wavelength'] = ((1 / data.x) * ureg('cm')).to('m')
+            elif data.dxu == 'WL':
+                output['measured_wavelength'] = (data.x * ureg('micrometer')).to('m')
+            else:
+                raise ValueError(f'Unsupported wavelength unit: {data.dxu}')
+            output['start_datetime'] = data.params.datetime
+            break
 
-    # TODO: get the required metadata from the OPUS file parameters
-    # opus_file.print_parameters()
+        # instrument metadata
+        output['instrument_name'] = opus_file.params.ins
+        output['instrument_serial_number'] = opus_file.params.srn
+        output['instrument_firmware_version'] = opus_file.params.vsn
 
-    return output
+        # sample parameters
+        output['sample_id'] = opus_file.params.snm
+        output['analyst_name'] = opus_file.params.cnm
+        output['experiment_name'] = opus_file.params.exp
+        output['experiment_folder_path'] = opus_file.params.xpp
+
+        # optical parameters
+        output['aperture_setting'] = ureg(opus_file.params.apt)
+        output['beamsplitter_settting'] = opus_file.params.bms
+        output['measurement_channel'] = opus_file.params.chn
+        output['detector_setting'] = opus_file.params.dtc
+        output['high_pass_filter'] = opus_file.params.hpf
+        output['low_pass_filter'] = opus_file.params.lpf
+        output['variable_low_pass_filter'] = opus_file.params.lpv * ureg('cm^-1')
+        output['optical_filter_setting'] = opus_file.params.opf
+        output['preamplifier_gain'] = ureg(opus_file.params.pgn) * ureg('dimensionless')
+        output['source_setting'] = opus_file.params.src
+        output['scanner_velocity'] = opus_file.params.vel
+
+        # aquisition settings
+        output['acquisition_mode'] = opus_file.params.aqm
+        output['wanted_high_frequency_limit'] = opus_file.params.hfw
+        output['wanted_low_frequency_limit'] = opus_file.params.lfw
+        output['sample_scans'] = opus_file.params.nss
+        output['result_spectrum'] = opus_file.params.plf
+        output['resolution'] = opus_file.params.res
+
+        return output
+
+    except Exception as e:
+        if logger:
+            logger.error(f'Error reading file {file_path}: {e}')
+        else:
+            raise ValueError(f'Error reading file {file_path}: {e}') from e

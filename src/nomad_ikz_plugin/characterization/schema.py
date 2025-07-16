@@ -430,14 +430,7 @@ class ELNIRTransmission(IRTransmission, EntryData, PlotSection):
             archive (EntryArchive): The archive to write the data to.
             logger (BoundLogger): A structlog logger.
         """
-        if not self.data_file:
-            logger.error('No data file provided for IR transmission measurement.')
-            return
-
-        with archive.m_context.raw_file(self.data_file) as file:
-            data_dict = reader_ir_brucker(file.name, logger)
-
-        print(f'Parsed data: {data_dict}')
+        pass
 
     def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
         """
@@ -457,10 +450,11 @@ class ELNIRTransmission(IRTransmission, EntryData, PlotSection):
             else:
                 with archive.m_context.raw_file(self.data_file) as file:
                     data_dict = read_function(file.name, logger)
-                # self.connect_instrument(data_dict, archive, logger)
-                transmission = self.m_def.section_cls()
-                write_function(transmission, data_dict, archive, logger)
-                merge_sections(self, transmission, logger)
+                if data_dict:
+                    # self.connect_instrument(data_dict, archive, logger)
+                    transmission = self.m_def.section_cls()
+                    write_function(transmission, data_dict, archive, logger)
+                    merge_sections(self, transmission, logger)
         super().normalize(archive, logger)
 
 
