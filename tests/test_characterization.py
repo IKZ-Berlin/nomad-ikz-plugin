@@ -73,3 +73,5 @@ def test_ir_transmission(parsed_measurement_archive, caplog):
     """
     normalize_all(parsed_measurement_archive)
     assert parsed_measurement_archive.metadata.entry_type == 'ELNIRTransmission'
+    assert parsed_measurement_archive.data.results[0].wavelength is not None
+    assert len(parsed_measurement_archive.data.figures) > 0

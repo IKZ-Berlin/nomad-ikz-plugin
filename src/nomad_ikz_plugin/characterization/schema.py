@@ -38,6 +38,7 @@ from nomad.datamodel.metainfo.plot import (
 )
 from nomad.metainfo import Datetime, MEnum, Quantity, SchemaPackage, Section, SubSection
 from nomad_measurements.transmission.schema import (
+    CrystallographicTransmissionSampleReference,
     ELNUVVisNirTransmission,
     UVVisNirTransmissionResult,
     UVVisNirTransmissionSettings,
@@ -370,16 +371,61 @@ class IRTransmissionSettings(ArchiveSection):
     """
 
 
-class IRTransmissionResult(MeasurementResult):
+class IRTransmissionResult(UVVisNirTransmissionResult):
     """
     A section defining the schema for IR transmission measurement results.
     """
+
+    m_def = Section(
+        a_eln=ELNAnnotation(
+            properties=SectionProperties(
+                order=[
+                    'absorbance',
+                    'wavelength',
+                    'transmittance',
+                ],
+                visible=Filter(
+                    exclude=[
+                        'array_index',
+                    ],
+                ),
+            )
+        )
+    )
 
 
 class IRTransmission(Measurement):
     """
     A section defining the schema for IR transmission measurements.
     """
+
+    m_def = Section()
+
+    user = Quantity(
+        type=str,
+        description='Name of user or analyst.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+
+    method = Quantity(
+        type=str,
+        default='IR Transmission Spectrophotometry',
+    )
+
+    samples = SubSection(
+        section_def=CrystallographicTransmissionSampleReference,
+        description='A list of all the samples measured during the measurement.',
+        repeats=True,
+    )
+    results = SubSection(
+        section_def=IRTransmissionResult,
+        description='The result of the IR spectroscopy measurement.',
+        repeats=True,
+    )
+
+    transmission_settings = SubSection(
+        section_def=IRTransmissionSettings,
+    )
 
 
 class ELNIRTransmission(IRTransmission, EntryData, PlotSection):
@@ -388,7 +434,7 @@ class ELNIRTransmission(IRTransmission, EntryData, PlotSection):
     """
 
     m_def = Section(
-        label='UV-Vis-NIR Transmission',
+        label='IR Transmission',
         a_template={
             'measurement_identifiers': {},
         },
@@ -430,7 +476,16 @@ class ELNIRTransmission(IRTransmission, EntryData, PlotSection):
             archive (EntryArchive): The archive to write the data to.
             logger (BoundLogger): A structlog logger.
         """
-        pass
+        transmission.user = data_dict['analyst_name']
+        transmission.datetime = data_dict['start_datetime']
+
+        transmission.m_setdefault('results/0')
+        if data_dict['ordinate_type'] == 'Absorbance':
+            transmission.results[0].absorbance = data_dict['measured_ordinate']
+        elif data_dict['ordinate_type'] == 'Transmittance':
+            transmission.results[0].transmittance = data_dict['measured_ordinate']
+        transmission.results[0].wavelength = data_dict['measured_wavelength']
+        transmission.results[0].normalize(archive, logger)
 
     def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
         """
@@ -456,6 +511,11 @@ class ELNIRTransmission(IRTransmission, EntryData, PlotSection):
                     write_function(transmission, data_dict, archive, logger)
                     merge_sections(self, transmission, logger)
         super().normalize(archive, logger)
+
+        if not self.results:
+            return
+
+        self.figures = self.results[0].generate_plots()
 
 
 m_package.__init_metainfo__()
