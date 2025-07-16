@@ -33,7 +33,7 @@ test_files = glob.glob(
 
 @pytest.mark.parametrize(
     'parsed_json_archive, caplog',
-    [(file, log_level) for file in test_files for log_level in log_levels],
+    [(file, log_levels) for file in test_files],
     indirect=True,
 )
 def test_patch_for_activating_aliases(parsed_json_archive, caplog):
@@ -59,7 +59,7 @@ test_files = glob.glob(
 
 @pytest.mark.parametrize(
     'parsed_json_archive, caplog',
-    [(file, log_level) for file in test_files for log_level in log_levels],
+    [(file, log_levels) for file in test_files],
     indirect=True,
 )
 def test_backcompatibility(parsed_json_archive, caplog):
