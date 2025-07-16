@@ -82,7 +82,7 @@ def reader_ir_brucker(
 
         # optical parameters
         output['aperture_setting'] = ureg(opus_file.params.apt)
-        output['beamsplitter_settting'] = opus_file.params.bms
+        output['beamsplitter_setting'] = opus_file.params.bms
         output['measurement_channel'] = opus_file.params.chn
         output['detector_setting'] = opus_file.params.dtc
         output['high_pass_filter'] = opus_file.params.hpf
