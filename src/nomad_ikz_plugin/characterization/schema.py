@@ -370,6 +370,95 @@ class IRTransmissionSettings(ArchiveSection):
     A section defining the schema for IR transmission measurement settings.
     """
 
+    aperture_setting = Quantity(
+        type=float,
+        unit='m',
+        description='Description needed.',
+        a_eln={'component': 'NumberEditQuantity', 'defaultDisplayUnit': 'micrometer'},
+    )
+    beamsplitter_setting = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    measurement_channel = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    detector_setting = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    high_pass_filter = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    low_pass_filter = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    variable_low_pass_filter = Quantity(
+        type=float,
+        unit='m^-1',
+        description='Description needed.',
+        a_eln={'component': 'NumberEditQuantity', 'defaultDisplayUnit': 'cm^-1'},
+    )
+    optical_filter_setting = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    preamplifier_gain = Quantity(
+        type=float,
+        unit='dimensionless',
+        description='Description needed.',
+        a_eln={'component': 'NumberEditQuantity'},
+    )
+    source_setting = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    scanner_velocity = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    acquisition_mode = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    wanted_high_frequency_limit = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    wanted_low_frequency_limit = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    sample_scans = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    result_spectrum = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+    resolution = Quantity(
+        type=str,
+        description='Description needed.',
+        a_eln={'component': 'StringEditQuantity'},
+    )
+
 
 class IRTransmissionResult(UVVisNirTransmissionResult):
     """
@@ -479,6 +568,7 @@ class ELNIRTransmission(IRTransmission, EntryData, PlotSection):
         transmission.user = data_dict['analyst_name']
         transmission.datetime = data_dict['start_datetime']
 
+        # populate results
         transmission.m_setdefault('results/0')
         if data_dict['ordinate_type'] == 'Absorbance':
             transmission.results[0].absorbance = data_dict['measured_ordinate']
@@ -486,6 +576,12 @@ class ELNIRTransmission(IRTransmission, EntryData, PlotSection):
             transmission.results[0].transmittance = data_dict['measured_ordinate']
         transmission.results[0].wavelength = data_dict['measured_wavelength']
         transmission.results[0].normalize(archive, logger)
+
+        # populate settings
+        transmission.m_setdefault('transmission_settings')
+        for key, value in data_dict.items():
+            if hasattr(transmission.transmission_settings, key):
+                setattr(transmission.transmission_settings, key, value)
 
     def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
         """
