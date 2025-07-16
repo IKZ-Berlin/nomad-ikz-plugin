@@ -28,6 +28,7 @@ from nomad.datamodel.metainfo.annotations import (
     SectionProperties,
 )
 from nomad.datamodel.metainfo.basesections import (
+    InstrumentReference,
     Measurement,
     MeasurementResult,
     ReadableIdentifiers,
@@ -36,14 +37,23 @@ from nomad.datamodel.metainfo.plot import (
     PlotlyFigure,
     PlotSection,
 )
-from nomad.metainfo import Datetime, MEnum, Quantity, SchemaPackage, Section, SubSection
+from nomad.metainfo import (
+    Datetime,
+    MEnum,
+    MProxy,
+    Quantity,
+    SchemaPackage,
+    Section,
+    SubSection,
+)
 from nomad_measurements.transmission.schema import (
     CrystallographicTransmissionSampleReference,
     ELNUVVisNirTransmission,
+    Spectrophotometer,
     UVVisNirTransmissionResult,
     UVVisNirTransmissionSettings,
 )
-from nomad_measurements.utils import merge_sections
+from nomad_measurements.utils import create_archive, merge_sections
 
 from nomad_ikz_plugin.characterization.readers import reader_ir_brucker
 from nomad_ikz_plugin.general.schema import (
@@ -583,6 +593,132 @@ class ELNIRTransmission(IRTransmission, EntryData, PlotSection):
             if hasattr(transmission.transmission_settings, key):
                 setattr(transmission.transmission_settings, key, value)
 
+    def create_instrument_entry(
+        self, data_dict: dict[str, Any], archive: 'EntryArchive', logger: 'BoundLogger'
+    ) -> InstrumentReference:
+        """
+        Method for creating the instrument entry. Returns a reference to the created
+        instrument.
+
+        Args:
+            data_dict (dict[str, Any]): The dictionary containing the instrument data.
+            archive (EntryArchive): The archive containing the section.
+            logger (BoundLogger): A structlog logger.
+
+        Returns:
+            InstrumentReference: The instrument reference.
+        """
+        instrument = Spectrophotometer()
+
+        instrument.name = data_dict['instrument_name'].lower()
+        instrument.serial_number = data_dict['instrument_serial_number']
+        instrument.software_version = data_dict['instrument_firmware_version']
+        if data_dict['start_datetime'] is not None:
+            instrument.datetime = data_dict['start_datetime']
+
+        instrument.normalize(archive, logger)
+
+        file_name = f'{instrument.name}_{instrument.serial_number}.archive.json'
+        file_name = file_name.replace(' ', '_')
+        m_proxy_value = create_archive(instrument, archive, file_name)
+        logger.info('Created instrument entry.')
+
+        return InstrumentReference(reference=m_proxy_value)
+
+    def get_instrument_reference(
+        self, data_dict: dict[str, Any], archive: 'EntryArchive', logger: 'BoundLogger'
+    ) -> InstrumentReference | None:
+        """
+        Method for getting the instrument reference.
+        Looks for an existing instrument with the given serial number.
+        If found, it returns a reference to this instrument.
+        If no instrument is found, logs a warning, creates a new entry for the
+        instrument and returns a reference to this entry.
+        If multiple instruments are found, it logs a warning and returns None.
+
+        Args:
+            data_dict (dict[str, Any]): The dictionary containing the instrument data.
+            archive (EntryArchive): The archive containing the section.
+            logger (BoundLogger): A structlog logger.
+
+        Returns:
+            Union[InstrumentReference, None]: The instrument reference or None.
+        """
+        from nomad.datamodel.context import ClientContext
+
+        if isinstance(archive.m_context, ClientContext):
+            return None
+
+        from nomad.app.v1.models.models import Or
+        from nomad.search import search
+
+        serial_number = data_dict['instrument_serial_number']
+        if serial_number is None:
+            logger.warning(
+                'Unable to connect to an existing instrument entry as serial number is '
+                'missing in the data file. Creating a new instrument entry.'
+            )
+            return self.create_instrument_entry(data_dict, archive, logger)
+
+        search_result = search(
+            owner='visible',
+            query=Or(
+                **{
+                    'or': [
+                        {
+                            'search_quantities': {
+                                'id': (
+                                    'data.serial_number#nomad_measurements.transmission'
+                                    '.schema.Spectrophotometer'
+                                ),
+                                'str_value': f'{serial_number}',
+                            }
+                        },
+                    ]
+                }
+            ),
+            user_id=archive.metadata.main_author.user_id,
+        ).data
+
+        if not search_result:
+            logger.warning(
+                'No "Spectrophotometer" instrument found with the serial number '
+                f'"{serial_number}". Creating an entry for the instrument.'
+            )
+            return self.create_instrument_entry(data_dict, archive, logger)
+
+        if len(search_result) > 1:
+            logger.warning(
+                f'Multiple instruments found with the '
+                f'serial number "{serial_number}". Please select it manually.'
+            )
+            return None
+
+        upload_id = search_result[0]['upload_id']
+        entry_id = search_result[0]['entry_id']
+        m_proxy_value = f'../uploads/{upload_id}/archive/{entry_id}#/data'
+
+        return InstrumentReference(reference=m_proxy_value)
+
+    def connect_instrument(
+        self, data_dict, archive: 'EntryArchive', logger: 'BoundLogger'
+    ):
+        """
+        Method for automatically connecting the instrument based on
+        the extracted raw data. Only works if no instrument is already connected.
+        """
+        if self.instruments:
+            return
+        # add instrument
+        instrument_reference = self.get_instrument_reference(data_dict, archive, logger)
+        if instrument_reference is None:
+            return
+        # resolve the reference
+        if isinstance(instrument_reference.reference, MProxy):
+            instrument_reference.reference.m_proxy_context = archive.m_context
+        self.instruments = [instrument_reference]
+        self.instruments[0].normalize(archive, logger)
+
     def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
         """
         Normalizes the IR transmission data in the archive.
@@ -602,7 +738,7 @@ class ELNIRTransmission(IRTransmission, EntryData, PlotSection):
                 with archive.m_context.raw_file(self.data_file) as file:
                     data_dict = read_function(file.name, logger)
                 if data_dict:
-                    # self.connect_instrument(data_dict, archive, logger)
+                    self.connect_instrument(data_dict, archive, logger)
                     transmission = self.m_def.section_cls()
                     write_function(transmission, data_dict, archive, logger)
                     merge_sections(self, transmission, logger)
