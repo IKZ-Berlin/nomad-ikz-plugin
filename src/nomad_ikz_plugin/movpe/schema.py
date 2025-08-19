@@ -29,6 +29,12 @@ from nomad.datamodel.metainfo.plot import (
 from nomad.datamodel.metainfo.workflow import (
     Link,
 )
+
+# from nomad.datamodel.context import ClientContext, ServerContext
+# from nomad.app.v1.models.models import User
+# from nomad.files import UploadFiles
+# from nomad.app.v1.routers.uploads import get_upload_with_read_access
+
 from nomad.metainfo import (
     Quantity,
     Reference,
@@ -1193,8 +1199,18 @@ class GrowthMovpeIKZ(VaporDeposition, PlotSection, EntryData):
 
                         if (
                             sample.substrate is not None
-                            and sample.substrate.reference is not None
+                            and sample.substrate.reference.m_proxy_value is not None
                         ):
+                            # sub_context = ServerContext(
+                            #         get_upload_with_read_access(
+                            #             matches["upload_id"][0],
+                            #             User(
+                            #                 is_admin=True,
+                            #                 user_id=archive.metadata.main_author.user_id,
+                            #             ),
+                            #             include_others=True,
+                            #         )
+                            #    )  # Upload(upload_id=matches["upload_id"][0]))
                             if hasattr(
                                 getattr(sample.substrate.reference, 'substrate'),
                                 'name',
