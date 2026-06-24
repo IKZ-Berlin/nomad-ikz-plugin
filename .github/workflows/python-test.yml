@@ -30,7 +30,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install nomad
         run: |
-          uv pip install nomad-lab[parsing, infrastructure]@git+https://gitlab.mpcdf.mpg.de/nomad-lab/nomad-FAIR.git
+          uv pip install nomad-lab@git+https://gitlab.mpcdf.mpg.de/nomad-lab/nomad-FAIR.git
       - name: Install nomad-ikz-plugin
         run: |
           uv pip install -e ".[dev]"
