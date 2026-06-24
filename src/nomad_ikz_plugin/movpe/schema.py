@@ -127,15 +127,15 @@ class BubblerPrecursor(PureSubstance, EntryData):
         ),
         unit='kg',
     )
-    total_comsumption = Quantity(
-        type=np.float64,
-        description='FILL DESCRIPTION.',
-        a_eln=ELNAnnotation(
-            component='NumberEditQuantity',
-            defaultDisplayUnit='gram',
-        ),
-        unit='kg',
-    )
+    # total_consumption = Quantity(
+    #     type=np.float64,
+    #     description='FILL DESCRIPTION.',
+    #     a_eln=ELNAnnotation(
+    #         component='NumberEditQuantity',
+    #         defaultDisplayUnit='gram',
+    #     ),
+    #     unit='kg',
+    # )
     a_parameter = Quantity(
         type=np.float64,
         description='The A parameter of Antoine equation. Dimensionless.',

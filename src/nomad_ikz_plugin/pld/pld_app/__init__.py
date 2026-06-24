@@ -4,8 +4,8 @@ from nomad.config.models.plugins import AppEntryPoint
 pld_layers_app = AppEntryPoint(
     name='PLD Layers App',
     description='Search for layers made by PLD.',
-    app= yaml.safe_load(
-    '''
+    app=yaml.safe_load(
+        """
         label: PLD Layers
         filters:
           include:
@@ -516,7 +516,6 @@ pld_layers_app = AppEntryPoint(
                 w: 12
                 y: 0
                 x: 0
-'''
-
-
-))
+"""
+    ),
+)

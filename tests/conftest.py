@@ -65,7 +65,7 @@ def fixture_parsed_measurement_archive(request):
     returning an `EntryArchive` object. It contains a reference to the `.archive.json`
     file created by plugin parsers for the measurement data. Parsing this
     `.archive.json` file returns the `EntryArchive` object for the measurement data,
-    which is finally yeilded to the test function.
+    which finally yields the test function.
     """
     rel_file_path = request.param
     file_archive = parse(rel_file_path)[0]

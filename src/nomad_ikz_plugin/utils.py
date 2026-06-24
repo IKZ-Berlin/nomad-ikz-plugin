@@ -257,7 +257,7 @@ def clean_dataframe_headers(dataframe: pd.DataFrame) -> pd.DataFrame:
     """
 
     # Create a dictionary to keep track of the count of each column name
-    column_counts = {}
+    column_counts: dict[str, int] = {}
     # Create a list to store the new column names
     new_columns = []
     # Iterate over the columns

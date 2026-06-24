@@ -56,7 +56,7 @@ from nomad_measurements.transmission.schema import (
 )
 from nomad_measurements.utils import create_archive, merge_sections
 
-from nomad_ikz_plugin.characterization.readers import reader_ir_brucker
+from nomad_ikz_plugin.characterization.readers import reader_ir_bruker
 from nomad_ikz_plugin.general.schema import (
     IKZCategory,
     SubstratePreparationStep,
@@ -550,7 +550,7 @@ class ELNIRTransmission(IRTransmission, EntryData, PlotSection):
         a_eln={'component': 'FileEditQuantity'},
     )
 
-    def get_read_write_functions(self) -> tuple[Callable, Callable]:
+    def get_read_write_functions(self) -> tuple[Callable, Callable] | tuple[None, None]:
         """
         Method for getting the correct read and write functions for the current data
         file.
@@ -559,7 +559,7 @@ class ELNIRTransmission(IRTransmission, EntryData, PlotSection):
             tuple[Callable, Callable]: The read, write functions.
         """
         if self.data_file.endswith('.0'):
-            return reader_ir_brucker, self.write_transmission_data
+            return reader_ir_bruker, self.write_transmission_data
         return None, None
 
     def write_transmission_data(  # noqa: PLR0912, PLR0915
@@ -708,7 +708,7 @@ class ELNIRTransmission(IRTransmission, EntryData, PlotSection):
         Method for automatically connecting the instrument based on
         the extracted raw data. Only works if no instrument is already connected.
         """
-        if self.instruments:
+        if self.instruments is not None:
             return
         # add instrument
         instrument_reference = self.get_instrument_reference(data_dict, archive, logger)

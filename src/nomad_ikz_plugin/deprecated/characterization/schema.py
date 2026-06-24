@@ -15,11 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from collections.abc import Callable
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
-    Union,
 )
 
 import numpy as np
@@ -515,7 +514,7 @@ class UVVisNirTransmissionResult(MeasurementResult):
         Returns:
             list[PlotlyFigure]: The plotly figures.
         """
-        figures = []
+        figures: list[PlotlyFigure] = []
         if self.wavelength is None:
             return figures
 
@@ -624,7 +623,7 @@ class ELNUVVisTransmission(UVVisTransmission, PlotSection, EntryData):
         ),
     )
 
-    def get_read_write_functions(self) -> tuple[Callable, Callable]:
+    def get_read_write_functions(self) -> tuple[Callable, Callable] | tuple[None, None]:
         """
         Method for getting the correct read and write functions for the current data file.
 
@@ -666,7 +665,7 @@ class ELNUVVisTransmission(UVVisTransmission, PlotSection, EntryData):
 
     def get_instrument_reference(
         self, data_dict: dict[str, Any], archive: 'EntryArchive', logger: 'BoundLogger'
-    ) -> Union[InstrumentReference, None]:
+    ) -> InstrumentReference | None:
         """
         Method for getting the instrument reference.
         Looks for an existing instrument with the given serial number.

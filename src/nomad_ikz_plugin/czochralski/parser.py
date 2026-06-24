@@ -44,8 +44,8 @@ class CSVFile(EntryData):
 
 class CzParser(MatchingParser):
     def parse(self, mainfile: str, archive: EntryArchive, logger) -> None:
-        data_file = mainfile.split('/')[-1]
-        data_file_with_path = mainfile.split('raw/')[-1]
+        data_file = mainfile.rsplit('/', maxsplit=1)[-1]
+        data_file_with_path = mainfile.rsplit('raw/', maxsplit=1)[-1]
         entry = Sensors()
         entry.data_file = data_file_with_path
         file_name = f'{data_file[:-12]}.archive.json'

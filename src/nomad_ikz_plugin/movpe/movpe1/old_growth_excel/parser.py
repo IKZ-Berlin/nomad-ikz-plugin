@@ -16,6 +16,8 @@
 # limitations under the License.
 #
 
+from typing import Any
+
 import pandas as pd
 from nomad.datamodel.data import (
     EntryData,
@@ -107,8 +109,8 @@ class ParserMovpe1IKZ(MatchingParser):
 
         filetype = 'yaml'
         xlsx = pd.ExcelFile(mainfile)
-        data_file = mainfile.split('/')[-1]
-        data_file_with_path = mainfile.split('raw/')[-1]
+        data_file = mainfile.rsplit('/', maxsplit=1)[-1]
+        data_file_with_path = mainfile.rsplit('raw/', maxsplit=1)[-1]
         # Read the file without headers
         dep_control = pd.read_excel(
             xlsx, 'Deposition Control', comment='#', header=None
@@ -149,7 +151,7 @@ class ParserMovpe1IKZ(MatchingParser):
                 user_id=archive.metadata.main_author.user_id,
             )
             # check if experiment entries are already indexed
-            matches = {
+            matches: dict[str, list[Any]] = {
                 'lab_id': [],
                 'entry_id': [],
                 'entry_name': [],

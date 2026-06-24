@@ -1,27 +1,13 @@
 [build-system]
-requires = [
-    "setuptools>=78",
-    "setuptools-scm>=8.0",
-]
+requires = ["setuptools>=78", "setuptools-scm>=8.0"]
 build-backend = "setuptools.build_meta"
+# backend-path and build-backend ?
+# backend-path = ["src/nomad_ikz_plugin"]
+# build-backend = "_build_wrapper"
 
 [project]
-classifiers = [
-    "Intended Audience :: Developers",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
-    "License :: OSI Approved :: MIT License",
-]
 name = "nomad-ikz-plugin"
 dynamic = ["version"]
-description = "A plugin for NOMAD containing IKZ use cases."
-readme = "README.md"
-requires-python = ">=3.10"
 authors = [
     { name = "Hampus Näsström", email = 'hampus.naesstroem@physik.hu-berlin.de' },
     { name = "Andrea Albino", email = 'andrea.albino@physik.hu-berlin.de' },
@@ -29,7 +15,21 @@ authors = [
     { name = "Sebastian Brückner", email = 'sebastian.brueckner@ikz-berlin.de' },
     { name = "Markus Kühbach", email = 'markus.kuehbach@physik.hu-berlin.de' },
 ]
+description = "A plugin for NOMAD containing IKZ use cases."
+readme = "README.md"
 license = { file = "LICENSE" }
+requires-python = ">=3.10"
+classifiers = [
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
 dependencies = [
     'nomad-lab>=1.4.2',
     'nomad-material-processing',
@@ -37,27 +37,49 @@ dependencies = [
     'nomad-analysis',
     # 'lakeshore-nomad-plugin', # not on pypi but uv.sources
     # 'laytec_epitt_plugin', # not on pypi but uv.sources
-    'brukeropus',
-]
-
-[project.optional-dependencies]
-dev = [
-    "pytest",
-    "ruff",
-    "structlog",
-    "python-logstash>=0.4.6",
+    # 'brukeropus',
 ]
 
 [project.urls]
 "Homepage" = "https://github.com/IKZ-Berlin/nomad-ikz-plugin"
 "Bug Tracker" = "https://github.com/IKZ-Berlin/nomad-ikz-plugin/issues"
 
-[tool.uv]
-index-url = "https://gitlab.mpcdf.mpg.de/api/v4/projects/2187/packages/pypi/simple"
+[project.optional-dependencies]
+dev = [
+    "mypy",
+    "ruff",
+    "pytest",
+    "structlog",
+    "python-logstash>=0.4.6",
+    "pre-commit",
+]
 
 [tool.uv.sources]
 # lakeshore-nomad-plugin = { git = "https://github.com/IKZ-Berlin/lakeshore-nomad-plugin.git", branch = "main" }
 # laytec_epitt_plugin = { git = "https://github.com/IKZ-Berlin/laytec_epitt_nomad_plugin.git", branch = "main" }
+
+[project.entry-points.'nomad.plugin']
+general_schema = "nomad_ikz_plugin.general:schema"
+characterization_schema = "nomad_ikz_plugin.characterization:schema"
+characterization_transmission_parser = "nomad_ikz_plugin.characterization:transmission_parser"
+deprecated_characterization_schema = "nomad_ikz_plugin.deprecated.characterization:schema"
+pld_schema = "nomad_ikz_plugin.pld:schema"
+movpe_schema = "nomad_ikz_plugin.movpe:schema"
+movpe2_growth_excel = "nomad_ikz_plugin.movpe.movpe2.growth_excel:parser"
+movpe1_growth_excel = "nomad_ikz_plugin.movpe.movpe1.growth_excel:parser"
+movpe1_old_growth_excel = "nomad_ikz_plugin.movpe.movpe1.old_growth_excel:parser"
+movpe1_rcp_parser = "nomad_ikz_plugin.movpe.movpe1.rcp:parser"
+substrate_excel_parser = "nomad_ikz_plugin.movpe.substrate:parser"
+mbe_schema = "nomad_ikz_plugin.mbe:schema"
+# dir_sol_schema = "nomad_ikz_plugin.directional_solidification:schema"
+# dir_sol_manual_protocol_excel_parser = "nomad_ikz_plugin.directional_solidification:manual_protocol_parser"
+# dir_sol_digital_protocol_excel_parser = "nomad_ikz_plugin.directional_solidification:digital_protocol_parser"
+czochralski_schema = "nomad_ikz_plugin.czochralski:schema"
+czochralski_multilog_parser = "nomad_ikz_plugin.czochralski:parser"
+movpe_substrate_app = "nomad_ikz_plugin.movpe.movpe_app:movpesubstrateapp"
+movpe_growth_run_app = "nomad_ikz_plugin.movpe.movpe_app:movpegrowthrunapp"
+movpe_layers_app = "nomad_ikz_plugin.movpe.movpe_app:movpelayersapp"
+pld_app = "nomad_ikz_plugin.pld.pld_app:pld_layers_app"
 
 [tool.ruff]
 include = ["src/*.py", "tests/*.py"]
@@ -86,23 +108,18 @@ exclude = [
     "venv",
 ]
 
-# Same as Black.
+# same as black
 line-length = 88
 indent-width = 4
 
-
 [tool.ruff.lint]
 select = [
-    # pycodestyle
-    "E",
-    # Pyflakes
-    "F",
-    # pyupgrade
-    "UP",
-    # isort
-    "I",
-    # pylint
-    "PL",
+    "E", # pycodestyle
+    "F", # Pyflakes
+    "PL", # pylint
+    "UP", # pyupgrade
+    "I",  # sort imports
+    "NPY201", # upgrade to numpy>2
 ]
 
 ignore = [
@@ -120,6 +137,7 @@ ignore = [
     "PLR1714", # consider-using-in
     "PLR5501", # else-if-used
     "F403", # 'from module import *' used; unable to detect undefined names
+    "PLC0415", # import always on top
 ]
 
 fixable = ["ALL"]
@@ -129,16 +147,9 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 # this is entirely optional, you can remove this if you wish to
 [tool.ruff.format]
-# use single quotes for strings.
 quote-style = "single"
-
-# indent with spaces, rather than tabs.
 indent-style = "space"
-
-# Like Black, respect magic trailing commas.
 skip-magic-trailing-comma = false
-
-# Like Black, automatically detect the appropriate line ending.
 line-ending = "auto"
 
 [tool.setuptools]
@@ -147,27 +158,9 @@ package-dir = { "" = "src" }
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[project.entry-points.'nomad.plugin']
-general_schema = "nomad_ikz_plugin.general:schema"
-characterization_schema = "nomad_ikz_plugin.characterization:schema"
-characterization_transmission_parser = "nomad_ikz_plugin.characterization:transmission_parser"
-deprecated_characterization_schema = "nomad_ikz_plugin.deprecated.characterization:schema"
-pld_schema = "nomad_ikz_plugin.pld:schema"
-movpe_schema = "nomad_ikz_plugin.movpe:schema"
-movpe2_growth_excel = "nomad_ikz_plugin.movpe.movpe2.growth_excel:parser"
-movpe1_growth_excel = "nomad_ikz_plugin.movpe.movpe1.growth_excel:parser"
-movpe1_old_growth_excel = "nomad_ikz_plugin.movpe.movpe1.old_growth_excel:parser"
-movpe1_rcp_parser = "nomad_ikz_plugin.movpe.movpe1.rcp:parser"
-substrate_excel_parser = "nomad_ikz_plugin.movpe.substrate:parser"
-mbe_schema = "nomad_ikz_plugin.mbe:schema"
-# dir_sol_schema = "nomad_ikz_plugin.directional_solidification:schema"
-# dir_sol_manual_protocol_excel_parser = "nomad_ikz_plugin.directional_solidification:manual_protocol_parser"
-# dir_sol_digital_protocol_excel_parser = "nomad_ikz_plugin.directional_solidification:digital_protocol_parser"
-czochralski_schema = "nomad_ikz_plugin.czochralski:schema"
-czochralski_multilog_parser = "nomad_ikz_plugin.czochralski:parser"
-movpe_substrate_app = "nomad_ikz_plugin.movpe.movpe_app:movpesubstrateapp"
-movpe_growth_run_app = "nomad_ikz_plugin.movpe.movpe_app:movpegrowthrunapp"
-movpe_layers_app = "nomad_ikz_plugin.movpe.movpe_app:movpelayersapp"
-pld_app = "nomad_ikz_plugin.pld.pld_app:pld_layers_app"
+# [tool.setuptools_scm]
 
-[tool.setuptools_scm]
+ [tool.uv]
+extra-index-url = [
+"https://gitlab.mpcdf.mpg.de/api/v4/projects/2187/packages/pypi/simple",
+]

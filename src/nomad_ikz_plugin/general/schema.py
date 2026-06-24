@@ -372,7 +372,9 @@ class SolutionPreparationIKZ(Process, EntryData):
     """
 
     method = Quantity(
-        type=MEnum('Shaker', 'Ultrasoncic', 'Waiting', 'Stirring'),
+        type=MEnum(
+            'Shaker', 'Ultrasoncic', 'Waiting', 'Stirring'
+        ),  # TODO::Ultrasoncic a typo ?
         shape=[],
         a_eln=dict(
             component='EnumEditQuantity',

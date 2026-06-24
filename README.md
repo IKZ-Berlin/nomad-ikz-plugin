@@ -4,7 +4,7 @@ This directory contains a plugin called `nomad-ikz-plugin` designed for the IKZ 
 
 This a python package that contains several subpackages for each technique.
 
-Check the README within each subfolder for more deatils on each technique.
+Check the README within each subfolder for more details on each technique.
 
 ## Structure
 
@@ -53,12 +53,12 @@ There are at least two ways of installing them, depending on your aim:
     "uv_vis_nir_transmission @ git+https://github.com/FAIRmat-NFDI/AreaA-data_modeling_and_schemas.git@<desired_commit_id>#subdirectory=transmission/transmission_plugin/uv_vis_nir_transmission_plugin",
     "lakeshore-nomad-plugin @ git+https://github.com/IKZ-Berlin/lakeshore-nomad-plugin.git@<desired_commit_id>",
     "laytec_epitt_plugin @ git+https://github.com/IKZ-Berlin/laytec_epitt_nomad_plugin.git@<desired_commit_id>",
-    "statsmodels" 
+    "statsmodels"
     ]
     [tool.uv.sources]
     nomad-ikz-plugin = { git = "https://github.com/IKZ-Berlin/nomad-ikz-plugin.git", rev = "v0.1.2" }
   ```
-  
+
 > [!NOTE]
 > the toml above shows that the `nomad-ikz-plugin` is not bound to a commit, rather to a release
 
@@ -77,7 +77,7 @@ There are at least two ways of installing them, depending on your aim:
   uv add packages/lakeshore-nomad-plugin
   uv add packages/laytec_epitt_nomad_plugin
   uv add packages/nomad-measurements
-  uv add packages/nomad-material-processing 
+  uv add packages/nomad-material-processing
   ```
 
 For more details on what happens in this plugin under the hood, check the `.toml` file in the `nomad-ikz-plugin` folder:

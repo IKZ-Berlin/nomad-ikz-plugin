@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     )
 
 
-def reader_ir_brucker(
+def reader_ir_bruker(
     file_path: str, logger: 'BoundLogger' = None
 ) -> dict[str, Any] | None:
     """
@@ -41,19 +41,18 @@ def reader_ir_brucker(
         dict[str, Any] | None: The transmission data and metadata in a Python
             dictionary.
     """
+    output: defaultdict[str, None] = defaultdict(lambda: None)
+
     if not file_path.endswith('.0'):
         if logger:
             logger.error(f'Unsupported file format: {file_path}')
-            return
         else:
             raise ValueError(f'Unsupported file format: {file_path}')
+        return output
 
     opus_file = read_opus(file_path)
-
-    output = defaultdict(lambda: None)
-
     try:
-        # measurment data
+        # measurement data
         for data in opus_file.iter_data():
             # picks Absorbance (first priority) or Transmittance data
             if data.label not in ['Absorbance', 'Transmittance']:
@@ -93,7 +92,7 @@ def reader_ir_brucker(
         output['source_setting'] = opus_file.params.src
         output['scanner_velocity'] = opus_file.params.vel
 
-        # aquisition settings
+        # acquisition settings
         output['acquisition_mode'] = opus_file.params.aqm
         output['wanted_high_frequency_limit'] = opus_file.params.hfw
         output['wanted_low_frequency_limit'] = opus_file.params.lfw
@@ -101,10 +100,10 @@ def reader_ir_brucker(
         output['result_spectrum'] = opus_file.params.plf
         output['resolution'] = opus_file.params.res
 
-        return output
-
     except Exception as e:
         if logger:
             logger.error(f'Error reading file {file_path}: {e}')
         else:
             raise ValueError(f'Error reading file {file_path}: {e}') from e
+
+    return output

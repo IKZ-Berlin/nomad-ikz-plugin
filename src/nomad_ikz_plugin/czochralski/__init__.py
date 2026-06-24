@@ -16,7 +16,6 @@
 #
 
 from nomad.config.models.plugins import ParserEntryPoint, SchemaPackageEntryPoint
-from pydantic import Field
 
 
 class CzochralskiEntryPoint(SchemaPackageEntryPoint):

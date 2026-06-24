@@ -367,10 +367,8 @@ class GrowthLog(EntryData, Activity):
                     if index < (len(steps) - 1):
                         step_obj = GrowthLogStep()
                         step_lines = steps[index + 1] - step
-                        assert 'L\t' in filelines[steps[index] + 1]
-                        setattr(
-                            step_obj, 'name', filelines[steps[index]].split('\t')[1]
-                        )
+                        assert 'L\t' in filelines[step + 1]
+                        setattr(step_obj, 'name', filelines[step].split('\t')[1])
                         data = pd.read_csv(
                             file.name,
                             encoding='unicode_escape',

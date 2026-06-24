@@ -1,5 +1,4 @@
 from nomad.config.models.plugins import SchemaPackageEntryPoint
-from pydantic import Field
 
 
 class MbeEntryPoint(SchemaPackageEntryPoint):

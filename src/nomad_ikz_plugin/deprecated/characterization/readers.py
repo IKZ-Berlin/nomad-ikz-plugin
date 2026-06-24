@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     )
 
 
-def read_sample_name(metadata: list, logger: 'BoundLogger') -> str:
+def read_sample_name(metadata: list, logger: 'BoundLogger') -> str | None:
     """
     Reads the sample name from the metadata.
 
@@ -47,7 +47,7 @@ def read_sample_name(metadata: list, logger: 'BoundLogger') -> str:
     return metadata[2].split('.')[0]
 
 
-def read_start_datetime(metadata: list, logger: 'BoundLogger') -> str:
+def read_start_datetime(metadata: list, logger: 'BoundLogger') -> str | None:
     """
     Reads the start date from the metadata.
 
@@ -62,15 +62,15 @@ def read_start_datetime(metadata: list, logger: 'BoundLogger') -> str:
         return None
     try:
         century = str(datetime.now().year // 100)
-        formated_date = metadata[3].replace('/', '-')
-        return f'{century}{formated_date}T{metadata[4]}Z'
+        formatted_date = metadata[3].replace('/', '-')
+        return f'{century}{formatted_date}T{metadata[4]}Z'
     except ValueError as e:
         if logger is not None:
             logger.warning(f'Error in reading the start date.\n{e}')
     return None
 
 
-def read_is_d2_lamp_used(metadata: list, logger: 'BoundLogger') -> bool:
+def read_is_d2_lamp_used(metadata: list, logger: 'BoundLogger') -> bool | None:
     """
     Reads whether the D2 lamp was active during the measurement.
 
@@ -91,7 +91,7 @@ def read_is_d2_lamp_used(metadata: list, logger: 'BoundLogger') -> bool:
     return None
 
 
-def read_is_tungsten_lamp_used(metadata: list, logger: 'BoundLogger') -> bool:
+def read_is_tungsten_lamp_used(metadata: list, logger: 'BoundLogger') -> bool | None:
     """
     Reads whether the tungsten lamp was active during the measurement.
 
@@ -112,7 +112,9 @@ def read_is_tungsten_lamp_used(metadata: list, logger: 'BoundLogger') -> bool:
     return None
 
 
-def read_attenuation_percentage(metadata: list, logger) -> dict[str, int]:
+def read_attenuation_percentage(
+    metadata: list, logger
+) -> dict[str, int] | dict[str, None]:
     """
     Reads the sample and reference attenuation percentage from the metadata
 
@@ -139,7 +141,7 @@ def read_attenuation_percentage(metadata: list, logger) -> dict[str, int]:
     return output_dict
 
 
-def read_is_depolarizer_on(metadata: list, logger: 'BoundLogger') -> bool:
+def read_is_depolarizer_on(metadata: list, logger: 'BoundLogger') -> bool | None:
     """
     Reads whether the depolarizer was active during the measurement.
 
@@ -179,7 +181,7 @@ def read_long_line(line: str, logger: 'BoundLogger') -> list:
         list: The list of wavelength-value pairs.
     """
 
-    def try_float(val: str) -> float:
+    def try_float(val: str) -> float | str:
         try:
             return float(val)
         except ValueError:
@@ -269,7 +271,9 @@ def read_detector_nir_gain(metadata: list, logger: 'BoundLogger') -> list:
     return output_list
 
 
-def read_detector_change_wavelength(metadata: list, logger: 'BoundLogger') -> list:
+def read_detector_change_wavelength(
+    metadata: list, logger: 'BoundLogger'
+) -> list | None:
     """
     Reads the detector change wavelength from the metadata.
 
@@ -290,7 +294,7 @@ def read_detector_change_wavelength(metadata: list, logger: 'BoundLogger') -> li
     return None
 
 
-def read_polarizer_angle(metadata: list, logger: 'BoundLogger') -> float:
+def read_polarizer_angle(metadata: list, logger: 'BoundLogger') -> float | None:
     """
     Reads the polarizer angle from the metadata.
 
@@ -311,7 +315,9 @@ def read_polarizer_angle(metadata: list, logger: 'BoundLogger') -> float:
     return None
 
 
-def read_monochromator_change_wavelength(metadata: list, logger: 'BoundLogger') -> list:
+def read_monochromator_change_wavelength(
+    metadata: list, logger: 'BoundLogger'
+) -> list | None:
     """
     Reads the monochromator change wavelength from the metadata.
 
@@ -334,7 +340,7 @@ def read_monochromator_change_wavelength(metadata: list, logger: 'BoundLogger') 
     return None
 
 
-def read_lamp_change_wavelength(metadata: list, logger: 'BoundLogger') -> list:
+def read_lamp_change_wavelength(metadata: list, logger: 'BoundLogger') -> list | None:
     """
     Reads the lamp change wavelength from the metadata.
 
@@ -355,7 +361,7 @@ def read_lamp_change_wavelength(metadata: list, logger: 'BoundLogger') -> list:
     return None
 
 
-def read_detector_module(metadata: list, logger: 'BoundLogger') -> str:
+def read_detector_module(metadata: list, logger: 'BoundLogger') -> str | None:
     """
     Reads the detector module from the metadata
 
