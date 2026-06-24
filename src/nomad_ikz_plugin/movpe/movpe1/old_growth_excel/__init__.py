@@ -24,7 +24,7 @@ class OldExcelParserEntryPoint(ParserEntryPoint):
             ParserMovpe1IKZ,
         )
 
-        return ParserMovpe1IKZ(**self.dict())
+        return ParserMovpe1IKZ(**self.model_dump())
 
 
 parser = OldExcelParserEntryPoint(

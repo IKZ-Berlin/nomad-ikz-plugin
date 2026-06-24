@@ -35,7 +35,7 @@ class CzochralskiParserEntryPoint(ParserEntryPoint):
     def load(self):
         from nomad_ikz_plugin.czochralski.parser import CzParser
 
-        return CzParser(**self.dict())
+        return CzParser(**self.model_dump())
 
 
 parser = CzochralskiParserEntryPoint(

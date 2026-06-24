@@ -22,7 +22,7 @@ class Movpe1RcpParserEntryPoint(ParserEntryPoint):
     def load(self):
         from nomad_ikz_plugin.movpe.movpe1.rcp.parser import ParserMovpe1RcpIKZ
 
-        return ParserMovpe1RcpIKZ(**self.dict())
+        return ParserMovpe1RcpIKZ(**self.model_dump())
 
 
 parser = Movpe1RcpParserEntryPoint(

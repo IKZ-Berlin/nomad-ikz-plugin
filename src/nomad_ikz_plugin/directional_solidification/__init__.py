@@ -37,7 +37,7 @@ class DirSolManualProtocolParserEntryPoint(ParserEntryPoint):
             DSManualProtocolParserIKZ,
         )
 
-        return DSManualProtocolParserIKZ(**self.dict())
+        return DSManualProtocolParserIKZ(**self.model_dump())
 
 
 manual_protocol_parser = DirSolManualProtocolParserEntryPoint(
@@ -54,7 +54,7 @@ class DirSolDigitalProtocolParserEntryPoint(ParserEntryPoint):
             DSDigitalProtocolParserIKZ,
         )
 
-        return DSDigitalProtocolParserIKZ(**self.dict())
+        return DSDigitalProtocolParserIKZ(**self.model_dump())
 
 
 digital_protocol_parser = DirSolDigitalProtocolParserEntryPoint(
