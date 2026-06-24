@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "setuptools>=61.0.0",
+    "setuptools>=78",
     "setuptools-scm>=8.0",
 ]
 build-backend = "setuptools.build_meta"
@@ -13,6 +13,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "License :: OSI Approved :: MIT License",
 ]
 name = "nomad-ikz-plugin"
@@ -25,17 +27,18 @@ authors = [
     { name = "Andrea Albino", email = 'andrea.albino@physik.hu-berlin.de' },
     { name = "Sarthak Kapoor", email = 'sarthak.kapoor@ikz-berlin.de' },
     { name = "Sebastian Brückner", email = 'sebastian.brueckner@ikz-berlin.de' },
+    { name = "Markus Kühbach", email = 'markus.kuehbach@physik.hu-berlin.de' },
 ]
 license = { file = "LICENSE" }
 dependencies = [
-    'nomad-lab>=1.3.14',
+    'nomad-lab>=1.4.2',
     'nomad-material-processing',
     'nomad-measurements',
-    'nomad-analysis', # develop branch
-    'lakeshore-nomad-plugin',
-    'laytec_epitt_plugin',
+    'nomad-analysis',
+    # 'lakeshore-nomad-plugin', # not on pypi but uv.sources
+    # 'laytec_epitt_plugin', # not on pypi but uv.sources
     'brukeropus',
-    ]
+]
 
 [project.optional-dependencies]
 dev = [
@@ -53,8 +56,8 @@ dev = [
 index-url = "https://gitlab.mpcdf.mpg.de/api/v4/projects/2187/packages/pypi/simple"
 
 [tool.uv.sources]
-lakeshore-nomad-plugin = { git = "https://github.com/IKZ-Berlin/lakeshore-nomad-plugin.git", branch = "main" }
-laytec_epitt_plugin = { git = "https://github.com/IKZ-Berlin/laytec_epitt_nomad_plugin.git", branch = "main" }
+# lakeshore-nomad-plugin = { git = "https://github.com/IKZ-Berlin/lakeshore-nomad-plugin.git", branch = "main" }
+# laytec_epitt_plugin = { git = "https://github.com/IKZ-Berlin/laytec_epitt_nomad_plugin.git", branch = "main" }
 
 [tool.ruff]
 include = ["src/*.py", "tests/*.py"]
@@ -157,9 +160,9 @@ movpe1_old_growth_excel = "nomad_ikz_plugin.movpe.movpe1.old_growth_excel:parser
 movpe1_rcp_parser = "nomad_ikz_plugin.movpe.movpe1.rcp:parser"
 substrate_excel_parser = "nomad_ikz_plugin.movpe.substrate:parser"
 mbe_schema = "nomad_ikz_plugin.mbe:schema"
-#dir_sol_schema = "nomad_ikz_plugin.directional_solidification:schema"
-#dir_sol_manual_protocol_excel_parser = "nomad_ikz_plugin.directional_solidification:manual_protocol_parser"
-#dir_sol_digital_protocol_excel_parser = "nomad_ikz_plugin.directional_solidification:digital_protocol_parser"
+# dir_sol_schema = "nomad_ikz_plugin.directional_solidification:schema"
+# dir_sol_manual_protocol_excel_parser = "nomad_ikz_plugin.directional_solidification:manual_protocol_parser"
+# dir_sol_digital_protocol_excel_parser = "nomad_ikz_plugin.directional_solidification:digital_protocol_parser"
 czochralski_schema = "nomad_ikz_plugin.czochralski:schema"
 czochralski_multilog_parser = "nomad_ikz_plugin.czochralski:parser"
 movpe_substrate_app = "nomad_ikz_plugin.movpe.movpe_app:movpesubstrateapp"
