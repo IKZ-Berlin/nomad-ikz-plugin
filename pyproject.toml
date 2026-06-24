@@ -37,7 +37,7 @@ dependencies = [
     'nomad-analysis',
     # 'lakeshore-nomad-plugin', # not on pypi but uv.sources
     # 'laytec_epitt_plugin', # not on pypi but uv.sources
-    # 'brukeropus',
+    'brukeropus',
 ]
 
 [project.urls]
