@@ -1,9 +1,6 @@
 [build-system]
-requires = ["setuptools>=78", "setuptools-scm>=8.0"]
+requires = ["setuptools>=78.1.1", "setuptools-scm[toml]>=8.0"]
 build-backend = "setuptools.build_meta"
-# backend-path and build-backend ?
-# backend-path = ["src/nomad_ikz_plugin"]
-# build-backend = "_build_wrapper"
 
 [project]
 name = "nomad-ikz-plugin"
@@ -165,9 +162,11 @@ package-dir = { "" = "src" }
 [tool.setuptools.packages.find]
 where = ["src"]
 
-# [tool.setuptools_scm]
+[tool.setuptools_scm]
+version_scheme = "no-guess-dev"
+local_scheme = "node-and-date"
 
- [tool.uv]
+[tool.uv]
 extra-index-url = [
 "https://gitlab.mpcdf.mpg.de/api/v4/projects/2187/packages/pypi/simple",
 ]
