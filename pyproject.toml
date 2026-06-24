@@ -152,6 +152,13 @@ indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
 
+[tool.mypy]
+# TODO more linting require, was not able to fix all issues directly
+exclude = '''
+^src/nomad_ikz_plugin/(pld|mbe|characterization)/schema\.py$|
+^src/nomad_ikz_plugin/movpe/movpe2/growth_excel/parser\.py$
+'''
+
 [tool.setuptools]
 package-dir = { "" = "src" }
 
