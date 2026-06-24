@@ -22,7 +22,7 @@ class Movpe2ParserEntryPoint(ParserEntryPoint):
     def load(self):
         from nomad_ikz_plugin.movpe.movpe2.growth_excel.parser import ParserMovpe2IKZ
 
-        return ParserMovpe2IKZ(**self.dict())
+        return ParserMovpe2IKZ(**self.model_dump())
 
 
 parser = Movpe2ParserEntryPoint(

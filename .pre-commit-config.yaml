@@ -1,0 +1,48 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.19
+    hooks:
+      - id: ruff-check
+        files: ^(src/nomad_ikz_plugin|tests)/.*\.py$
+      - id: ruff-format
+        files: ^(src/nomad_ikz_plugin|tests)/.*\.py$
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.20.2
+    hooks:
+      - id: mypy  # static type checking
+        additional_dependencies:
+          - types-PyYAML
+          - types-pytz
+        exclude: |
+          (?x)(
+            ^src/nomad_ikz_plugin/pld/schema\.py$|
+            ^src/nomad_ikz_plugin/mbe/schema\.py$|
+            ^src/nomad_ikz_plugin/characterization/schema\.py$|
+            ^src/nomad_ikz_plugin/movpe/movpe2/growth_excel/parser\.py$|
+          )
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.21.2
+    hooks:
+      - id: pyupgrade
+        args: [--py310-plus]  # modernizes syntax for Python 3.10+
+
+  # - repo: https://github.com/kynan/nbstripout
+  #   rev: 0.9.1
+  #   hooks:
+  #     - id: nbstripout  # removes notebook outputs before committing
+
+  - repo: https://github.com/streetsidesoftware/cspell-cli
+    rev: v10.0.1
+    hooks:
+      - id: cspell  # spellchecking
+        pass_filenames: false
+        args:
+          - --config
+          - cspell.json
+          - README.md
+          # - CITATION.cff
+          - docs/**/*
+          - src/nomad_ikz_plugin/**/*.py
+          - tests/**/*.py

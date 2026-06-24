@@ -224,7 +224,7 @@ class Sensors(TableData, Instrument, EntryData):
         if archive.data.data_file:
             with archive.m_context.raw_file(self.data_file, 'r') as file:
                 data_df = pd.read_csv(file, header=0, skipinitialspace=True, sep=',')
-                logger.info('started nomralization')
+                logger.info('started normalization')
                 print(data_df.keys())
 
 

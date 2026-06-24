@@ -65,22 +65,38 @@ def fixture_parsed_measurement_archive(request):
     returning an `EntryArchive` object. It contains a reference to the `.archive.json`
     file created by plugin parsers for the measurement data. Parsing this
     `.archive.json` file returns the `EntryArchive` object for the measurement data,
-    which is finally yeilded to the test function.
+    which finally yields the test function.
     """
+    # TODO clean-up
+    print(f'>>>> {request}')
+
     rel_file_path = request.param
     file_archive = parse(rel_file_path)[0]
 
     rel_measurement_archive_path = os.path.join(
         rel_file_path.rsplit('.', 1)[0] + '.archive.json'
     )
-    assert file_archive.data.measurement.m_proxy_value == os.path.abspath(
+
+    print(f'{os.getcwd()}')
+    print(f'>>>> {rel_file_path}')
+    print(f'>>>> {os.path.abspath(rel_measurement_archive_path)}')
+    print(f'ark >>>> {file_archive}')
+    print(f'>>>> {file_archive.data}')
+    print(f'>>>> {file_archive.metadata}')
+    print(f'>>>> {file_archive.metadata.entry_name}')
+    print(f'>>>> {file_archive.metadata.mainfile}')
+    print(f'>>>> {file_archive.metadata.domain}')
+    # print(f">>>> {file_archive.data.data_file}")
+    print(f'>>>> {file_archive.data.measurement.m_proxy_value}')
+
+    assert file_archive.metadata.mainfile == os.path.abspath(
         rel_measurement_archive_path
     )
 
     yield parse(rel_measurement_archive_path)[0]
 
-    if os.path.exists(rel_measurement_archive_path):
-        os.remove(rel_measurement_archive_path)
+    # if os.path.exists(rel_measurement_archive_path):
+    #     os.remove(rel_measurement_archive_path)
 
 
 @pytest.fixture(

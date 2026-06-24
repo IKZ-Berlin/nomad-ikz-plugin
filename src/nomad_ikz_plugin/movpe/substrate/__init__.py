@@ -22,13 +22,13 @@ class SubstrateParserEntryPoint(ParserEntryPoint):
     def load(self):
         from nomad_ikz_plugin.movpe.substrate.parser import MovpeSubstrateParser
 
-        return MovpeSubstrateParser(**self.dict())
+        return MovpeSubstrateParser(**self.model_dump())
 
 
 parser = SubstrateParserEntryPoint(
     name='SubstrateParser',
     description='Parse excel files containing substrate parameters logged manually.',
-    mainfile_name_re='.+\.substrates.movpe.ikz.xlsx',
+    mainfile_name_re=r'.+\.substrates\.movpe\.ikz\.xlsx',
     mainfile_mime_re='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     mainfile_contents_dict={
         'Substrate': {

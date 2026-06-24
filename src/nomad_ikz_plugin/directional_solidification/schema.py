@@ -23,13 +23,11 @@ from nomad.datamodel.data import (
     ArchiveSection,
     EntryData,
 )
-from nomad.datamodel.metainfo.annotations import (
-    ELNAnnotation,
-    SectionProperties,
-)
 from nomad.datamodel.hdf5 import HDF5Reference
 from nomad.datamodel.metainfo.annotations import (
+    ELNAnnotation,
     H5WebAnnotation,
+    SectionProperties,
 )
 from nomad.datamodel.metainfo.basesections import (
     Entity,
@@ -317,7 +315,7 @@ class Weighing(Process, EntryData):
     )
     atmosphere = Quantity(
         type=str,
-        description='which atmosphere is choosen for th experiment',
+        description='which atmosphere is chosen for th experiment',
         a_eln={'component': 'StringEditQuantity'},
     )
     oven = Quantity(
@@ -650,7 +648,7 @@ class Concentration(TimeSeries):
     """
 
     m_def = Section(
-        a_h5web=H5WebAnnotation(axes='time', signal='value', long_name='Concentrantion')
+        a_h5web=H5WebAnnotation(axes='time', signal='value', long_name='Concentration')
     )
 
     value = Quantity(

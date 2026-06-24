@@ -4,7 +4,7 @@ import numpy as np
 import plotly.graph_objects as go
 
 # from lakeshore_nomad_plugin.hall.schema import HallMeasurement
-from laytec_epitt_plugin.schema import LayTecEpiTTMeasurement
+# from laytec_epitt_plugin.schema import LayTecEpiTTMeasurement
 from nomad.config import config
 from nomad.datamodel.data import ArchiveSection, EntryData
 from nomad.datamodel.metainfo.annotations import (
@@ -127,15 +127,15 @@ class BubblerPrecursor(PureSubstance, EntryData):
         ),
         unit='kg',
     )
-    total_comsumption = Quantity(
-        type=np.float64,
-        description='FILL DESCRIPTION.',
-        a_eln=ELNAnnotation(
-            component='NumberEditQuantity',
-            defaultDisplayUnit='gram',
-        ),
-        unit='kg',
-    )
+    # total_consumption = Quantity(
+    #     type=np.float64,
+    #     description='FILL DESCRIPTION.',
+    #     a_eln=ELNAnnotation(
+    #         component='NumberEditQuantity',
+    #         defaultDisplayUnit='gram',
+    #     ),
+    #     unit='kg',
+    # )
     a_parameter = Quantity(
         type=np.float64,
         description='The A parameter of Antoine equation. Dimensionless.',
@@ -537,19 +537,20 @@ class PrecursorsPreparationIKZReference(ActivityReference):
     )
 
 
-class InSituMonitoringReference(SectionReference):
-    """
-    A section used for referencing a InSituMonitoring.
-    """
-
-    reference = Quantity(
-        type=LayTecEpiTTMeasurement,
-        description='A reference to a NOMAD `InSituMonitoring` entry.',
-        a_eln=ELNAnnotation(
-            component='ReferenceEditQuantity',
-            label='In situ Monitoring Reference',
-        ),
-    )
+# TODO: temporarily deactivated for composing v0.2
+# class InSituMonitoringReference(SectionReference):
+#     """
+#     A section used for referencing a InSituMonitoring.
+#     """
+#
+#     reference = Quantity(
+#         type=LayTecEpiTTMeasurement,
+#         description='A reference to a NOMAD `InSituMonitoring` entry.',
+#         a_eln=ELNAnnotation(
+#             component='ReferenceEditQuantity',
+#             label='In situ Monitoring Reference',
+#         ),
+#     )
 
 
 class HallMeasurementReference(SectionReference):
@@ -679,10 +680,10 @@ class CharacterizationMovpe(ArchiveSection):
         section_def=XRDmeasurementReference,
         repeats=True,
     )
-    in_situ_reflectance = SubSection(
-        section_def=InSituMonitoringReference,
-        repeats=True,
-    )
+    # in_situ_reflectance = SubSection(
+    #     section_def=InSituMonitoringReference,
+    #     repeats=True,
+    # )
     hall = SubSection(
         section_def=HallMeasurementReference,
         repeats=True,
@@ -876,9 +877,9 @@ class SampleParametersMovpe(SampleParameters):
     laytec_temperature = SubSection(
         section_def=LayTecTemperature,
     )
-    in_situ_reflectance = SubSection(
-        section_def=InSituMonitoringReference,
-    )
+    # in_situ_reflectance = SubSection(
+    #     section_def=InSituMonitoringReference,
+    # )
 
 
 class GrowthStepMovpeIKZ(VaporDepositionStep, PlotSection):
@@ -917,9 +918,9 @@ class GrowthStepMovpeIKZ(VaporDepositionStep, PlotSection):
     environment = SubSection(
         section_def=ChamberEnvironmentMovpe,
     )
-    in_situ_reflectance = SubSection(
-        section_def=InSituMonitoringReference,
-    )
+    # in_situ_reflectance = SubSection(
+    #     section_def=InSituMonitoringReference,
+    # )
 
     # def normalize(self, archive, logger):
     #     super().normalize(archive, logger)

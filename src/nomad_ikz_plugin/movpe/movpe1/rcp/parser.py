@@ -91,7 +91,7 @@ class ParserMovpe1RcpIKZ(MatchingParser):
         process_data = GrowthMovpeIKZ(
             name=mainfile.split('/')[-3],
             lab_id=mainfile.split('/')[-3],
-            description=f"parsed from recipe file '{mainfile.split('/')[-1]}'",
+            description=f"parsed from recipe file '{mainfile.rsplit('/', maxsplit=1)[-1]}'",
         )
 
         with open(mainfile, encoding='utf-8') as file:
@@ -398,7 +398,9 @@ class ParserMovpe1RcpIKZ(MatchingParser):
 
                 line = file.readline()
 
-        process_filename = f'{mainfile.split("/")[-1][:-4]}.archive.{filetype}'
+        process_filename = (
+            f'{mainfile.rsplit("/", maxsplit=1)[-1][:-4]}.archive.{filetype}'
+        )
         process_archive = EntryArchive(
             data=process_data,
             m_context=archive.m_context,
@@ -525,5 +527,6 @@ class ParserMovpe1RcpIKZ(MatchingParser):
 
         # populate the raw file archive
         archive.data = RcpFileMovpe1(
-            name=mainfile.split('/')[-1], recipe_file=mainfile.split('/')[-1]
+            name=mainfile.rsplit('/', maxsplit=1)[-1],
+            recipe_file=mainfile.rsplit('/', maxsplit=1)[-1],
         )

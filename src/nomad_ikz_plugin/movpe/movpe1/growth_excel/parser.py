@@ -17,6 +17,7 @@
 #
 import os
 import time
+from typing import Any
 
 import pandas as pd
 import yaml
@@ -159,8 +160,8 @@ class ParserMovpe1IKZ(MatchingParser):
 
         filetype = 'yaml'
         xlsx = pd.ExcelFile(mainfile)
-        data_file = mainfile.split('/')[-1]
-        data_file_with_path = mainfile.split('raw/')[-1]
+        data_file = mainfile.rsplit('/', maxsplit=1)[-1]
+        data_file_with_path = mainfile.rsplit('raw/', maxsplit=1)[-1]
         # Read the file without headers
         parameter_sheet = pd.read_excel(
             xlsx,
@@ -177,7 +178,7 @@ class ParserMovpe1IKZ(MatchingParser):
             )
             return
 
-        deposition_control_list = []
+        deposition_control_list: list[Any] = []
 
         for index, sample_id in enumerate(parameter_sheet['Sample ID']):
             # find a growth run archive parsed by the rcp parser.
@@ -234,7 +235,7 @@ class ParserMovpe1IKZ(MatchingParser):
                 user_id=archive.metadata.main_author.user_id,
             )
             # check if experiment entries are already indexed
-            matches = {
+            matches: dict[str, list[Any]] = {
                 'lab_id': [],
                 'entry_id': [],
                 'entry_name': [],
@@ -304,13 +305,13 @@ class ParserMovpe1IKZ(MatchingParser):
                 )
 
                 # parsing arrays from excel file
-                precursor = str(parameter_sheet['Ar uniform/sccm'].loc[index])
-                date = str(parameter_sheet['Datum'].loc[index])
+                # precursor = str(parameter_sheet['Ar uniform/sccm'].loc[index])
+                # date = str(parameter_sheet['Datum'].loc[index])
                 deposition_step_no = int(parameter_sheet['number'].loc[index])
                 # TODO check the setvals equals the one in growth run archive from the rcp file
-                fil_temp_setval = pd.Series(
-                    [parameter_sheet['Software temp °C'].loc[index]]
-                )
+                # fil_temp_setval = pd.Series(
+                #     [parameter_sheet['Software temp °C'].loc[index]]
+                # )
                 fil_temp_time = (
                     pd.Series([0, 2, 30, 50, 120])
                     * ureg('minute').to('second').magnitude
@@ -325,19 +326,19 @@ class ParserMovpe1IKZ(MatchingParser):
                     ]
                 )
                 # TODO check the setvals equals the one in growth run archive from the rcp file
-                shaft_temp_setval = pd.Series(
-                    [parameter_sheet['Shaft temp °C'].loc[index]]
-                )
-                ti_molar_conc = parameter_sheet['Ti conc (molar)'].loc[index]
-                ti_mass = parameter_sheet['Ti m in g'].loc[index]
-                ca_molar_conc = parameter_sheet['Ca conc (molar)'].loc[index]
-                ca_ba_mass_ratio = parameter_sheet['Ca/Ba m in g'].loc[index]
-                sr_mass = parameter_sheet['Sr m in mg'].loc[index]
-                ca_weigth_percent = parameter_sheet['wt.% Ca'].loc[index]
-                la_mass = parameter_sheet['La m in mg'].loc[index]
-                la_weigth_percent = parameter_sheet['wt.% La'].loc[index]
-                conc_ratio_a_ti = parameter_sheet['c(A-cation)/c(Ti)'].loc[index]
-                vol_toluol = parameter_sheet['Volume Toluol in ml'].loc[index]
+                # shaft_temp_setval = pd.Series(
+                #     [parameter_sheet['Shaft temp °C'].loc[index]]
+                # )
+                # ti_molar_conc = parameter_sheet['Ti conc (molar)'].loc[index]
+                # ti_mass = parameter_sheet['Ti m in g'].loc[index]
+                # ca_molar_conc = parameter_sheet['Ca conc (molar)'].loc[index]
+                # ca_ba_mass_ratio = parameter_sheet['Ca/Ba m in g'].loc[index]
+                # sr_mass = parameter_sheet['Sr m in mg'].loc[index]
+                # ca_weigth_percent = parameter_sheet['wt.% Ca'].loc[index]
+                # la_mass = parameter_sheet['La m in mg'].loc[index]
+                # la_weigth_percent = parameter_sheet['wt.% La'].loc[index]
+                # conc_ratio_a_ti = parameter_sheet['c(A-cation)/c(Ti)'].loc[index]
+                # vol_toluol = parameter_sheet['Volume Toluol in ml'].loc[index]
 
                 flow_line_1_ti = pd.Series(
                     [parameter_sheet['flow line 1 (Ti)'].loc[index]]
@@ -346,19 +347,19 @@ class ParserMovpe1IKZ(MatchingParser):
                     [parameter_sheet['flow line 2 (Ca)'].loc[index]]
                 )
                 # TODO check the setvals equals the one in growth run archive from the rcp file
-                uniform_setval = pd.Series(
-                    [
-                        parameter_sheet['Ar uniform/sccm'].loc[index]
-                        * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude
-                    ]
-                )
+                # uniform_setval = pd.Series(
+                #     [
+                #         parameter_sheet['Ar uniform/sccm'].loc[index]
+                #         * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude
+                #     ]
+                # )
                 # TODO check the setvals equals the one in growth run archive from the rcp file
-                ox_flow_setval = pd.Series(
-                    [
-                        parameter_sheet['O2/sccm'].loc[index]
-                        * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude
-                    ]
-                )
+                # ox_flow_setval = pd.Series(
+                #     [
+                #         parameter_sheet['O2/sccm'].loc[index]
+                #         * ureg('cm ** 3 / minute').to('meter ** 3 / second').magnitude
+                #     ]
+                # )
                 ox_temp_time = (
                     pd.Series([0, 2, 60, 90, 140])
                     * ureg('minute').to('second').magnitude
@@ -373,10 +374,10 @@ class ParserMovpe1IKZ(MatchingParser):
                     ]
                 )
                 # TODO WARNING! It is not clear whether this push and purge belong to the FE1 or FE2
-                ar_push_flow = parameter_sheet['Ar push/sccm '].loc[index]
-                ar_purge_flow = parameter_sheet['Ar purge/sccm'].loc[index]
+                # ar_push_flow = parameter_sheet['Ar push/sccm '].loc[index]
+                # ar_purge_flow = parameter_sheet['Ar purge/sccm'].loc[index]
                 # TODO check if it matches the timing from rcp file
-                deposition_time = parameter_sheet['dep time in min'].loc[index]
+                # deposition_time = parameter_sheet['dep time in min'].loc[index]
 
                 fe1_back_press_time = (
                     pd.Series([0, 2, 60, 90, 140])
@@ -392,7 +393,7 @@ class ParserMovpe1IKZ(MatchingParser):
                     ]
                 )
                 # TODO check the setvals equals the one in growth run archive from the rcp file
-                fe1_temp_setval = parameter_sheet['FE1 temp °C'].loc[index]
+                # fe1_temp_setval = parameter_sheet['FE1 temp °C'].loc[index]
 
                 fe2_back_press_time = (
                     pd.Series([0, 2, 60, 90, 140])
@@ -408,7 +409,7 @@ class ParserMovpe1IKZ(MatchingParser):
                     ]
                 )
                 # TODO check the setvals equals the one in growth run archive from the rcp file
-                fe2_temp_setval = parameter_sheet['FE2 temp °C'].loc[index]
+                # fe2_temp_setval = parameter_sheet['FE2 temp °C'].loc[index]
 
                 throttle_time = (
                     pd.Series([0, 2, 60, 90, 140])
@@ -432,9 +433,9 @@ class ParserMovpe1IKZ(MatchingParser):
                     ]
                 )
                 # TODO check the setvals equals the one in growth run archive from the rcp file
-                reactor_pressure_setval = pd.Series(
-                    [parameter_sheet['reactor in mbar'].loc[index]]
-                )
+                # reactor_pressure_setval = pd.Series(
+                #     [parameter_sheet['reactor in mbar'].loc[index]]
+                # )
                 reactor_pressure_time = (
                     pd.Series([0, 2, 60, 90, 140])
                     * ureg('minute').to('second').magnitude
@@ -449,9 +450,9 @@ class ParserMovpe1IKZ(MatchingParser):
                     ]
                 )
                 # TODO check the setvals equals the one in growth run archive from the rcp file
-                rotation_setval = pd.Series(
-                    [parameter_sheet['rotation pro min'].loc[index]]
-                )
+                # rotation_setval = pd.Series(
+                #     [parameter_sheet['rotation pro min'].loc[index]]
+                # )
                 rotation_time = (
                     pd.Series([0, 2, 60, 90, 140])
                     * ureg('minute').to('second').magnitude

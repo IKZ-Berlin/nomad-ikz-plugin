@@ -92,8 +92,8 @@ class RawFileSubstrateInventory(EntryData):
 class MovpeSubstrateParser(MatchingParser):
     def parse(self, mainfile: str, archive: EntryArchive, logger) -> None:
         filetype = 'yaml'
-        data_file = mainfile.split('/')[-1]
-        data_file_with_path = mainfile.split('raw/')[-1]
+        data_file = mainfile.rsplit('/', maxsplit=1)[-1]
+        data_file_with_path = mainfile.rsplit('raw/', maxsplit=1)[-1]
         xlsx = pd.ExcelFile(mainfile)
         substrates_file = pd.read_excel(
             xlsx,

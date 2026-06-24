@@ -16,7 +16,6 @@
 #
 
 from nomad.config.models.plugins import SchemaPackageEntryPoint
-from pydantic import Field
 
 
 class PldEntryPoint(SchemaPackageEntryPoint):

@@ -15,51 +15,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import io
-from collections.abc import Iterable
 from datetime import datetime
-from typing import Union
 from zoneinfo import ZoneInfo
-import h5py
 
-from nomad.datamodel.hdf5 import HDF5Reference
+import h5py
+import numpy as np
+import pandas as pd
+from nomad.datamodel.data import EntryData
+from nomad.datamodel.datamodel import EntryArchive, EntryMetadata
 from nomad.metainfo import (
     Quantity,
 )
-
-import pandas as pd
-import numpy as np
-from nomad.datamodel.datamodel import EntryArchive, EntryMetadata
-from nomad.datamodel.data import ArchiveSection, EntryData
 from nomad.parsing import MatchingParser
 from nomad.units import ureg
-from nomad_material_processing.utils import create_archive
 
+# from nomad_material_processing.utils import create_archive
 from nomad_ikz_plugin.directional_solidification.schema import (
+    PP1,
+    Concentration,
+    CrucibleBottom,
     DirectionalSolidificationExperiment,
-    Trafo,
-    HeaterCoil,
-    HeaterAcCurrent,
-    HeaterDcCurrent,
-    HeaterFrequency,
-    HeaterPhase,
-    HeaterPower,
-    HeaterTemperature,
-    HeaterAcCurrentDP,
-    HeaterDcCurrentDP,
-    HeaterFrequencyDP,
-    HeaterPhaseDP,
-    HeaterPowerDP,
-    HeaterTemperatureDP,
     DSProtocol,
     DSProtocolReference,
-    HeaterParameters,
-    Resistance,
     GasFlux,
+    HeaterAcCurrent,
+    HeaterAcCurrentDP,
+    HeaterCoil,
+    HeaterDcCurrent,
+    HeaterDcCurrentDP,
+    HeaterFrequency,
+    HeaterFrequencyDP,
+    HeaterParameters,
+    HeaterPhase,
+    HeaterPhaseDP,
+    HeaterPower,
+    HeaterPowerDP,
+    HeaterTemperature,
+    HeaterTemperatureDP,
     Pressure,
-    Concentration,
-    PP1,
-    CrucibleBottom,
+    Resistance,
+    Trafo,
 )
 from nomad_ikz_plugin.utils import (
     create_archive,
@@ -82,8 +77,7 @@ def fill_datetime(date: pd.Series):
 
 class DSManualProtocolParserIKZ(MatchingParser):
     def parse(self, mainfile: str, archive: EntryArchive, logger) -> None:
-        data_file = mainfile.split('/')[-1]
-        data_file_with_path = mainfile.split('raw/')[-1]
+        data_file = mainfile.rsplit('/', maxsplit=1)[-1]
         xlsx = pd.ExcelFile(mainfile)
         xlsx_sheet = pd.read_excel(
             xlsx,
@@ -281,8 +275,8 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
         archive: EntryArchive,
         logger,
     ) -> None:
-        data_file = mainfile.split('/')[-1]
-        data_file_with_path = mainfile.split('raw/')[-1]
+        data_file = mainfile.rsplit('/', maxsplit=1)[-1]
+        data_file_with_path = mainfile.rsplit('raw/', maxsplit=1)[-1]
 
         df_csv = pd.read_csv(mainfile, sep=';', decimal=',', engine='python')
         # delete the repeated Time columns in csv
@@ -386,7 +380,7 @@ class DSDigitalProtocolParserIKZ(MatchingParser):
                             any(s in name for s in heaters_params)
                             and 'time' not in name
                         ):
-                            heater_number = str(name)[-1]
+                            heater_number = int(str(name)[-1])
                             group_name = f'heater_{heater_number}'
                             hdf[f'/{group_name}/{name}'] = hdf[
                                 f'/all_parameters/{name}/value'

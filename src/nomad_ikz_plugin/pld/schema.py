@@ -22,7 +22,6 @@ import re
 from typing import (
     TYPE_CHECKING,
     Any,
-    Union,
 )
 
 import numpy as np
@@ -223,7 +222,7 @@ class IKZPLDSubstrate(CrystallineSubstrate, IKZPLDPossibleSubstrate, EntryData):
         if (
             self.crystal_properties is not None
             and self.crystal_properties.surface_orientation is not None
-        ):
+        ):  # type: ignore
             return
 
         import json
@@ -665,7 +664,7 @@ class IKZPLDStep(PLDStep):
                 ]
 
 
-def time_convert(x: Union[str, int]) -> int:
+def time_convert(x: str | int) -> int:
     """
     Help function for converting time stamps in log file to seconds.
 
@@ -984,7 +983,7 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
                 match['datetime'],
                 r'%d%m%Y_%H%M',
             ).astimezone()
-            if not self.name:
+            if not self.name:  # type: ignore
                 self.name = match['name']
             if self.process_identifiers is None:
                 self.process_identifiers = ReadableIdentifiers(
@@ -1083,7 +1082,7 @@ class IKZPulsedLaserDeposition(PulsedLaserDeposition, PlotSection, EntryData):
                 data.loc[p2_range, 'pressure_mbar'] = data.loc[
                     p2_range, 'pressure2_mbar'
                 ]
-                mean_laser_energy = data['laser_energy_mj'].replace(0, np.NaN).mean()
+                mean_laser_energy = data['laser_energy_mj'].replace(0, np.nan).mean()
                 if np.isnan(mean_laser_energy):
                     attenuation = 1
                 else:

@@ -17,6 +17,7 @@
 #
 
 from time import sleep
+from typing import Any
 
 import pandas as pd
 from nomad.datamodel.data import (
@@ -95,22 +96,19 @@ class ParserMovpe2IKZ(MatchingParser):
         """
 
         filetype = 'yaml'
-        data_file = mainfile.split('/')[-1]
+        data_file = mainfile.rsplit('/', maxsplit=1)[-1]
         growth_run_file = pd.read_excel(mainfile, comment='#')
-        recipe_ids = list(
-            set(
-                growth_run_file['Recipe Name']
-                if 'Recipe Name' in growth_run_file.columns
-                else None
-            )
-        )
+        if 'Recipe Name' in growth_run_file.columns:
+            recipe_ids = list(set(growth_run_file['Recipe Name']))
+        else:
+            recipe_ids = []
 
         # initializing experiments dict
         growth_processes: dict[str, GrowthMovpeIKZ] = {}
         # initializing steps dict
         process_steps_lists: dict[str, dict[str, GrowthStepMovpeIKZ]] = {}
         # initializing samples dict
-        samples_lists: dict[str, dict[str, list]] = {}
+        samples_lists: dict[str, dict[str, list[Any]]] = {}
 
         for index, sample_id in enumerate(growth_run_file['Sample Name']):
             recipe_id = (
